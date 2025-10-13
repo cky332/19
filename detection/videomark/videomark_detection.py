@@ -21,7 +21,7 @@ from detection.base import BaseDetector
 from ldpc import bp_decoder
 from galois import FieldArray
 import sys        
-from Levenshtein import distance
+from Levenshtein import hamming
 
 class VideoMarkDetector(BaseDetector):
     
@@ -42,7 +42,8 @@ class VideoMarkDetector(BaseDetector):
         self.var = var
         self.decoding_key = decoding_key
         self.GF = GF
-        
+        self.threshold = threshold
+
     def _recover_posteriors(self, z, basis=None, variances=None):
         if variances is None:
             default_variance = 1.5
@@ -141,29 +142,41 @@ class VideoMarkDetector(BaseDetector):
         return ''.join(map(str, bits))
 
     def recover(self, idx_list, message_list, distance_list, message_length):
-        """Recover the original message sequence from indices, messages, and distances."""
-        valid_entries = [(idx, msg, dist) 
-                        for idx, msg, dist in zip(idx_list, message_list, distance_list) 
-                        if idx != -1]
+        """
+        Recover the original message sequence from indices, messages, and distances.
+
+        - If idx != -1: use sorted valid entries (normal recovery)
+        - If idx == -1: use the original message_list and distance_list directly
+        """
+
+        valid_entries = [
+            (idx, msg, dist)
+            for idx, msg, dist in zip(idx_list, message_list, distance_list)
+            if idx != -1
+        ]
         valid_entries.sort(key=lambda x: x[0])
 
         sorted_order, recovered_message, recovered_distance = [], [], []
-        valid_idx = 0
+        valid_idx = 0 
 
-        for idx in idx_list:
+        for i, idx in enumerate(idx_list):
             if idx == -1:
+                
                 sorted_order.append(-1)
-                recovered_message.append([-1] * message_length)
-                recovered_distance.append(message_length)
+                recovered_message.append(message_list[i])
+                recovered_distance.append(distance_list[i])
             else:
                 sorted_order.append(valid_entries[valid_idx][0])
                 recovered_message.append(valid_entries[valid_idx][1])
                 recovered_distance.append(valid_entries[valid_idx][2])
                 valid_idx += 1
 
-        return (np.array(sorted_order),
-                np.array(recovered_message),
-                np.array(recovered_distance))
+        return (
+            np.array(sorted_order),
+            np.array(recovered_message),
+            np.array(recovered_distance)
+        )
+
 
 
 
@@ -183,29 +196,38 @@ class VideoMarkDetector(BaseDetector):
             ).flatten().cpu()
             self.recovered_prc = reversed_prc
 
-            # Detect & Decode
-            if not self._detect_watermark(reversed_prc):
+            # Decode & Detect 
+            """if not self._detect_watermark(reversed_prc):
                 decode_message = np.full((1, message_length), -1)
                 decode_message_str = "<message_placeholder>"
             else:
                 decode_message = self._decode_message(reversed_prc)
                 decode_message_str = self.bits_to_string(decode_message)
+            """
+            detect_result = self._detect_watermark(reversed_prc)
+            decode_message = self._decode_message(reversed_prc)
+            decode_message_str = self.bits_to_string(decode_message)
 
-            # Temporal Message Matching (TMM)
-            distances = np.array([distance(decode_message_str, msg) for msg in message_sequence_str])
+            # Normalized Hamming Distance
+            distances = np.array([
+                2 * (hamming(decode_message_str, msg) / len(msg) - 0.5 )
+                for msg in message_sequence_str
+            ])
             min_distance = distances.min()
-            idx = -1 if np.all(distances == distances[0]) else distances.argmin()
+            idx = -1 if not detect_result else distances.argmin()
 
             message_list.append(decode_message)
             distance_list.append(min_distance)
             idx_list.append(idx)
 
+        # Temporal Message Matching (TMM)
         recovered_index, recovered_message, recovered_distance = self.recover(
             idx_list, message_list, distance_list, message_length
         )
         bit_acc = np.mean(recovered_message == self.watermark[1:])
 
         return {
+            'is_watermark' : float(bit_acc) >= self.threshold,
             "bit_acc": float(bit_acc),
             "recovered_index": recovered_index,
             "recovered_message": recovered_message,

@@ -5,7 +5,7 @@
     "var": 1.5,
     "sequence_length": 1000,
     "message_length" : 32,
-    "threshold": 0.5,
+    "threshold": 0.85,
     "keygen":{
         "gen_matrix_seed": 42,
         "indice_seed":43,

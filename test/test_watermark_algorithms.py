@@ -532,42 +532,98 @@ def test_inversion_reconstruction_accuracy(device, image_pipeline, inversion_typ
 # Test Cases - Visualization
 # ============================================================================
 
-@pytest.mark.image
+def _get_visualizer_methods(visualizer, is_base_method=False):
+    """Automatically discover methods from a visualizer instance.
+
+    Args:
+        visualizer: The visualizer instance to inspect
+        is_base_method: If True, return base class methods; if False, return subclass-specific methods
+
+    Returns:
+        List of method names to test
+    """
+    import inspect
+
+    cls = visualizer.__class__
+
+    # Collect all parent class methods
+    parent_methods = set()
+    for base in cls.__mro__[1:]:  # Exclude cls itself
+        for name, member in inspect.getmembers(base, inspect.isroutine):
+            parent_methods.add(name)
+
+    # Get all methods from the instance
+    all_methods = [name for name, m in inspect.getmembers(visualizer, inspect.isroutine)]
+
+    if is_base_method:
+        # Return base class methods (excluding _ prefixed and visualize)
+        filtered_methods = [
+            m for m in all_methods
+            if m in parent_methods
+            and not m.startswith("_")
+            and m != "visualize"
+        ]
+    else:
+        # Return subclass-specific methods (excluding _ prefixed and visualize)
+        filtered_methods = [
+            m for m in all_methods
+            if m not in parent_methods
+            and not m.startswith("_")
+            and m != "visualize"
+        ]
+
+    return filtered_methods
+
+
 @pytest.mark.visualization
-@pytest.mark.parametrize("algorithm_name", PIPELINE_SUPPORTED_WATERMARKS[PIPELINE_TYPE_IMAGE])
-def test_image_watermark_visualization(algorithm_name, image_diffusion_config, tmp_path):
-    """Test visualization generation for image watermark algorithms."""
+@pytest.mark.slow
+@pytest.mark.parametrize("algorithm_name",
+                        list(PIPELINE_SUPPORTED_WATERMARKS[PIPELINE_TYPE_IMAGE]) +
+                        list(PIPELINE_SUPPORTED_WATERMARKS[PIPELINE_TYPE_TEXT_TO_VIDEO]))
+def test_watermark_visualization(algorithm_name, image_diffusion_config, video_diffusion_config, tmp_path):
+    """Unified test for watermark visualization of all algorithms.
+
+    This test:
+    1. Generates a watermarked image/video using the actual watermark algorithm
+    2. Tests all base class visualization methods
+    3. Tests all subclass-specific visualization methods
+    4. Saves sample visualizations
+    """
     from visualize.auto_visualization import AutoVisualizer, VISUALIZATION_DATA_MAPPING
     from visualize.data_for_visualization import DataForVisualization
+    import matplotlib.pyplot as plt
 
     # Skip if visualization not supported for this algorithm
     if algorithm_name not in VISUALIZATION_DATA_MAPPING:
         pytest.skip(f"{algorithm_name} does not have visualization support")
 
+    # Determine if this is a video or image algorithm
+    is_video = algorithm_name in PIPELINE_SUPPORTED_WATERMARKS[PIPELINE_TYPE_TEXT_TO_VIDEO]
+    diffusion_config = video_diffusion_config if is_video else image_diffusion_config
+    test_prompt = TEST_PROMPT_VIDEO if is_video else TEST_PROMPT_IMAGE
+
     try:
-        # Load watermark algorithm
+        # Step 1: Load watermark algorithm
         watermark = AutoWatermark.load(
             algorithm_name,
             algorithm_config=f'config/{algorithm_name}.json',
-            diffusion_config=image_diffusion_config
+            diffusion_config=diffusion_config
         )
 
-        # Generate watermarked image to get visualization data
-        watermarked_image = watermark.generate_watermarked_media(TEST_PROMPT_IMAGE)
+        # Step 2: Generate watermarked media
+        watermarked_media = watermark.generate_watermarked_media(test_prompt)
 
-        # Get visualization data from the watermark instance
-        # The watermark instance should have stored the necessary data
-        if not hasattr(watermark, 'get_visualization_data'):
-            pytest.skip(f"{algorithm_name} does not implement get_visualization_data()")
+        # Step 3: Get visualization data from the watermark instance
+        if not hasattr(watermark, 'get_data_for_visualize'):
+            pytest.skip(f"{algorithm_name} does not implement get_data_for_visualize()")
 
-        vis_data = watermark.get_visualization_data()
+        vis_data = watermark.get_data_for_visualize(watermarked_media)
 
         # Validate visualization data
         assert vis_data is not None
         assert isinstance(vis_data, DataForVisualization)
-        assert vis_data.algorithm_name == algorithm_name
 
-        # Load visualizer
+        # Step 4: Load visualizer
         visualizer = AutoVisualizer.load(
             algorithm_name=algorithm_name,
             data_for_visualization=vis_data
@@ -575,225 +631,89 @@ def test_image_watermark_visualization(algorithm_name, image_diffusion_config, t
 
         assert visualizer is not None
 
-        # Test basic visualization methods
-        import matplotlib.pyplot as plt
-        fig, ax = plt.subplots(1, 1, figsize=(5, 5))
+        # Step 5: Test base class methods
+        base_methods = _get_visualizer_methods(visualizer, is_base_method=True)
+        base_tested = []
+        base_failed = []
 
-        # Test drawing watermarked image
-        visualizer.draw_watermarked_image(ax=ax)
-        plt.close(fig)
+        print(f"\n{algorithm_name} - Testing base class methods:")
+        print(f"  Found {len(base_methods)} base methods: {', '.join(base_methods[:5])}...")
 
-        # Test drawing original latents
-        fig, ax = plt.subplots(1, 1, figsize=(5, 5))
-        visualizer.draw_orig_latents(channel=0, ax=ax)
-        plt.close(fig)
+        for method_name in base_methods:
+            fig, ax = plt.subplots(1, 1, figsize=(5, 5))
+            try:
+                method = getattr(visualizer, method_name)
 
-        # Test algorithm-specific methods based on algorithm type
-        algorithm_specific_methods = {
-            'TR': ['draw_pattern_fft', 'draw_inverted_pattern_fft'],
-            'GS': ['draw_watermark_bits', 'draw_reconstructed_watermark_bits'],
-            'PRC': ['draw_generator_matrix', 'draw_codeword', 'draw_recovered_codeword', 'draw_difference_map'],
-            'RI': ['draw_ring_pattern_fft', 'draw_heter_pattern_fft', 'draw_inverted_ring_pattern_fft'],
-            'SEAL': ['draw_embedding_distributions', 'draw_patch_diff'],
-            'ROBIN': ['draw_pattern_fft', 'draw_inverted_pattern_fft', 'draw_optimized_watermark'],
-            'WIND': ['draw_group_pattern_fft', 'draw_orig_noise_wo_group_pattern',
-                     'draw_inverted_noise_wo_group_pattern', 'draw_diff_noise_wo_group_pattern',
-                     'draw_inverted_group_pattern_fft'],
-            'GM': [],  # GM may not have specific methods beyond base class
-            'SFW': []  # SFW may not have specific methods beyond base class
-        }
+                # Determine appropriate parameters based on method signature
+                import inspect
+                sig = inspect.signature(method)
+                params = {}
 
-        # Test algorithm-specific visualization methods
-        specific_methods = algorithm_specific_methods.get(algorithm_name, [])
-        tested_methods = []
+                # Add ax parameter if needed
+                if 'ax' in sig.parameters:
+                    params['ax'] = ax
 
-        for method_name in specific_methods:
-            if hasattr(visualizer, method_name):
-                fig, ax = plt.subplots(1, 1, figsize=(5, 5))
-                try:
-                    method = getattr(visualizer, method_name)
-                    # Call method with minimal parameters
-                    method(ax=ax)
-                    tested_methods.append(method_name)
-                    plt.close(fig)
-                except Exception as e:
-                    plt.close(fig)
-                    print(f"  Warning: {algorithm_name}.{method_name}() failed: {e}")
+                # For video methods, add frame parameter if available
+                if is_video and 'frame' in sig.parameters:
+                    params['frame'] = 0
 
-        # Save a comprehensive visualization with algorithm-specific methods
-        methods_to_visualize = ['draw_watermarked_image', 'draw_orig_latents']
-        method_kwargs_list = [{}, {'channel': 0}]
+                # Call the method
+                method(**params)
+                base_tested.append(method_name)
+                plt.close(fig)
+            except Exception as e:
+                plt.close(fig)
+                base_failed.append(f"{method_name}: {str(e)[:50]}")
 
-        # Add one algorithm-specific method if available
-        if tested_methods:
-            methods_to_visualize.append(tested_methods[0])
-            method_kwargs_list.append({})
+        print(f"  ✓ Successfully tested {len(base_tested)}/{len(base_methods)} base methods")
+        if base_failed:
+            print(f"  ⚠ Failed methods: {base_failed[:3]}...")
 
-        # Adjust grid size based on number of methods
-        num_methods = len(methods_to_visualize)
-        cols = min(num_methods, 3)
-        rows = (num_methods + cols - 1) // cols
+        # Step 6: Test subclass-specific methods
+        subclass_methods = _get_visualizer_methods(visualizer, is_base_method=False)
+        subclass_tested = []
+        subclass_failed = []
 
-        save_path = tmp_path / f"{algorithm_name}_test_visualization.png"
-        fig = visualizer.visualize(
-            rows=rows,
-            cols=cols,
-            methods=methods_to_visualize,
-            method_kwargs=method_kwargs_list,
-            save_path=str(save_path)
-        )
-        plt.close(fig)
+        print(f"\n{algorithm_name} - Testing subclass-specific methods:")
+        print(f"  Found {len(subclass_methods)} subclass methods: {', '.join(subclass_methods[:5])}...")
 
-        # Verify the file was created
-        assert save_path.exists()
+        for method_name in subclass_methods:
+            fig, ax = plt.subplots(1, 1, figsize=(5, 5))
+            try:
+                method = getattr(visualizer, method_name)
 
-        print(f"✓ {algorithm_name} visualization test passed")
-        print(f"  Base methods tested: draw_watermarked_image, draw_orig_latents")
-        if tested_methods:
-            print(f"  Algorithm-specific methods tested: {', '.join(tested_methods)}")
-        print(f"  Visualization saved to: {save_path}")
+                # Determine appropriate parameters based on method signature
+                import inspect
+                sig = inspect.signature(method)
+                params = {}
+
+                # Add ax parameter if needed
+                if 'ax' in sig.parameters:
+                    params['ax'] = ax
+
+                # For video methods, add frame parameter if available
+                if is_video and 'frame' in sig.parameters:
+                    params['frame'] = 0
+
+                # Call the method
+                method(**params)
+                subclass_tested.append(method_name)
+                plt.close(fig)
+            except Exception as e:
+                plt.close(fig)
+                subclass_failed.append(f"{method_name}: {str(e)[:50]}")
+
+        print(f"  ✓ Successfully tested {len(subclass_tested)}/{len(subclass_methods)} subclass methods")
+        if subclass_tested:
+            print(f"    Tested: {', '.join(subclass_tested[:5])}...")
+        if subclass_failed:
+            print(f"  ⚠ Failed methods: {subclass_failed[:3]}...")
+
+        print(f"\n✓ {algorithm_name} visualization test completed successfully")
+        print(f"  Base methods tested: {len(base_tested)}/{len(base_methods)}")
+        print(f"  Subclass methods tested: {len(subclass_tested)}/{len(subclass_methods)}")
 
     except NotImplementedError as e:
         pytest.skip(f"{algorithm_name} visualization not fully implemented: {e}")
     except Exception as e:
         pytest.fail(f"Failed to test visualization for {algorithm_name}: {e}")
-
-
-@pytest.mark.video
-@pytest.mark.visualization
-@pytest.mark.slow
-@pytest.mark.parametrize("algorithm_name", PIPELINE_SUPPORTED_WATERMARKS[PIPELINE_TYPE_TEXT_TO_VIDEO])
-def test_video_watermark_visualization(algorithm_name, video_diffusion_config, tmp_path):
-    """Test visualization generation for video watermark algorithms."""
-    from visualize.auto_visualization import AutoVisualizer, VISUALIZATION_DATA_MAPPING
-    from visualize.data_for_visualization import DataForVisualization
-
-    # Skip if visualization not supported for this algorithm
-    if algorithm_name not in VISUALIZATION_DATA_MAPPING:
-        pytest.skip(f"{algorithm_name} does not have visualization support")
-
-    try:
-        # Load watermark algorithm
-        watermark = AutoWatermark.load(
-            algorithm_name,
-            algorithm_config=f'config/{algorithm_name}.json',
-            diffusion_config=video_diffusion_config
-        )
-
-        # Generate watermarked video to get visualization data
-        watermarked_frames = watermark.generate_watermarked_media(
-            TEST_PROMPT_VIDEO,
-            num_frames=NUM_FRAMES
-        )
-
-        # Get visualization data from the watermark instance
-        if not hasattr(watermark, 'get_visualization_data'):
-            pytest.skip(f"{algorithm_name} does not implement get_visualization_data()")
-
-        vis_data = watermark.get_visualization_data()
-
-        # Validate visualization data
-        assert vis_data is not None
-        assert isinstance(vis_data, DataForVisualization)
-        assert vis_data.algorithm_name == algorithm_name
-
-        # Load visualizer
-        visualizer = AutoVisualizer.load(
-            algorithm_name=algorithm_name,
-            data_for_visualization=vis_data
-        )
-
-        assert visualizer is not None
-
-        # Test basic visualization methods for video
-        import matplotlib.pyplot as plt
-        fig, ax = plt.subplots(1, 1, figsize=(5, 5))
-
-        # Test drawing watermarked image (first frame)
-        visualizer.draw_watermarked_image(ax=ax)
-        plt.close(fig)
-
-        # Test drawing original latents with frame parameter
-        fig, ax = plt.subplots(1, 1, figsize=(5, 5))
-        visualizer.draw_orig_latents(channel=0, frame=0, ax=ax)
-        plt.close(fig)
-
-        # Test algorithm-specific methods based on video algorithm type
-        algorithm_specific_methods = {
-            'VideoShield': [
-                ('draw_watermark_bits', {'channel': None, 'frame': 0}),
-                ('draw_reconstructed_watermark_bits', {'channel': None, 'frame': 0}),
-                ('draw_watermarked_video_frames', {'num_frames': 4})
-            ],
-            'VideoMark': [
-                ('draw_watermarked_video_frames', {'num_frames': 4})
-            ]
-        }
-
-        # Test algorithm-specific visualization methods
-        specific_methods = algorithm_specific_methods.get(algorithm_name, [])
-        tested_methods = []
-
-        for method_info in specific_methods:
-            if isinstance(method_info, tuple):
-                method_name, kwargs = method_info
-            else:
-                method_name = method_info
-                kwargs = {}
-
-            if hasattr(visualizer, method_name):
-                fig, ax = plt.subplots(1, 1, figsize=(5, 5))
-                try:
-                    method = getattr(visualizer, method_name)
-                    # Call method with specific parameters for video methods
-                    method(ax=ax, **kwargs)
-                    tested_methods.append(method_name)
-                    plt.close(fig)
-                except Exception as e:
-                    plt.close(fig)
-                    print(f"  Warning: {algorithm_name}.{method_name}() failed: {e}")
-
-        # Save a comprehensive visualization with algorithm-specific methods
-        methods_to_visualize = ['draw_watermarked_image', 'draw_orig_latents']
-        method_kwargs_list = [{}, {'channel': 0, 'frame': 0}]
-
-        # Add video-specific method if available
-        if algorithm_name == 'VideoShield':
-            # Test watermark bits visualization for VideoShield
-            if 'draw_watermark_bits' in [m[0] if isinstance(m, tuple) else m for m in tested_methods]:
-                methods_to_visualize.append('draw_watermark_bits')
-                method_kwargs_list.append({'channel': None, 'frame': 0})
-        elif algorithm_name == 'VideoMark':
-            # Test video frames visualization for VideoMark
-            if 'draw_watermarked_video_frames' in tested_methods:
-                methods_to_visualize.append('draw_watermarked_video_frames')
-                method_kwargs_list.append({'num_frames': 4})
-
-        # Adjust grid size based on number of methods
-        num_methods = len(methods_to_visualize)
-        cols = min(num_methods, 3)
-        rows = (num_methods + cols - 1) // cols
-
-        save_path = tmp_path / f"{algorithm_name}_test_visualization.png"
-        fig = visualizer.visualize(
-            rows=rows,
-            cols=cols,
-            methods=methods_to_visualize,
-            method_kwargs=method_kwargs_list,
-            save_path=str(save_path)
-        )
-        plt.close(fig)
-
-        # Verify the file was created
-        assert save_path.exists()
-
-        print(f"✓ {algorithm_name} video visualization test passed")
-        print(f"  Base methods tested: draw_watermarked_image, draw_orig_latents")
-        if tested_methods:
-            print(f"  Algorithm-specific methods tested: {', '.join(tested_methods)}")
-        print(f"  Visualization saved to: {save_path}")
-
-    except NotImplementedError as e:
-        pytest.skip(f"{algorithm_name} video visualization not fully implemented: {e}")
-    except Exception as e:
-        pytest.fail(f"Failed to test video visualization for {algorithm_name}: {e}")

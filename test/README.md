@@ -7,6 +7,7 @@ This directory contains all parameterized unit tests for the watermark algorithm
 ```text
 test/
 ├── test_watermark_algorithms.py  # Main test file (parameterized tests)
+├── test_pipelines.py             # Evaluation pipelines and datasets tests
 ├── conftest.py                   # Pytest configuration and fixtures
 ├── pytest.ini                    # Pytest config file
 ├── requirements-test.txt         # Test dependencies
@@ -43,9 +44,17 @@ test/
 
 ### Visualization Modules
 
-- Visualization support for all image and video watermark algorithms  
-- Visualization content includes: watermarked images, original latent vectors, inverted latent vectors, frequency-domain analysis, etc.  
+- Visualization support for all image and video watermark algorithms
+- Visualization content includes: watermarked images, original latent vectors, inverted latent vectors, frequency-domain analysis, etc.
 - Each algorithm has its own dedicated visualizer
+
+### Evaluation Pipelines and Datasets
+
+- **Dataset classes** (3): StableDiffusionPromptsDataset, MSCOCODataset, VBenchDataset
+- **Detection pipelines** (2): WatermarkedMediaDetectionPipeline, UnWatermarkedMediaDetectionPipeline
+- **Image quality analysis pipelines** (5): DirectImageQualityAnalysisPipeline, ReferencedImageQualityAnalysisPipeline, GroupImageQualityAnalysisPipeline, RepeatImageQualityAnalysisPipeline, ComparedImageQualityAnalysisPipeline
+- **Video quality analysis pipeline** (1): DirectVideoQualityAnalysisPipeline
+- **Total**: 8 evaluation pipelines + 3 dataset classes
 
 ## 🚀 Quick Start
 
@@ -251,6 +260,98 @@ pytest test/test_watermark_algorithms.py -v -m visualization
 
 **Total**: 58+ parameterized test cases (44 watermark algorithm tests + 4 inversion tests + 11 visualization tests)
 
+### Dataset and Pipeline Tests
+
+#### 9. Dataset tests (3 tests)
+
+Test dataset classes for evaluation pipelines:
+
+- **BaseDataset**: Test basic dataset functionality
+- **StableDiffusionPromptsDataset**: Test loading prompts from Stable Diffusion dataset
+- **MSCOCODataset**: Test loading MS-COCO 2017 dataset with images and captions
+- **VBenchDataset**: Test loading VBench video prompts for different dimensions
+
+```bash
+# Test all datasets
+pytest test/test_pipelines.py -v -m dataset
+
+# Test specific dataset
+pytest test/test_pipelines.py -v -k "test_base_dataset"
+pytest test/test_pipelines.py -v -k "test_stable_diffusion_prompts_dataset"
+pytest test/test_pipelines.py -v -k "test_mscoco_dataset"
+pytest test/test_pipelines.py -v -k "test_vbench_dataset"
+```
+
+#### 10. Detection pipeline tests (2 tests)
+
+Test detection pipelines for watermark evaluation:
+
+- **WatermarkedMediaDetectionPipeline**: Test pipeline for detecting watermarks in watermarked media
+- **UnWatermarkedMediaDetectionPipeline**: Test pipeline for detecting watermarks in unwatermarked media
+
+```bash
+# Test all detection pipelines
+pytest test/test_pipelines.py -v -m detection
+
+# Test specific pipeline
+pytest test/test_pipelines.py -v -k "test_watermarked_media_detection_pipeline"
+pytest test/test_pipelines.py -v -k "test_unwatermarked_media_detection_pipeline"
+```
+
+#### 11. Image quality analysis pipeline tests (5 tests)
+
+Test image quality analysis pipelines:
+
+- **DirectImageQualityAnalysisPipeline**: Analyze single images (NIQE, BRISQUE, etc.)
+- **ReferencedImageQualityAnalysisPipeline**: Analyze images with reference (CLIP Score, etc.)
+- **GroupImageQualityAnalysisPipeline**: Analyze image sets (FID, IS, etc.)
+- **RepeatImageQualityAnalysisPipeline**: Analyze repeatedly generated images (LPIPS, etc.)
+- **ComparedImageQualityAnalysisPipeline**: Compare watermarked vs unwatermarked (PSNR, SSIM, etc.)
+
+```bash
+# Test all image quality pipelines
+pytest test/test_pipelines.py -v -m "quality and not video"
+
+# Test specific pipeline
+pytest test/test_pipelines.py -v -k "test_direct_image_quality_analysis_pipeline"
+pytest test/test_pipelines.py -v -k "test_referenced_image_quality_analysis_pipeline"
+pytest test/test_pipelines.py -v -k "test_group_image_quality_analysis_pipeline"
+pytest test/test_pipelines.py -v -k "test_repeat_image_quality_analysis_pipeline"
+pytest test/test_pipelines.py -v -k "test_compared_image_quality_analysis_pipeline"
+```
+
+#### 12. Video quality analysis pipeline test (1 test)
+
+Test video quality analysis pipeline:
+
+- **DirectVideoQualityAnalysisPipeline**: Analyze video quality (subject consistency, motion smoothness, etc.)
+
+```bash
+# Test video quality pipeline
+pytest test/test_pipelines.py -v -m "quality and video"
+
+# Test specific pipeline
+pytest test/test_pipelines.py -v -k "test_direct_video_quality_analysis_pipeline"
+```
+
+#### Pipeline and dataset test summary
+
+```bash
+# Test all pipelines and datasets
+pytest test/test_pipelines.py -v
+
+# Test only datasets
+pytest test/test_pipelines.py -v -m dataset
+
+# Test only pipelines
+pytest test/test_pipelines.py -v -m pipeline
+
+# Test summary
+pytest test/test_pipelines.py -v -k "test_all_pipelines_summary"
+```
+
+**Total**: 20+ pipeline and dataset tests (3 dataset tests + 2 detection pipeline tests + 5 image quality pipeline tests + 1 video quality pipeline test + integration tests)
+
 ## 📖 Quick Command Reference
 
 | Purpose | Command |
@@ -269,6 +370,12 @@ pytest test/test_watermark_algorithms.py -v -m visualization
 | Test 5D video inversion | `pytest test/test_watermark_algorithms.py -v -k test_inversion_5d` |
 | Test image visualization | `pytest test/test_watermark_algorithms.py -v -k test_image_watermark_visualization` |
 | Test video visualization | `pytest test/test_watermark_algorithms.py -v -k test_video_watermark_visualization` |
+| **Test all pipelines and datasets** | `pytest test/test_pipelines.py -v` |
+| Test datasets only | `pytest test/test_pipelines.py -v -m dataset` |
+| Test pipelines only | `pytest test/test_pipelines.py -v -m pipeline` |
+| Test detection pipelines | `pytest test/test_pipelines.py -v -m detection` |
+| Test quality pipelines | `pytest test/test_pipelines.py -v -m quality` |
+| Test video quality pipeline | `pytest test/test_pipelines.py -v -m "quality and video"` |
 
 ## ⚙️ Command-line Arguments
 
@@ -288,6 +395,12 @@ pytest test/test_watermark_algorithms.py -v -m visualization
 | `@pytest.mark.video` | Video watermark tests | `-m video` |
 | `@pytest.mark.inversion` | Inversion module tests | `-m inversion` |
 | `@pytest.mark.visualization` | Visualization tests | `-m visualization` |
+| `@pytest.mark.dataset` | Dataset tests | `-m dataset` |
+| `@pytest.mark.pipeline` | Pipeline tests | `-m pipeline` |
+| `@pytest.mark.detection` | Detection pipeline tests | `-m detection` |
+| `@pytest.mark.quality` | Quality analysis pipeline tests | `-m quality` |
+| `@pytest.mark.integration` | Integration tests | `-m integration` |
+| `@pytest.mark.summary` | Summary tests | `-m summary` |
 | `@pytest.mark.slow` | Slow tests (generation and detection) | `-m "not slow"` |
 
 Use markers to filter tests:
@@ -313,6 +426,18 @@ pytest test/test_watermark_algorithms.py -v -m image -k initialization
 
 # Combined markers: visualization tests for image algorithms
 pytest test/test_watermark_algorithms.py -v -m "image and visualization"
+
+# Run dataset tests
+pytest test/test_pipelines.py -v -m dataset
+
+# Run pipeline tests
+pytest test/test_pipelines.py -v -m pipeline
+
+# Run detection pipeline tests
+pytest test/test_pipelines.py -v -m detection
+
+# Run quality analysis pipeline tests
+pytest test/test_pipelines.py -v -m quality
 ```
 
 ## 💡 Practical Examples
@@ -417,6 +542,38 @@ pytest test/test_watermark_algorithms.py -v -m "visualization and image"
 ```
 
 **Expected result**: 9 image visualization tests pass.
+
+### Example 11: Test all datasets
+
+```bash
+pytest test/test_pipelines.py -v -m dataset
+```
+
+**Expected result**: 3-4 dataset tests pass (BaseDataset, StableDiffusionPromptsDataset, MSCOCODataset, VBenchDataset).
+
+### Example 12: Test all evaluation pipelines
+
+```bash
+pytest test/test_pipelines.py -v -m pipeline
+```
+
+**Expected result**: 8+ pipeline tests pass (2 detection + 5 image quality + 1 video quality).
+
+### Example 13: Test detection pipelines only
+
+```bash
+pytest test/test_pipelines.py -v -m detection
+```
+
+**Expected result**: 2 detection pipeline tests pass.
+
+### Example 14: Test quality analysis pipelines
+
+```bash
+pytest test/test_pipelines.py -v -m quality
+```
+
+**Expected result**: 6 quality analysis pipeline tests pass (5 image + 1 video).
 
 ## 📊 Test Reports
 
@@ -614,17 +771,23 @@ Or override the default values via command-line arguments.
 
 ### Algorithm Test Matrix
 
-| Test type | Image algos | Video algos | Inversion | Visualization | Total |
-|-----------|-------------|-------------|-----------|---------------|-------|
-| Initialization | 9 | 2 | - | - | 11 |
-| Generation (with watermark) | 9 | 2 | - | - | 11 |
-| Generation (without watermark) | 9 | 2 | - | - | 11 |
-| Detection | 9 | 2 | - | - | 11 |
-| 4D inversion tests | - | - | 2 | - | 2 |
-| 5D inversion tests | - | - | 1 | - | 1 |
-| Reconstruction accuracy tests | - | - | 1 | - | 1 |
-| Visualization tests | 9 | 2 | - | - | 11 |
-| **Total** | **45** | **10** | **4** | **11** | **59** |
+| Test type | Image algos | Video algos | Inversion | Visualization | Pipelines | Datasets | Total |
+|-----------|-------------|-------------|-----------|---------------|-----------|----------|-------|
+| Initialization | 9 | 2 | - | - | - | - | 11 |
+| Generation (with watermark) | 9 | 2 | - | - | - | - | 11 |
+| Generation (without watermark) | 9 | 2 | - | - | - | - | 11 |
+| Detection | 9 | 2 | - | - | - | - | 11 |
+| 4D inversion tests | - | - | 2 | - | - | - | 2 |
+| 5D inversion tests | - | - | 1 | - | - | - | 1 |
+| Reconstruction accuracy tests | - | - | 1 | - | - | - | 1 |
+| Visualization tests | 9 | 2 | - | - | - | - | 11 |
+| Dataset tests | - | - | - | - | - | 4 | 4 |
+| Detection pipeline tests | - | - | - | - | 2 | - | 2 |
+| Image quality pipeline tests | - | - | - | - | 5 | - | 5 |
+| Video quality pipeline tests | - | - | - | - | 1 | - | 1 |
+| Integration tests | - | - | - | - | 1 | - | 1 |
+| Summary tests | - | - | - | - | 1 | - | 1 |
+| **Total** | **45** | **10** | **4** | **11** | **10** | **4** | **73** |
 
 ### Inversion Test Details
 

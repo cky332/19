@@ -90,6 +90,12 @@ def pytest_configure(config):
     config.addinivalue_line("markers", "inversion: mark test as inversion module test")
     config.addinivalue_line("markers", "visualization: mark test as visualization test")
     config.addinivalue_line("markers", "slow: mark test as slow running")
+    config.addinivalue_line("markers", "dataset: mark test as dataset test")
+    config.addinivalue_line("markers", "pipeline: mark test as pipeline test")
+    config.addinivalue_line("markers", "detection: mark test as detection pipeline test")
+    config.addinivalue_line("markers", "quality: mark test as quality analysis pipeline test")
+    config.addinivalue_line("markers", "integration: mark test as integration test")
+    config.addinivalue_line("markers", "summary: mark test as summary test")
 
 
 def pytest_collection_modifyitems(config, items):

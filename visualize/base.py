@@ -575,7 +575,7 @@ class BaseVisualizer(ABC):
                 raise ValueError(f"Method '{method_name}' not found in {self.__class__.__name__}")
             
             try:
-                print(method_kwargs[i])
+                # print(method_kwargs[i])
                 method(ax=ax, **method_kwargs[i])
             except TypeError:
                 raise ValueError(f"Method '{method_name}' does not accept the given arguments: {method_kwargs[i]}")

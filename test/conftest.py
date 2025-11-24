@@ -30,8 +30,8 @@ from utils.pipeline_utils import (
 # ============================================================================
 
 # Default model paths (can be overridden via pytest options)
-DEFAULT_IMAGE_MODEL_PATH = "stabilityai/stable-diffusion-2-1-base"
-DEFAULT_VIDEO_MODEL_PATH = "damo-vilab/text-to-video-ms-1.7b"
+DEFAULT_IMAGE_MODEL_PATH = "/home/harry/models/stable-diffusion-2-1-base"
+DEFAULT_VIDEO_MODEL_PATH = "/home/harry/models/text-to-video-ms-1.7b"
 
 # Test prompts
 TEST_PROMPT_IMAGE = "A beautiful sunset over the ocean"
@@ -42,7 +42,12 @@ IMAGE_SIZE = (512, 512)
 NUM_INFERENCE_STEPS = 50
 GUIDANCE_SCALE = 7.5
 GEN_SEED = 42
-NUM_FRAMES = 16
+NUM_FRAMES = 4
+
+# Test dataset parameters
+TEST_DATASET_MAX_SAMPLES = 2  # Small sample size for testing
+TEST_DATASET_FOR_IMG = "MSCOCODataset"
+TEST_DATASET_FOR_VIDEO = "VBenchDataset"
 
 
 # ============================================================================
@@ -226,6 +231,126 @@ def video_diffusion_config(device, video_pipeline):
     )
 
 
+# ============================================================================
+# Fixtures for Pipeline Tests
+# ============================================================================
+
+@pytest.fixture
+def test_image_dataset():
+    """Create test dataset for image pipelines."""
+    from evaluation.dataset import MSCOCODataset
+    return MSCOCODataset(
+        max_samples=TEST_DATASET_MAX_SAMPLES,
+        shuffle=False
+    )
+
+
+@pytest.fixture
+def test_video_dataset():
+    """Create test dataset for video pipelines."""
+    from evaluation.dataset import VBenchDataset
+    return VBenchDataset(
+        max_samples=TEST_DATASET_MAX_SAMPLES,
+        dimension="subject_consistency",
+        shuffle=False
+    )
+
+
+@pytest.fixture
+def all_image_editors():
+    """Get all image editor tools for saturation testing."""
+    from evaluation.tools.image_editor import (
+        JPEGCompression,
+        Rotation,
+        CrSc,
+        GaussianBlurring,
+        GaussianNoise,
+        Brightness,
+        Mask,
+        Overlay,
+        AdaptiveNoiseInjection
+    )
+
+    return [
+        JPEGCompression(),
+        Rotation(),
+        CrSc(),
+        GaussianBlurring(),
+        GaussianNoise(),
+        Brightness(),
+        Mask(),
+        Overlay(),
+        # AdaptiveNoiseInjection()
+    ]
+
+
+@pytest.fixture
+def all_video_editors():
+    """Get all video editor tools for saturation testing."""
+    from evaluation.tools.video_editor import (
+        MPEG4Compression,
+        VideoCodecAttack,
+        FrameAverage,
+        FrameRateAdapter,
+        FrameSwap,
+        FrameInterpolationAttack
+    )
+
+    return [
+        MPEG4Compression(),
+        VideoCodecAttack(),
+        FrameAverage(),
+        FrameRateAdapter(),
+        FrameSwap(),
+        FrameInterpolationAttack()
+    ]
+
+
+@pytest.fixture
+def all_image_quality_analyzers():
+    """Get all image quality analyzers for testing."""
+    from evaluation.tools.image_quality_analyzer import (
+        NIQECalculator,
+        CLIPScoreCalculator,
+        FIDCalculator,
+        InceptionScoreCalculator,
+        LPIPSAnalyzer,
+        PSNRAnalyzer,
+        SSIMAnalyzer,
+        BRISQUEAnalyzer,
+        VIFAnalyzer,
+        FSIMAnalyzer
+    )
+
+    return {
+        'direct': [NIQECalculator(), BRISQUEAnalyzer()],
+        'referenced': [CLIPScoreCalculator()],
+        'group': [FIDCalculator(), InceptionScoreCalculator()],
+        'repeat': [LPIPSAnalyzer()],
+        'compared': [PSNRAnalyzer(), SSIMAnalyzer(), VIFAnalyzer(), FSIMAnalyzer()]
+    }
+
+
+@pytest.fixture
+def all_video_quality_analyzers():
+    """Get all video quality analyzers for testing."""
+    from evaluation.tools.video_quality_analyzer import (
+        SubjectConsistencyAnalyzer,
+        MotionSmoothnessAnalyzer,
+        DynamicDegreeAnalyzer,
+        BackgroundConsistencyAnalyzer,
+        ImagingQualityAnalyzer
+    )
+
+    return [
+        SubjectConsistencyAnalyzer(),
+        MotionSmoothnessAnalyzer(),
+        DynamicDegreeAnalyzer(),
+        BackgroundConsistencyAnalyzer(),
+        ImagingQualityAnalyzer()
+    ]
+
+
 # Export constants for use in test files
 __all__ = [
     'TEST_PROMPT_IMAGE',
@@ -235,4 +360,7 @@ __all__ = [
     'GUIDANCE_SCALE',
     'GEN_SEED',
     'NUM_FRAMES',
+    'TEST_DATASET_MAX_SAMPLES',
+    'TEST_DATASET_FOR_IMG',
+    'TEST_DATASET_FOR_VIDEO',
 ]

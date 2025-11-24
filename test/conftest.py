@@ -30,8 +30,8 @@ from utils.pipeline_utils import (
 # ============================================================================
 
 # Default model paths (can be overridden via pytest options)
-DEFAULT_IMAGE_MODEL_PATH = "/home/harry/models/stable-diffusion-2-1-base"
-DEFAULT_VIDEO_MODEL_PATH = "/home/harry/models/text-to-video-ms-1.7b"
+DEFAULT_IMAGE_MODEL_PATH = "/mnt/ckpt/stable-diffusion-2-1-base"
+DEFAULT_VIDEO_MODEL_PATH = "/mnt/ckpt/text-to-video-ms-1.7b"
 
 # Test prompts
 TEST_PROMPT_IMAGE = "A beautiful sunset over the ocean"
@@ -42,7 +42,7 @@ IMAGE_SIZE = (512, 512)
 NUM_INFERENCE_STEPS = 50
 GUIDANCE_SCALE = 7.5
 GEN_SEED = 42
-NUM_FRAMES = 4
+NUM_FRAMES = 8
 
 # Test dataset parameters
 TEST_DATASET_MAX_SAMPLES = 2  # Small sample size for testing
@@ -95,12 +95,10 @@ def pytest_configure(config):
     config.addinivalue_line("markers", "inversion: mark test as inversion module test")
     config.addinivalue_line("markers", "visualization: mark test as visualization test")
     config.addinivalue_line("markers", "slow: mark test as slow running")
-    config.addinivalue_line("markers", "dataset: mark test as dataset test")
     config.addinivalue_line("markers", "pipeline: mark test as pipeline test")
     config.addinivalue_line("markers", "detection: mark test as detection pipeline test")
     config.addinivalue_line("markers", "quality: mark test as quality analysis pipeline test")
     config.addinivalue_line("markers", "integration: mark test as integration test")
-    config.addinivalue_line("markers", "summary: mark test as summary test")
 
 
 def pytest_collection_modifyitems(config, items):

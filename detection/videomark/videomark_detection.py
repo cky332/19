@@ -209,7 +209,7 @@ class VideoMarkDetector(BaseDetector):
 
 
 
-    def eval_watermark(self, reversed_latents: torch.Tensor, reference_latents: torch.Tensor = None, detector_type: str = "is_watermarked") -> float:
+    def eval_watermark(self, reversed_latents: torch.Tensor, reference_latents: torch.Tensor = None, detector_type: str = "bit_acc") -> float:
         """Evaluate watermark in reversed latents."""
         if detector_type != 'bit_acc':
             raise ValueError(f'Detector type {detector_type} is not supported for VideoMark. Use "bit_acc" instead.')

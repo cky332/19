@@ -6,14 +6,12 @@ This directory contains all parameterized unit tests for the watermark algorithm
 
 ```text
 test/
-├── test_watermark_algorithms.py  # Main test file (parameterized tests)
-├── test_pipelines.py             # Evaluation pipelines and datasets tests
+├── test_watermark_algorithms.py  # Main test file for initialization, generation, detection, inversion, visualization of watermark algorithms
+├── test_pipelines.py             # Evaluation pipelines tests
 ├── conftest.py                   # Pytest configuration and fixtures
 ├── pytest.ini                    # Pytest config file
 ├── requirements-test.txt         # Test dependencies
-├── run_tests.sh                  # Convenience test script
-├── README.md                     # This document
-└── test_method.py                # Legacy test file (kept for reference)
+└── README.md                     # This document
 ```
 
 ## 🎯 What Is Covered by the Tests
@@ -85,13 +83,16 @@ pytest test/test_watermark_algorithms.py -v --algorithm TR
 
 # Quick tests (initialization only)
 pytest test/test_watermark_algorithms.py -v -k initialization
+
+# Test all pipelines
+pytest test/test_pipelines.py -v
 ```
 
 ## 📋 Test Types and Coverage
 
-### Watermark Algorithm Tests
+### 1. Watermark Algorithm Tests
 
-#### 1. Initialization tests (11 tests)
+#### 1.1. Initialization tests (11 tests)
 
 Verify that watermark algorithms can be initialized correctly:
 
@@ -103,7 +104,7 @@ Verify that watermark algorithms can be initialized correctly:
 pytest test/test_watermark_algorithms.py -v -k initialization
 ```
 
-#### 2. Generation tests (22 tests)
+#### 1.2. Generation tests (22 tests)
 
 Verify the generation functionality of watermark algorithms:
 
@@ -117,7 +118,7 @@ pytest test/test_watermark_algorithms.py -v -k generation
 
 ```
 
-#### 3. Detection tests (11 tests)
+#### 1.3. Detection tests (11 tests)
 
 Verify the detection functionality of watermark algorithms:
 
@@ -131,9 +132,9 @@ pytest test/test_watermark_algorithms.py -v -k detection
 
 ```
 
-### Inversion Tests
+### 2. Inversion Tests
 
-#### 4. 4D image inversion tests (2 tests: DDIM + Exact)
+#### 2.1. 4D image inversion tests (2 tests: DDIM + Exact)
 
 Test the ability of inversion modules to handle 4D image latent input:
 
@@ -152,7 +153,7 @@ pytest test/test_watermark_algorithms.py -v -k "test_inversion_4d[ddim]"
 pytest test/test_watermark_algorithms.py -v -k "test_inversion_4d[exact]"
 ```
 
-#### 5. 5D video inversion tests (1 test: DDIM)
+#### 2.2. 5D video inversion tests (1 test: DDIM)
 
 Test the ability of inversion modules to handle 5D video frame latent input:
 
@@ -171,7 +172,7 @@ pytest test/test_watermark_algorithms.py -v -k "test_inversion_4d[ddim]"
 pytest test/test_watermark_algorithms.py -v -k "test_inversion_4d[exact]"
 ```
 
-#### 6. Inversion reconstruction accuracy tests (1 test)
+#### 2.3. Inversion reconstruction accuracy tests (1 test)
 
 Test the reconstruction accuracy of inversion modules:
 
@@ -184,7 +185,7 @@ Test the reconstruction accuracy of inversion modules:
 pytest test/test_watermark_algorithms.py -v -k "test_inversion_reconstruction"
 ```
 
-#### Inversion test summary
+#### 2.4. Inversion test summary
 
 ```bash
 # Test all inversion modules
@@ -192,31 +193,17 @@ pytest test/test_watermark_algorithms.py -v -m inversion
 
 ```
 
-### Visualization Tests
+### 3. Visualization Tests
 
-#### 7. Image watermark visualization tests (9 tests)
+#### 3.1. Image watermark visualization tests (9 tests)
 
 Test visualization for image watermark algorithms:
 
 - Load visualization data
 - Create visualizer instances
 - Test basic plotting methods (watermarked images, latent vectors, etc.)
-- **Test algorithm-specific visualization methods**
-- Generate and save visualization images
+- **Automatically test algorithm-specific visualization methods**
 
-##### Algorithm-specific methods tested:
-
-| Algorithm | Specific Methods |
-|-----------|-----------------|
-| **TR** | `draw_pattern_fft()`, `draw_inverted_pattern_fft()` |
-| **GS** | `draw_watermark_bits()`, `draw_reconstructed_watermark_bits()` |
-| **PRC** | `draw_generator_matrix()`, `draw_codeword()`, `draw_recovered_codeword()`, `draw_difference_map()` |
-| **RI** | `draw_ring_pattern_fft()`, `draw_heter_pattern_fft()`, `draw_inverted_ring_pattern_fft()` |
-| **SEAL** | `draw_embedding_distributions()`, `draw_patch_diff()` |
-| **ROBIN** | `draw_pattern_fft()`, `draw_inverted_pattern_fft()`, `draw_optimized_watermark()` |
-| **WIND** | `draw_group_pattern_fft()`, `draw_orig_noise_wo_group_pattern()`, `draw_inverted_noise_wo_group_pattern()`, `draw_diff_noise_wo_group_pattern()`, `draw_inverted_group_pattern_fft()` |
-| **GM** | Base methods only |
-| **SFW** | Base methods only |
 
 ```bash
 # Test visualization of all image algorithms
@@ -226,22 +213,14 @@ pytest test/test_watermark_algorithms.py -v -k "test_image_watermark_visualizati
 pytest test/test_watermark_algorithms.py -v -k "test_image_watermark_visualization[TR]"
 ```
 
-#### 8. Video watermark visualization tests (2 tests)
+#### 3.2. Video watermark visualization tests (2 tests)
 
 Test visualization for video watermark algorithms:
 
 - Load video visualization data
 - Create visualizer instances
 - Test visualization of video frames
-- **Test algorithm-specific visualization methods for video**
-- Generate and save visualization images
-
-##### Algorithm-specific methods tested:
-
-| Algorithm | Specific Methods |
-|-----------|-----------------|
-| **VideoShield** | `draw_watermark_bits()` (with frame support), `draw_reconstructed_watermark_bits()` (with frame support), `draw_watermarked_video_frames()` |
-| **VideoMark** | `draw_watermarked_video_frames()` |
+- **Automatically test algorithm-specific methods**
 
 ```bash
 # Test visualization of all video algorithms
@@ -251,7 +230,7 @@ pytest test/test_watermark_algorithms.py -v -k "test_video_watermark_visualizati
 pytest test/test_watermark_algorithms.py -v -k "test_video_watermark_visualization[VideoShield]"
 ```
 
-#### Visualization test summary
+#### 3.3. Visualization test summary
 
 ```bash
 # Test all visualization functionality
@@ -260,29 +239,9 @@ pytest test/test_watermark_algorithms.py -v -m visualization
 
 **Total**: 58+ parameterized test cases (44 watermark algorithm tests + 4 inversion tests + 11 visualization tests)
 
-### Dataset and Pipeline Tests
+### 4. Evaluation Pipeline Tests
 
-#### 9. Dataset tests (3 tests)
-
-Test dataset classes for evaluation pipelines:
-
-- **BaseDataset**: Test basic dataset functionality
-- **StableDiffusionPromptsDataset**: Test loading prompts from Stable Diffusion dataset
-- **MSCOCODataset**: Test loading MS-COCO 2017 dataset with images and captions
-- **VBenchDataset**: Test loading VBench video prompts for different dimensions
-
-```bash
-# Test all datasets
-pytest test/test_pipelines.py -v -m dataset
-
-# Test specific dataset
-pytest test/test_pipelines.py -v -k "test_base_dataset"
-pytest test/test_pipelines.py -v -k "test_stable_diffusion_prompts_dataset"
-pytest test/test_pipelines.py -v -k "test_mscoco_dataset"
-pytest test/test_pipelines.py -v -k "test_vbench_dataset"
-```
-
-#### 10. Detection pipeline tests (2 tests)
+#### 4.1. Detection pipeline tests (2 tests)
 
 Test detection pipelines for watermark evaluation:
 
@@ -298,7 +257,7 @@ pytest test/test_pipelines.py -v -k "test_watermarked_media_detection_pipeline"
 pytest test/test_pipelines.py -v -k "test_unwatermarked_media_detection_pipeline"
 ```
 
-#### 11. Image quality analysis pipeline tests (5 tests)
+#### 4.2. Image quality analysis pipeline tests (5 tests)
 
 Test image quality analysis pipelines:
 
@@ -320,7 +279,7 @@ pytest test/test_pipelines.py -v -k "test_repeat_image_quality_analysis_pipeline
 pytest test/test_pipelines.py -v -k "test_compared_image_quality_analysis_pipeline"
 ```
 
-#### 12. Video quality analysis pipeline test (1 test)
+#### 4.3. Video quality analysis pipeline test (1 test)
 
 Test video quality analysis pipeline:
 
@@ -333,24 +292,6 @@ pytest test/test_pipelines.py -v -m "quality and video"
 # Test specific pipeline
 pytest test/test_pipelines.py -v -k "test_direct_video_quality_analysis_pipeline"
 ```
-
-#### Pipeline and dataset test summary
-
-```bash
-# Test all pipelines and datasets
-pytest test/test_pipelines.py -v
-
-# Test only datasets
-pytest test/test_pipelines.py -v -m dataset
-
-# Test only pipelines
-pytest test/test_pipelines.py -v -m pipeline
-
-# Test summary
-pytest test/test_pipelines.py -v -k "test_all_pipelines_summary"
-```
-
-**Total**: 20+ pipeline and dataset tests (3 dataset tests + 2 detection pipeline tests + 5 image quality pipeline tests + 1 video quality pipeline test + integration tests)
 
 ## 📖 Quick Command Reference
 
@@ -370,8 +311,7 @@ pytest test/test_pipelines.py -v -k "test_all_pipelines_summary"
 | Test 5D video inversion | `pytest test/test_watermark_algorithms.py -v -k test_inversion_5d` |
 | Test image visualization | `pytest test/test_watermark_algorithms.py -v -k test_image_watermark_visualization` |
 | Test video visualization | `pytest test/test_watermark_algorithms.py -v -k test_video_watermark_visualization` |
-| **Test all pipelines and datasets** | `pytest test/test_pipelines.py -v` |
-| Test datasets only | `pytest test/test_pipelines.py -v -m dataset` |
+| **Test all pipelines** | `pytest test/test_pipelines.py -v` |
 | Test pipelines only | `pytest test/test_pipelines.py -v -m pipeline` |
 | Test detection pipelines | `pytest test/test_pipelines.py -v -m detection` |
 | Test quality pipelines | `pytest test/test_pipelines.py -v -m quality` |
@@ -395,7 +335,6 @@ pytest test/test_pipelines.py -v -k "test_all_pipelines_summary"
 | `@pytest.mark.video` | Video watermark tests | `-m video` |
 | `@pytest.mark.inversion` | Inversion module tests | `-m inversion` |
 | `@pytest.mark.visualization` | Visualization tests | `-m visualization` |
-| `@pytest.mark.dataset` | Dataset tests | `-m dataset` |
 | `@pytest.mark.pipeline` | Pipeline tests | `-m pipeline` |
 | `@pytest.mark.detection` | Detection pipeline tests | `-m detection` |
 | `@pytest.mark.quality` | Quality analysis pipeline tests | `-m quality` |
@@ -426,9 +365,6 @@ pytest test/test_watermark_algorithms.py -v -m image -k initialization
 
 # Combined markers: visualization tests for image algorithms
 pytest test/test_watermark_algorithms.py -v -m "image and visualization"
-
-# Run dataset tests
-pytest test/test_pipelines.py -v -m dataset
 
 # Run pipeline tests
 pytest test/test_pipelines.py -v -m pipeline
@@ -543,15 +479,7 @@ pytest test/test_watermark_algorithms.py -v -m "visualization and image"
 
 **Expected result**: 9 image visualization tests pass.
 
-### Example 11: Test all datasets
-
-```bash
-pytest test/test_pipelines.py -v -m dataset
-```
-
-**Expected result**: 3-4 dataset tests pass (BaseDataset, StableDiffusionPromptsDataset, MSCOCODataset, VBenchDataset).
-
-### Example 12: Test all evaluation pipelines
+### Example 11: Test all evaluation pipelines
 
 ```bash
 pytest test/test_pipelines.py -v -m pipeline
@@ -559,7 +487,7 @@ pytest test/test_pipelines.py -v -m pipeline
 
 **Expected result**: 8+ pipeline tests pass (2 detection + 5 image quality + 1 video quality).
 
-### Example 13: Test detection pipelines only
+### Example 12: Test detection pipelines only
 
 ```bash
 pytest test/test_pipelines.py -v -m detection
@@ -567,7 +495,7 @@ pytest test/test_pipelines.py -v -m detection
 
 **Expected result**: 2 detection pipeline tests pass.
 
-### Example 14: Test quality analysis pipelines
+### Example 13: Test quality analysis pipelines
 
 ```bash
 pytest test/test_pipelines.py -v -m quality
@@ -595,80 +523,6 @@ pip install pytest-html
 
 # Generate HTML report
 pytest test/test_watermark_algorithms.py -v --html=report.html --self-contained-html
-```
-
-## 🔧 Troubleshooting
-
-### Issue 1: Model failed to load
-
-**Error message**: `Failed to load image/video model`
-
-**Solutions**:
-
-1. Check that the model path is correct.
-2. Ensure there is enough disk space and memory.
-3. Use `--image-model-path` or `--video-model-path` to specify a local model path:
-
-```bash
-pytest test/test_watermark_algorithms.py -v \
-    --image-model-path /local/path/to/model
-```
-
-### Issue 2: Test timeout
-
-**Error message**: `Test timeout`
-
-**Solutions**:
-
-1. Increase timeout by changing the `timeout` value in `pytest.ini`.
-2. Skip slow tests:
-
-```bash
-pytest test/test_watermark_algorithms.py -v --skip-generation --skip-detection
-```
-
-3. Run only initialization tests:
-
-```bash
-pytest test/test_watermark_algorithms.py -v -k "initialization"
-```
-
-### Issue 3: Config file not found
-
-**Error message**: `Config file not found`
-
-**Solutions**:
-
-1. Make sure tests are run from the project root.
-2. Check that the corresponding JSON config file exists under the `config/` directory.
-3. Verify the exact filename and its case.
-
-### Issue 4: Inversion tests failed
-
-**Error message**: `Failed to invert 4D/5D input`
-
-**Solutions**:
-
-1. Check that the device has enough GPU memory.
-2. Verify that scheduler and UNet models are loaded correctly.
-3. Inspect detailed error output:
-
-```bash
-pytest test/test_watermark_algorithms.py -v -s -k inversion
-```
-
-### Issue 5: Visualization tests failed
-
-**Error message**: `Algorithm does not implement get_data_visualize()`
-
-**Solutions**:
-
-1. Ensure the watermark algorithm implements `get_data_visualize()`.
-2. Check that the algorithm is registered in `VISUALIZATION_DATA_MAPPING`.
-3. Inspect detailed error output:
-
-```bash
-pytest test/test_watermark_algorithms.py -v -s -k visualization
 ```
 
 ## 📈 Performance Optimization
@@ -754,7 +608,7 @@ Or override the default values via command-line arguments.
 
 ## ✨ Key Features
 
-1. ✅ **Zero redundancy** – one test file covers all 11 algorithms + inversion modules + visualization modules  
+1. ✅ **Zero redundancy** – one test file covers all 11 algorithms + inversion modules + visualization modules, another for all evaluation pipelines.
 2. ✅ **Parameterized tests** – test cases are automatically generated per algorithm  
 3. ✅ **Flexible filtering** – filter by algorithm, type, or functionality  
 4. ✅ **Command-line options** – customize model paths, skip tests, etc.  
@@ -836,7 +690,7 @@ If you find issues in the tests or want to improve the test framework:
 
 ### Add tests for new features
 
-1. Add new test functions in `test_watermark_algorithms.py`.  
+1. For new watermarking algorithms, Add new test functions in `test_watermark_algorithms.py`. Fornew evaluation pipelines or metrics, add tests in `test_pipelines.py`.
 2. Use `@pytest.mark.parametrize` decorators.  
 3. Use fixtures from `conftest.py`.  
 4. Add appropriate test markers.  

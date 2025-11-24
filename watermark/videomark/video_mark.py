@@ -411,7 +411,7 @@ class VideoMarkWatermark(BaseWatermark):
         # Use detector for evaluation
         return self.detector.eval_watermark(final_reversed_latents, detector_type=detector_type)
        
-    
+
     def get_data_for_visualize(self, 
                                video_frames: List[Image.Image], 
                                prompt: str = "", 
@@ -430,6 +430,28 @@ class VideoMarkWatermark(BaseWatermark):
         Returns:
             DataForVisualization object containing visualization data
         """
+        # Prepare PRC-specific data
+        message_bits = torch.tensor(self.config.message, dtype=torch.float32)
+        
+        # Get generator matrix
+        generator_matrix = torch.tensor(np.array(self.utils.encoding_key[0], dtype=float), dtype=torch.float32)
+        
+        # Get parity check matrix
+        parity_check_matrix = self.utils.decoding_key[1] 
+
+        # 1. Generate watermarked latents and collect intermediate data
+        set_random_seed(self.config.gen_seed)
+
+        # Step 1: Encode message
+        prc_codeword = torch.stack([self.utils._encode_message(self.utils.encoding_key, self.config.message[frame_index]) for frame_index in range(self.config.num_frames)])
+        
+        # Step 2: Sample PRC codeword
+        pseudogaussian_noise = self.utils._sample_prc_codeword(prc_codeword)
+        
+        # Step 3: Generate watermarked latents
+        watermarked_latents = pseudogaussian_noise.reshape(self.config.num_frames, 1, self.config.latents_channel, self.config.latents_height, self.config.latents_width).to(self.config.device)
+        watermarked_latents = watermarked_latents.permute(1, 2, 0, 3, 4)
+
         # Use config values as defaults if not explicitly provided
         guidance_scale_to_use = kwargs.get('guidance_scale', self.config.guidance_scale)
         num_steps_to_use = kwargs.get('num_inference_steps', self.config.num_inference_steps)
@@ -471,10 +493,37 @@ class VideoMarkWatermark(BaseWatermark):
         
         reversed_latents = collector.latents_list # List[Tensor]
         
+        inverted_latents = final_reversed_latents
+        recovered_prc = None
+        try:
+            if inverted_latents is not None:
+                # Use the detector to recover the PRC codeword
+                detection_result = self.detector.eval_watermark(inverted_latents)
+                # The detector should have recovered_prc attribute or return it
+                if hasattr(self.detector, 'recovered_prc') and self.detector.recovered_prc is not None:
+                    recovered_prc = self.detector.recovered_prc
+                elif 'recovered_prc' in detection_result:
+                    recovered_prc = detection_result['recovered_prc']
+                else:
+                    print("Warning: Detector did not provide recovered_prc")
+        except Exception as e:
+            print(f"Warning: Could not recover PRC codeword for visualization: {e}")
+            recovered_prc = None
+
         return DataForVisualization(
             config=self.config,
             utils=self.utils,
-            orig_watermarked_latents=self.get_orig_watermarked_latents(),
+            orig_watermarked_latents=watermarked_latents,
+            watermarked_latents=watermarked_latents,
             reversed_latents=reversed_latents,
+            inverted_latents=inverted_latents,
             video_frames=video_frames,
+            # PRC-specific data
+            message_bits= message_bits,
+            prc_codeword=torch.tensor(prc_codeword, dtype=torch.float32),
+            pseudogaussian_noise=torch.tensor(pseudogaussian_noise, dtype=torch.float32),
+            generator_matrix=generator_matrix,
+            parity_check_matrix=parity_check_matrix,
+            threshold=self.config.threshold,
+            recovered_prc=torch.tensor(recovered_prc, dtype=torch.float32) if recovered_prc is not None else None
         )

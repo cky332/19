@@ -62,7 +62,7 @@ class PRCDetector(BaseDetector):
         
         const = 0.5 * np.sum(np.power(log_plus, 2) + np.power(log_minus, 2) - 0.5 * np.power(log_prod, 2))
         threshold = np.sqrt(2 * const * np.log(1 / false_positive_rate)) + 0.5 * log_prod.sum()
-        print(f"threshold: {threshold}")
+        #print(f"threshold: {threshold}")
         return log_plus.sum() >= threshold, log_plus.sum()
         
     def _boolean_row_reduce(self, A, print_progress=False):
@@ -162,7 +162,7 @@ class PRCDetector(BaseDetector):
             }
         decoded_message = self._binary_array_to_str(decoding_result)
         combined_result = detect_result or (decoding_result is not None)
-        print(f"detection_result: {detect_result}, decoding_result: {decoding_result}, combined_result: {combined_result}")
+        #print(f"detection_result: {detect_result}, decoding_result: {decoding_result}, combined_result: {combined_result}")
         return {
             'is_watermarked': bool(combined_result),
             "score": score, # Keep the score for potential future use

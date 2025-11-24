@@ -38,7 +38,6 @@ class ROBINDetector(BaseDetector):
         if detector_type == 'l1_distance':
             target_patch = self.gt_patch #[self.watermarking_mask].flatten()
             l1_distance = torch.abs(reversed_latents_fft[self.watermarking_mask] - target_patch[self.watermarking_mask]).mean().item()
-            print(f"l1_distance: {l1_distance}")
             return {
                 'is_watermarked': bool(l1_distance < self.threshold), 
                 'l1_distance': l1_distance

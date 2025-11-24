@@ -254,7 +254,7 @@ class RIUtils:
                                                                           self.config.heter_watermark_channel) > 0 else None)
                                           for _, combo in enumerate(key_value_combinations)]
         ring_capacity = len(Fourier_watermark_pattern_list)
-        print(ring_capacity)
+        #print(ring_capacity)
 
         if self.config.fix_gt:
             Fourier_watermark_pattern_list = [self.fft(self.ifft(Fourier_watermark_pattern).real) for Fourier_watermark_pattern in

@@ -40,11 +40,11 @@ class ExactInversion(BaseInversion):
                     if i < warmup_time:
                         step_size = original_step_size * (i+1)/(warmup_time)
                 
-                latent_model_input = (torch.cat([input] * 2) if do_classifier_free_guidance else input)
+                latent_model_input, info = self._prepare_latent_for_unet(input, do_classifier_free_guidance, self.unet)
                 latent_model_input = self.scheduler.scale_model_input(latent_model_input, t)
                 
-                noise_pred = self.unet(latent_model_input , s, encoder_hidden_states=text_embeddings).sample
-                noise_pred = self._apply_guidance_scale(noise_pred, guidance_scale)      
+                noise_pred_raw = self.unet(latent_model_input , s, encoder_hidden_states=text_embeddings).sample
+                noise_pred = self._restore_latent_from_unet(noise_pred_raw, info, guidance_scale)    
 
                 model_output = self.scheduler.convert_model_output(model_output=noise_pred, sample=input)
 
@@ -86,11 +86,11 @@ class ExactInversion(BaseInversion):
                     if i < warmup_time:
                         step_size = original_step_size * (i+1)/(warmup_time)
 
-                latent_model_input = torch.cat([input] * 2) if do_classifier_free_guidance else input
+                latent_model_input, info = self._prepare_latent_for_unet(input, do_classifier_free_guidance, self.unet)
                 latent_model_input = self.scheduler.scale_model_input(latent_model_input, t)
 
-                noise_pred = self.unet(latent_model_input, s, encoder_hidden_states=text_embeddings).sample
-                noise_pred = self._apply_guidance_scale(noise_pred, guidance_scale) 
+                noise_pred_raw = self.unet(latent_model_input, s, encoder_hidden_states=text_embeddings).sample
+                noise_pred = self._restore_latent_from_unet(noise_pred_raw, info, guidance_scale)
                 model_output = self.scheduler.convert_model_output(model_output=noise_pred, sample=input)
                 
                 x_t_pred = (sigma_t / sigma_s) * input - (alpha_t * phi_1) * model_output
@@ -130,8 +130,8 @@ class ExactInversion(BaseInversion):
         guidance_scale: float = 7.5,
         callback: Optional[Callable[[int, int, torch.FloatTensor], None]] = None,
         callback_steps: Optional[int] = 1,
-        inverse_opt=True,
-        inv_order=None,
+        inverse_opt=False,
+        inv_order=0,
         **kwargs,
     ):  
         with torch.no_grad():
@@ -206,11 +206,11 @@ class ExactInversion(BaseInversion):
                     phi_1 = torch.expm1(-h)
                     
                     # expand the latents if classifier free guidance is used
-                    latent_model_input = torch.cat([latents] * 2) if do_classifier_free_guidance else latents
+                    latent_model_input, info = self._prepare_latent_for_unet(latents, do_classifier_free_guidance, self.unet)
                     latent_model_input = self.scheduler.scale_model_input(latent_model_input, t)                
                     # predict the noise residual
-                    noise_pred = self.unet(latent_model_input, s, encoder_hidden_states=text_embeddings).sample 
-                    noise_pred = self._apply_guidance_scale(noise_pred, guidance_scale).clone()  
+                    noise_pred_raw = self.unet(latent_model_input, s, encoder_hidden_states=text_embeddings).sample 
+                    noise_pred = self._restore_latent_from_unet(noise_pred_raw, info, guidance_scale)
 
                     model_s = self.scheduler.convert_model_output(model_output=noise_pred, sample=latents)
                     x_t = latents
@@ -261,11 +261,11 @@ class ExactInversion(BaseInversion):
                                 alpha_s, alpha_t = self.scheduler.alpha_t[ss], self.scheduler.alpha_t[tt]
                                 phi_1 = torch.expm1(-h)
 
-                                y_input = torch.cat([y] * 2) if do_classifier_free_guidance else y
+                                y_input, info = self._prepare_latent_for_unet(y, do_classifier_free_guidance, self.unet)
                                 y_input = self.scheduler.scale_model_input(y_input, tt)
 
-                                noise_pred = self.unet(y_input, ss, encoder_hidden_states=text_embeddings).sample
-                                noise_pred = self._apply_guidance_scale(noise_pred, guidance_scale)   
+                                noise_pred_raw = self.unet(y_input, ss, encoder_hidden_states=text_embeddings).sample
+                                noise_pred = self._restore_latent_from_unet(noise_pred_raw, info, guidance_scale)
                                 model_s = self.scheduler.convert_model_output(model_output=noise_pred, sample=y)
                                 y = (sigma_s / sigma_t) * (y + alpha_t * phi_1 * model_s) # Line 5
                             y_t = y.clone()
@@ -277,11 +277,12 @@ class ExactInversion(BaseInversion):
                                 alpha_s, alpha_t = self.scheduler.alpha_t[ss], self.scheduler.alpha_t[tt]
                                 phi_1 = torch.expm1(-h)
 
-                                y_input = torch.cat([y] * 2) if do_classifier_free_guidance else y
+                                y_input, info = self._prepare_latent_for_unet(y, do_classifier_free_guidance, self.unet)
                                 y_input = self.scheduler.scale_model_input(y_input, tt)
 
                                 model_s = self.unet(y_input, ss, encoder_hidden_states=text_embeddings).sample
-                                noise_pred = self._apply_guidance_scale(model_s, guidance_scale)    
+                                noise_pred_raw = self._apply_guidance_scale(model_s, guidance_scale)   
+                                noise_pred = self._restore_latent_from_unet(noise_pred_raw, info, guidance_scale) 
                                 model_s = self.scheduler.convert_model_output(model_output=noise_pred, sample=y)
                                 y = (sigma_s / sigma_t) * (y + alpha_t * phi_1 * model_s) # Line 5
 
@@ -304,18 +305,20 @@ class ExactInversion(BaseInversion):
                             
                             x_t = latents
                             
-                            y_t_model_input = torch.cat([y_t] * 2) if do_classifier_free_guidance else y_t
+                            # y_t_model_input = torch.cat([y_t] * 2) if do_classifier_free_guidance else y_t
+                            y_t_model_input, info = self._prepare_latent_for_unet(y_t, do_classifier_free_guidance, self.unet)
                             y_t_model_input = self.scheduler.scale_model_input(y_t_model_input, s)
                             
-                            noise_pred = self.unet(y_t_model_input, s, encoder_hidden_states=text_embeddings).sample 
-                            noise_pred = self._apply_guidance_scale(noise_pred, guidance_scale)
+                            noise_pred_raw = self.unet(y_t_model_input, s, encoder_hidden_states=text_embeddings).sample 
+                            noise_pred = self._restore_latent_from_unet(noise_pred_raw, info, guidance_scale)
                             model_s_output = self.scheduler.convert_model_output(model_output=noise_pred, sample=y_t)
                             
-                            y_model_input = torch.cat([y] * 2) if do_classifier_free_guidance else y
+                            # y_model_input = torch.cat([y] * 2) if do_classifier_free_guidance else y
+                            y_model_input, info = self._prepare_latent_for_unet(y, do_classifier_free_guidance, self.unet)
                             y_model_input = self.scheduler.scale_model_input(y_model_input, r)
                             
-                            noise_pred = self.unet(y_model_input, r, encoder_hidden_states=text_embeddings).sample
-                            noise_pred = self._apply_guidance_scale(noise_pred, guidance_scale)
+                            noise_pred_raw = self.unet(y_model_input, r, encoder_hidden_states=text_embeddings).sample
+                            noise_pred = self._restore_latent_from_unet(noise_pred_raw, info, guidance_scale)
                             model_r_output = self.scheduler.convert_model_output(model_output=noise_pred, sample=y)
                             
                             latents = y_t.clone() # Line 7
@@ -339,11 +342,12 @@ class ExactInversion(BaseInversion):
                             alpha_s, alpha_t = self.scheduler.alpha_t[s], self.scheduler.alpha_t[t]
                             phi_1 = torch.expm1(-h)
 
-                            latent_model_input = torch.cat([latents] * 2) if do_classifier_free_guidance else latents                          
+                            # latent_model_input = torch.cat([latents] * 2) if do_classifier_free_guidance else latents                          
+                            latent_model_input, info = self._prepare_latent_for_unet(latents, do_classifier_free_guidance, self.unet)
                             latent_model_input = self.scheduler.scale_model_input(latent_model_input, t)
                             
-                            noise_pred = self.unet(latent_model_input, s, encoder_hidden_states=text_embeddings).sample
-                            noise_pred = self._apply_guidance_scale(noise_pred, guidance_scale)        
+                            noise_pred_raw = self.unet(latent_model_input, s, encoder_hidden_states=text_embeddings).sample
+                            noise_pred = self._restore_latent_from_unet(noise_pred_raw, info, guidance_scale)     
                             model_s = self.scheduler.convert_model_output(model_output=noise_pred, sample=latents)
 
                             x_t = latents
@@ -366,6 +370,103 @@ class ExactInversion(BaseInversion):
 
         return intermediate_latents
     
+    @torch.inference_mode()
+    def backward_diffusion(
+        self,
+        latents: Optional[torch.FloatTensor] = None,
+        num_inference_steps: int = 10,
+        guidance_scale: float = 7.5,
+        callback: Optional[Callable[[int, int, torch.FloatTensor], None]] = None,
+        callback_steps: Optional[int] = 1,
+        inv_order=None,
+        **kwargs,
+    ):
+        """
+        Reconstruct z_0 from z_T via the forward diffusion process
+
+        Sampling (Explicit Method):
+        Order 1: Forward Euler (DDIM) - Eq. (5)
+        Order 2: DPM-Solver++(2M) - Eq. (6)
+        """
+        with torch.no_grad():
+            # 1. Setup
+            do_classifier_free_guidance = guidance_scale > 1.0
+            self.scheduler.set_timesteps(num_inference_steps)
+            timesteps_tensor = self.scheduler.timesteps.to(self.device)
+            
+            # If no inv_order provided, default to scheduler's configuration
+            if inv_order is None:
+                inv_order = self.scheduler.solver_order
+
+            self.unet = self.unet.float()
+            latents = latents.float()
+            
+            # last output from the model to be used in higher order methods
+            old_model_output = None 
+
+            # 2. Denoising Loop (T -> 0)
+            for i, t in enumerate(tqdm(timesteps_tensor)):
+                if self.scheduler.step_index is None:
+                    self.scheduler._init_step_index(t)
+
+                # s (prev_timestep in diffusion terms, lower noise)
+                if i + 1 < len(timesteps_tensor):
+                    s = timesteps_tensor[i + 1]
+                else:
+                    s = torch.tensor(0, device=self.device)
+
+                # 3. Prepare Model Input
+                latent_model_input, info = self._prepare_latent_for_unet(latents, do_classifier_free_guidance, self.unet)
+                latent_model_input = self.scheduler.scale_model_input(latent_model_input, t)
+
+                # 4. Predict Noise/Data
+                noise_pred_raw = self.unet(latent_model_input, t, encoder_hidden_states=kwargs.get("text_embeddings")).sample
+                noise_pred = self._restore_latent_from_unet(noise_pred_raw, info, guidance_scale)
+                
+                # Transform prediction according to the type of prediction required by the scheduler
+                model_output = self.scheduler.convert_model_output(model_output=noise_pred, sample=latents)
+
+                # 5. Calculate Solver Parameters
+                # Aquire alpha, sigma, lambda
+                lambda_t, lambda_s = self.scheduler.lambda_t[t], self.scheduler.lambda_t[s]
+                alpha_t, alpha_s = self.scheduler.alpha_t[t], self.scheduler.alpha_t[s]
+                sigma_t, sigma_s = self.scheduler.sigma_t[t], self.scheduler.sigma_t[s]
+                
+                h = lambda_s - lambda_t  # step size
+                phi_1 = torch.expm1(-h)  # e^{-h} - 1
+
+                # 6. Sampling Step (Explicit)
+                
+                # Case 1: First Order (DDIM) or First Step of Second Order
+                if inv_order == 1 or i == 0:
+                    #  Eq. (5): Forward Euler
+                    # x_{t_i} = (sigma_{t_i} / sigma_{t_{i-1}}) * x_{t_{i-1}} - alpha_{t_i} * (e^{-h} - 1) * x_theta
+                    #  x_s = (sigma_s/sigma_t) * latents - alpha_s * phi_1 * model_output
+                    latents = (sigma_s / sigma_t) * latents - (alpha_s * phi_1) * model_output
+                
+                # Case 2: Second Order (DPM-Solver++ 2M)
+                elif inv_order == 2:
+                    # t_prev (old t) -> t (current) -> s (next)
+                    t_prev = timesteps_tensor[i - 1]
+                    lambda_prev = self.scheduler.lambda_t[t_prev]
+                    h_0 = lambda_t - lambda_prev
+                    r = h_0 / h
+                    
+                    # Eq. (6)
+                    # D = (1 + 1/(2r)) * x_theta(t) - (1/(2r)) * x_theta(t_prev)
+                    D = (1 + 1 / (2 * r)) * model_output - (1 / (2 * r)) * old_model_output
+                    
+                    latents = (sigma_s / sigma_t) * latents - (alpha_s * phi_1) * D
+
+                # Update history
+                old_model_output = model_output
+                self.scheduler._step_index += 1
+
+                if callback is not None and i % callback_steps == 0:
+                    callback(i, t, latents)
+
+            return latents
+
         
 class StepScheduler(ReduceLROnPlateau):
     def __init__(self, mode='min', current_lr=0, factor=0.1, patience=10,

@@ -54,38 +54,63 @@ class SubjectConsistencyAnalyzer(VideoQualityAnalyzer):
     2. Computing cosine similarity between consecutive frames and with the first frame
     3. Averaging these similarities to get a consistency score
     """
-    
-    def __init__(self, model_path: str = 'dino_vitb16', device: str = "cuda"):
-        """Initialize the SubjectConsistencyAnalyzer.
-        
-        Args:
-            model_path: Path to the pre-trained DINO model checkpoint
-            device: Device to run the model on ('cuda' or 'cpu')
-        """
+    def __init__(
+        self,
+        model_url: str = "https://dl.fbaipublicfiles.com/dino/dino_vitbase16_pretrain/dino_vitbase16_pretrain_full_checkpoint.pth",
+        model_path: str = "dino_vitb16_full.pth",
+        device: str = "cuda"
+    ):
         self.device = torch.device(device if torch.cuda.is_available() else "cpu")
-        
-        # Load DINO model
-        self.model = self._load_dino_model('dino_vitb16')
+        self.model_path = model_path
+        self.model_url = model_url
+
+        # ensure weights exist / download automatically
+        self._download_weights()
+
+        # load model via timm
+        self.model = self._load_dino_model()
         self.model.eval()
         self.model.to(self.device)
-        
-        # Image transform for DINO
-        self.transform = dino_transform_Image(224)
-        
-    def _load_dino_model(self, model_path: str):
-        """Load DINO ViT-B/16 model.
-        
-        Args:
-            model_path: Path to the model checkpoint
-            
-        Returns:
-            Loaded DINO model
-        """
-        load_dict = {'repo_or_dir':'facebookresearch/dino:main',
-                    # 'source':'local',
-                    'model': model_path}
-        model = torch.hub.load(**load_dict)
+
+    def _download_weights(self):
+        if not os.path.exists(self.model_path):
+            import urllib
+            print("Downloading DINO ViT-B/16 weights...")
+            urllib.request.urlretrieve(self.model_url, self.model_path)
+            print("Download complete:", self.model_path)
+        else:
+            print("Weights already exist:", self.model_path)
+
+    def _load_dino_model(self):
+        import timm
+        # timm vit-base-p16 structure
+        model = timm.create_model(
+            "vit_base_patch16_224",
+            pretrained=False,
+            num_classes=0
+        )
+
+        # load full checkpoint
+        ckpt = torch.load(self.model_path, map_location="cpu")
+
+        # for full checkpoint the state dict is nested
+        if "teacher" in ckpt:
+            state_dict = ckpt["teacher"]
+        elif "student" in ckpt:
+            state_dict = ckpt["student"]
+        else:
+            state_dict = ckpt
+
+        # remove classifier head keys
+        state_dict = {k: v for k, v in state_dict.items() if "head" not in k}
+
+        model.load_state_dict(state_dict, strict=False)
         return model
+    
+    def transform(self, img: Image.Image) -> torch.Tensor:
+        """Transform PIL Image to tensor for DINO model."""
+        transform = dino_transform_Image(224)
+        return transform(img)
     
     def analyze(self, frames: List[Image.Image]) -> float:
         """Analyze subject consistency across video frames.
@@ -200,7 +225,7 @@ class MotionSmoothnessAnalyzer(VideoQualityAnalyzer):
         import importlib.util
         
         # Load the module with hyphen in filename
-        spec = importlib.util.spec_from_file_location("amt_s", "/home/harry/workspace/MarkDiffusion/model/amt/networks/AMT-S.py")
+        spec = importlib.util.spec_from_file_location("amt_s", "model/amt/networks/AMT-S.py")
         amt_s_module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(amt_s_module)
         Model = amt_s_module.Model

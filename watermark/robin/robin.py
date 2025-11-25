@@ -34,6 +34,7 @@ class ROBINConfig(BaseConfig):
         
         self.watermarking_step = self.config_dict['watermarking_step']
         
+        self.is_training_from_scratch = self.config_dict.get('training_from_scratch', False)
         ## Training-Specific Parameters
         self.learning_rate = self.config_dict['learning_rate'] # learning rate for watermark optimization
         self.scale_lr = self.config_dict['scale_lr'] # if True, learning_rate will be multiplied by gradient_accumulation_steps * train_batch_size * num_processes
@@ -154,7 +155,19 @@ class ROBINUtils:
         hyperparameters = self.build_hyperparameters()
         checkpoint_path=hf_hub_download(repo_id="Generative-Watermark-Toolkits/MarkDiffusion-robin", filename=f"optimized_wm5-30_embedding-step-{hyperparameters['max_train_steps']}.pt", cache_dir=self.config.hf_dir)
 
-        if os.path.exists(checkpoint_path):
+        # if os.path.exists(checkpoint_path):
+        if (not self.config.is_training_from_scratch):
+            if not os.path.exists(checkpoint_path):
+                os.makedirs(self.config.ckpt_dir, exist_ok=True)
+                from huggingface_hub import snapshot_download
+                snapshot_download(
+                    repo_id="Generative-Watermark-Toolkits/MarkDiffusion-robin",
+                    local_dir=self.config.ckpt_dir,
+                    repo_type="model",   
+                    local_dir_use_symlinks=False,
+                    endpoint=os.getenv("HF_ENDPOINT", "https://huggingface.co"),
+                )
+            
             print(f"Loading checkpoint from {checkpoint_path}")
             checkpoint = torch.load(checkpoint_path)
             optimized_watermark = checkpoint['opt_wm'].to(self.config.device)
@@ -162,7 +175,7 @@ class ROBINUtils:
 
             return watermarking_mask, optimized_watermark, optimized_watermarking_signal
         else:
-            print(f"No checkpoint found at {checkpoint_path}, training from scratch")
+            print(f"Start training from scratch")
             # Generate clean images
             clean_images = self.generate_clean_images(dataset)
             # Create training dataset

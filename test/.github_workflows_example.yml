@@ -1,0 +1,189 @@
+# Example GitHub Actions workflow for testing MarkDiffusion watermark algorithms
+# Copy this file to .github/workflows/test_watermarks.yml to enable CI/CD testing
+
+name: Test Watermark Algorithms
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'watermark/**'
+      - 'test/**'
+      - 'config/**'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'watermark/**'
+      - 'test/**'
+      - 'config/**'
+
+jobs:
+  # Quick test job - runs on every commit
+  quick-test:
+    name: Quick Test (Initialization)
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.8', '3.9', '3.10']
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Cache pip packages
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -r test/requirements-test.txt
+
+    - name: Run quick tests
+      run: |
+        pytest test/test_watermark_algorithms.py -v -k initialization --tb=short
+
+    - name: Upload test results
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: quick-test-results-${{ matrix.python-version }}
+        path: |
+          test_report.html
+          .pytest_cache/
+
+  # Full test job - runs on main branch or manual trigger
+  full-test:
+    name: Full Test (Generation & Detection)
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -r test/requirements-test.txt
+
+    - name: Cache models
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/huggingface
+        key: ${{ runner.os }}-huggingface-models
+        restore-keys: |
+          ${{ runner.os }}-huggingface-
+
+    - name: Run full tests
+      run: |
+        pytest test/test_watermark_algorithms.py -v \
+          --html=test_report.html \
+          --self-contained-html \
+          --cov=watermark \
+          --cov-report=html \
+          --cov-report=term
+
+    - name: Upload test report
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: full-test-report
+        path: |
+          test_report.html
+          htmlcov/
+
+    - name: Upload coverage to Codecov
+      if: always()
+      uses: codecov/codecov-action@v3
+      with:
+        files: ./coverage.xml
+        flags: unittests
+        name: codecov-umbrella
+
+  # Test specific algorithms
+  test-image-algorithms:
+    name: Test Image Algorithms
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        algorithm: ['TR', 'GS', 'PRC', 'RI', 'SEAL', 'ROBIN', 'WIND', 'GM', 'SFW']
+      fail-fast: false
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -r test/requirements-test.txt
+
+    - name: Test ${{ matrix.algorithm }}
+      run: |
+        pytest test/test_watermark_algorithms.py -v \
+          --algorithm ${{ matrix.algorithm }} \
+          -k initialization \
+          --tb=short
+
+    - name: Upload results
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: test-${{ matrix.algorithm }}
+        path: .pytest_cache/
+
+  test-video-algorithms:
+    name: Test Video Algorithms
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        algorithm: ['VideoShield', 'VideoMark']
+      fail-fast: false
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -r test/requirements-test.txt
+
+    - name: Test ${{ matrix.algorithm }}
+      run: |
+        pytest test/test_watermark_algorithms.py -v \
+          --algorithm ${{ matrix.algorithm }} \
+          -k initialization \
+          --tb=short
+
+    - name: Upload results
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: test-${{ matrix.algorithm }}
+        path: .pytest_cache/

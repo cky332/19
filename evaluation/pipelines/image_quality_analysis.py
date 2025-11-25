@@ -199,6 +199,8 @@ class ImageQualityAnalysisPipeline:
             
             dataset_eval.watermarked_images.append(watermarked_image)
             dataset_eval.unwatermarked_images.append(unwatermarked_image)
+            if hasattr(self, "prompt_per_image"):
+                index = index // self.prompt_per_image
             dataset_eval.indexes.append(index)
             dataset_eval.prompts.append(self._get_prompt(index))
             
@@ -550,16 +552,19 @@ class RepeatImageQualityAnalysisPipeline(ImageQualityAnalysisPipeline):
             return watermark.generate_unwatermarked_media(input_data=prompt, **generation_kwargs)
     
     def _prepare_input_for_quality_analyzer(self, 
-                                          watermarked_images: List[Image.Image], 
-                                          unwatermarked_images: List[Image.Image], 
-                                          reference_images: List[Image.Image]):
+                                          prepared_dataset: DatasetForEvaluation):
         """Prepare input for diversity analyzer."""
         # Group images by prompt
-        grouped_images = []
+        watermarked_images = prepared_dataset.watermarked_images
+        unwatermarked_images = prepared_dataset.unwatermarked_images
+
+        grouped = []
         for i in range(0, len(watermarked_images), self.prompt_per_image):
-            grouped_images.append((watermarked_images[i:i+self.prompt_per_image], 
-                                  unwatermarked_images[i:i+self.prompt_per_image]))
-        return grouped_images
+            grouped.append(
+                (watermarked_images[i:i+self.prompt_per_image],
+                unwatermarked_images[i:i+self.prompt_per_image])
+            )
+        return grouped
     
     def analyze_quality(self, 
                         prepared_data: List[Tuple[List[Image.Image], List[Image.Image]]], 

@@ -223,7 +223,7 @@ class CLIPScoreCalculator(ReferencedImageQualityAnalyzer):
     Higher scores indicate better semantic similarity.
     """
     
-    def __init__(self, device: str = "cuda", model_name: str = "ViT-g-14", reference_source: str = "image"):
+    def __init__(self, device: str = "cuda", model_name: str = "ViT-B/32", reference_source: str = "image"):
         """Initialize the CLIP Score calculator.
         
         Args:
@@ -481,7 +481,7 @@ class LPIPSAnalyzer(RepeatImageQualityAnalyzer):
         for img in images:
             if img.mode != 'RGB':
                 img = img.convert('RGB')
-            tensor = lpips.im2tensor(img)
+            tensor = lpips.im2tensor(np.array(img).astype(np.uint8)).to(self.device)  # Convert to tensor
             tensors.append(tensor)
         
         # Calculate pairwise LPIPS distances

@@ -76,18 +76,22 @@ class DDIMInversion(BaseInversion):
                     text_embeddings = new_text_embeddings
 
             # expand the latents if we are doing classifier free guidance
-            latent_model_input = (
-                torch.cat([latents] * 2) if do_classifier_free_guidance else latents
-            )
+            # latent_model_input = (
+            #     torch.cat([latents] * 2) if do_classifier_free_guidance else latents
+            # )
+            latent_model_input, info = self._prepare_latent_for_unet(latents, do_classifier_free_guidance, self.unet)
             latent_model_input = self.scheduler.scale_model_input(latent_model_input, t)
-
+            
             # predict the noise residual
-            noise_pred = self.unet(
+            noise_pred_raw = self.unet(
                 latent_model_input, t, encoder_hidden_states=text_embeddings
             ).sample
+            
+            # reshape back if needed
+            noise_pred = self._restore_latent_from_unet(noise_pred_raw, info, guidance_scale)
 
-            # perform guidance
-            noise_pred = self._apply_guidance_scale(noise_pred, guidance_scale)
+            # # perform guidance
+            # noise_pred = self._apply_guidance_scale(noise_pred, guidance_scale)
 
             prev_timestep = (
                 t

@@ -191,7 +191,7 @@ class VideoQualityAnalysisPipeline:
         os.makedirs(self.store_path, exist_ok=True)
         dataset_name = self.dataset.name
 
-        for (index, watermarked_video, unwatermarked_video) in enumerate(zip(prepared_dataset.indexes, prepared_dataset.watermarked_videos, prepared_dataset.unwatermarked_videos)):
+        for (index, watermarked_video, unwatermarked_video) in zip(prepared_dataset.indexes, prepared_dataset.watermarked_videos, prepared_dataset.unwatermarked_videos):
             # unwatermarked/watermarked_video is List[Image.Image], so first make a video from the frames
             save_dir = os.path.join(self.store_path, f"{self.__class__.__name__}_{dataset_name}_watermarked_prompt{index}")
             os.makedirs(save_dir, exist_ok=True)

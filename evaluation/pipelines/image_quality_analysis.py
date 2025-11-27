@@ -231,9 +231,9 @@ class ImageQualityAnalysisPipeline:
         os.makedirs(self.store_path, exist_ok=True)
         dataset_name = self.dataset.name
 
-        for (index, watermarked_image, unwatermarked_image, prompt) in enumerate(zip(prepared_dataset.indexes, prepared_dataset.watermarked_images, prepared_dataset.unwatermarked_images, prepared_dataset.prompts)):
-            watermarked_image.save(os.path.join(self.store_path, f"{self.__class__.__name__}_{dataset_name}_watermarked_prompt_{prompt}_{index}.png"))
-            unwatermarked_image.save(os.path.join(self.store_path, f"{self.__class__.__name__}_{dataset_name}_unwatermarked_prompt_{prompt}_{index}.png"))
+        for (index, watermarked_image, unwatermarked_image, prompt) in zip(prepared_dataset.indexes, prepared_dataset.watermarked_images, prepared_dataset.unwatermarked_images, prepared_dataset.prompts):
+            watermarked_image.save(os.path.join(self.store_path, f"{self.__class__.__name__}_{dataset_name}_watermarked_prompt_{index}.png"))
+            unwatermarked_image.save(os.path.join(self.store_path, f"{self.__class__.__name__}_{dataset_name}_unwatermarked_prompt_{index}.png"))
 
     def analyze_quality(self, prepared_data, analyzer):
         """Analyze quality of watermarked and unwatermarked images."""

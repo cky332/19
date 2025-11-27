@@ -16,7 +16,8 @@ from utils.diffusion_config import DiffusionConfig
 from diffusers import (
     StableDiffusionPipeline,
     TextToVideoSDPipeline,
-    DPMSolverMultistepScheduler
+    DPMSolverMultistepScheduler,
+    DDIMScheduler
 )
 from utils.pipeline_utils import (
     PIPELINE_TYPE_IMAGE,
@@ -182,7 +183,7 @@ def image_pipeline(device, image_model_path):
 def video_pipeline(device, video_model_path):
     """Create and cache video generation pipeline."""
     try:
-        scheduler = DPMSolverMultistepScheduler.from_pretrained(
+        scheduler = DDIMScheduler.from_pretrained(
             video_model_path,
             subfolder="scheduler"
         )

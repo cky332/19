@@ -535,6 +535,10 @@ class BaseVisualizer(ABC):
             if image_array.max() > 1.0:
                 image_array = image_array / 255.0
 
+            # Normalize [-1, 1] range to [0, 1] for imshow
+            if image_array.min() < 0:
+                image_array = (image_array + 1.0) / 2.0
+
             # Clip to valid range
             image_array = np.clip(image_array, 0, 1)
         else:
@@ -635,6 +639,13 @@ class BaseVisualizer(ABC):
                         frame = frame.astype(np.float32)
                         if frame.max() > 1.0:
                             frame = frame / 255.0
+
+                    # Normalize [-1, 1] range to [0, 1] for imshow
+                    if frame.min() < 0:
+                        frame = (frame + 1.0) / 2.0
+
+                    # Clip to valid range [0, 1]
+                    frame = np.clip(frame, 0, 1)
 
                 im = sub_ax.imshow(frame)
 

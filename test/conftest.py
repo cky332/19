@@ -301,7 +301,7 @@ def all_image_editors():
         Brightness(),
         Mask(),
         Overlay(),
-        # AdaptiveNoiseInjection()
+        AdaptiveNoiseInjection()
     ]
 
 

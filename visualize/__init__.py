@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+<<<<<<< HEAD
 """
 Visualization module for MarkDiffusion.
 
@@ -35,3 +36,12 @@ __all__ = [
     'wind',
 ]
 
+=======
+"""Visualization module for watermarking analysis and results display."""
+
+from .base import BaseVisualizer
+from .data_for_visualization import DataForVisualization
+from .auto_visualization import AutoVisualizer
+
+__all__ = ["BaseVisualizer", "DataForVisualization", "AutoVisualizer"]
+>>>>>>> 444c535 (feat: add pyproject.toml)

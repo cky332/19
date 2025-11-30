@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+<<<<<<< HEAD
 """
 Detection module for MarkDiffusion.
 
@@ -33,3 +34,10 @@ __all__ = [
     'wind',
 ]
 
+=======
+"""Detection module for watermark verification and extraction."""
+
+from .base import BaseDetector
+
+__all__ = ["BaseDetector"]
+>>>>>>> 444c535 (feat: add pyproject.toml)

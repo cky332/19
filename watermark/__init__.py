@@ -13,6 +13,7 @@
 # limitations under the License.
 
 """
+<<<<<<< HEAD
 Watermark module for MarkDiffusion.
 
 This module provides watermarking functionality for different algorithms
@@ -36,3 +37,36 @@ __all__ = [
     'wind',
 ]
 
+=======
+MarkDiffusion - An Open-Source Toolkit for Generative Watermarking of Latent Diffusion Models.
+
+This package provides watermarking algorithms for diffusion models including:
+- Tree-Ring (TR)
+- Gaussian Shading (GS)
+- RingID (RI)
+- PRC
+- ROBIN
+- Gaussian Marking (GM)
+- SFW (Stable Few Watermarks)
+- SEAL
+- WIND
+- VideoMark
+- VideoShield
+"""
+
+__version__ = "0.1.0"
+__author__ = "THU-BPM MarkDiffusion Team"
+__license__ = "Apache-2.0"
+
+from .base import BaseWatermark, BaseConfig
+from .auto_watermark import AutoWatermark
+from .auto_config import AutoConfig
+
+__all__ = [
+    "__version__",
+    "BaseWatermark",
+    "BaseConfig",
+    "AutoWatermark",
+    "AutoConfig",
+]
+>>>>>>> 444c535 (feat: add pyproject.toml)

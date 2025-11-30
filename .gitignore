@@ -12,12 +12,6 @@ watermark/robin/generated_images/
 .env
 output
 backup
-test_*.py
-!test_watermark_algorithms.py
-!test_pipelines.py
-dino
-test.ipynb
-model/musiq/musiq_spaq_ckpt-358bb6af.pth
 VBench
 video_detection
 watermark/gm/ckpts/model_final.pth

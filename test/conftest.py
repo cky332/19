@@ -39,8 +39,8 @@ TEST_PROMPT_IMAGE = "A beautiful sunset over the ocean"
 TEST_PROMPT_VIDEO = "A cinematic timelapse of city lights at night"
 
 # Test parameters
-IMAGE_SIZE = (512, 512)
-NUM_INFERENCE_STEPS = 50
+IMAGE_SIZE = (256, 256)
+NUM_INFERENCE_STEPS = 20
 GUIDANCE_SCALE = 7.5
 GEN_SEED = 42
 NUM_FRAMES = 8

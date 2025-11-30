@@ -64,7 +64,7 @@ def assess_video_quality(algorithm_name: str = "VideoShield", metric: str = "sub
     """
     
     # Load VBench dataset
-    my_dataset = VBenchDataset(max_samples=200, dimension=dimension)
+    my_dataset = VBenchDataset(max_samples=1, dimension=dimension)
     
     # Initialize analyzer based on metric
     if metric == 'subject_consistency':
@@ -109,10 +109,10 @@ def assess_video_quality(algorithm_name: str = "VideoShield", metric: str = "sub
             pipe=pipe,
             device=device,
             # Video-specific parameters
-            num_frames=16,  # Number of frames
-            width=512,
-            height=512,
-            num_inference_steps=50,
+            num_frames=4,  # Number of frames
+            width=256,
+            height=256,
+            num_inference_steps=20,
             guidance_scale=7.5,
             gen_seed=42,
             inversion_type="ddim"
@@ -121,10 +121,10 @@ def assess_video_quality(algorithm_name: str = "VideoShield", metric: str = "sub
         print(f"Warning: Could not load T2V model from {model_path}. Using default config. Error: {e}")
         diffusion_config = DiffusionConfig(
             device=device,
-            num_frames=16,
-            width=512,
-            height=512,
-            num_inference_steps=50,
+            num_frames=4,
+            width=256,
+            height=256,
+            num_inference_steps=20,
             guidance_scale=7.5,
             gen_seed=42,
         )

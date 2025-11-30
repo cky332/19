@@ -75,6 +75,16 @@ Test dependencies include:
 #### Run directly with pytest
 
 ```bash
+# Test the whole project and report coverage
+pytest test -v \
+  --cov=. \
+  --cov-report=html \
+  --cov-report=term-missing \
+  --html=report.html
+
+# Test all pipelines
+pytest test/test_pipelines.py -v
+
 # Test all algorithms and modules
 pytest test/test_watermark_algorithms.py -v
 

@@ -18,6 +18,9 @@ try:
 except ImportError:
     BICUBIC = Image.BICUBIC
 
+from pathlib import Path
+CACHE_DIR = Path.home() / ".cache" / "markdiffusion"
+
 
 def dino_transform_Image(n_px):
     """DINO transform for PIL Images."""
@@ -27,6 +30,35 @@ def dino_transform_Image(n_px):
         Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))
     ])
 
+import requests
+# def download_file(url, dest):
+#     resp = requests.get(url, timeout=20)
+#     resp.raise_for_status()
+#     with open(dest, "wb") as f:
+#         f.write(resp.content)
+#     print(f"Downloaded file: {dest}")
+
+def download_recursive(api_url, local_dir):
+    local_dir.mkdir(parents=True, exist_ok=True)
+    listing = requests.get(api_url, timeout=20).json()
+    if isinstance(listing, dict) and listing.get("message", "").startswith("API rate limit"):
+        raise RuntimeError("GitHub API rate-limited. Try again later.")
+
+    for item in listing:
+        name = item["name"]
+        dest = local_dir / name
+
+        if item["type"] == "file":
+            if not dest.exists():
+                print(f"Downloading file: {item['download_url']}")
+                resp = requests.get(item["download_url"], timeout=20)
+                resp.raise_for_status()
+                with open(dest, "wb") as f:
+                    f.write(resp.content)
+
+        elif item["type"] == "dir":
+            dest.mkdir(exist_ok=True)
+            download_recursive(item["url"], dest)
 
 class VideoQualityAnalyzer:
     """Video quality analyzer base class."""
@@ -161,6 +193,54 @@ class SubjectConsistencyAnalyzer(VideoQualityAnalyzer):
         else:
             return 1.0
 
+from contextlib import contextmanager
+
+@contextmanager
+def isolated_import_context(code_dir, isolated_prefixes, prefix_tag=None):
+    """Context manager for isolated module imports to avoid conflicts with main project.
+
+    Args:
+        code_dir: External code directory to add to sys.path
+        isolated_prefixes: List of module name prefixes to isolate (e.g., ['utils', 'networks'])
+        prefix_tag: Tag to prefix external modules with after loading (default: code_dir.name + '_ext_')
+
+    Example:
+        with isolated_import_context(CODE_DIR, ['utils', 'networks']):
+            # imports here will use CODE_DIR's modules
+            spec = importlib.util.spec_from_file_location("entry", CODE_DIR / "main.py")
+            ...
+        # after exiting, main project's 'utils' is restored
+    """
+    import sys
+
+    if prefix_tag is None:
+        prefix_tag = code_dir.name + '_ext_'
+
+    original_path = sys.path.copy()
+    saved_modules = {}
+
+    # Remove potentially conflicting modules
+    for prefix in isolated_prefixes:
+        for mod_name in list(sys.modules.keys()):
+            if mod_name == prefix or mod_name.startswith(prefix + '.'):
+                saved_modules[mod_name] = sys.modules.pop(mod_name)
+
+    sys.path.insert(0, str(code_dir))
+
+    try:
+        yield
+    finally:
+        sys.path[:] = original_path
+
+        # Rename external modules with prefix tag to avoid future conflicts
+        for prefix in isolated_prefixes:
+            for mod_name in list(sys.modules.keys()):
+                if mod_name == prefix or mod_name.startswith(prefix + '.'):
+                    if mod_name not in saved_modules:
+                        sys.modules[prefix_tag + mod_name] = sys.modules.pop(mod_name)
+
+        # Restore main project modules
+        sys.modules.update(saved_modules)
 
 class MotionSmoothnessAnalyzer(VideoQualityAnalyzer):
     """Analyzer for evaluating motion smoothness in videos using AMT-S model.
@@ -174,25 +254,52 @@ class MotionSmoothnessAnalyzer(VideoQualityAnalyzer):
     with smoother motion resulting in higher scores.
     """
     
-    def __init__(self, model_path: str = "model/amt/amt-s.pth", 
+    # Remote sources
+
+    # Local cache dir OUTSIDE project (to avoid vendoring)
+    from pathlib import Path
+    CODE_DIR = CACHE_DIR / "amt"
+    GH_API = "https://api.github.com/repos/MCG-NKU/AMT/contents"
+    WEIGHT_URL = 'https://hf-mirror.com/lalala125/AMT/resolve/main/amt-s.pth'
+    WEIGHT_PATH = CACHE_DIR / "amt" / "amt-s.pth"
+
+    def __init__(self,
                  device: str = "cuda", niters: int = 1):
         """Initialize the MotionSmoothnessAnalyzer.
-        
+
         Args:
-            model_path: Path to the AMT-S model checkpoint
             device: Device to run the model on ('cuda' or 'cpu')
             niters: Number of interpolation iterations (default: 1)
         """
         self.device = torch.device(device if torch.cuda.is_available() else "cpu")
         self.niters = niters
-        
+
         # Initialize model parameters
         self._initialize_params()
-        
+
+        # Ensure model files exist → download if needed
+        self._ensure_files()
+
         # Load AMT-S model
-        self.model = self._load_amt_model(model_path)
+        self.model = self._load_amt_model(str(self.WEIGHT_PATH))
         self.model.eval()
         self.model.to(self.device)
+
+    def _ensure_files(self):
+        """Download architecture and weight files if they do not exist."""
+        self.CODE_DIR.mkdir(parents=True, exist_ok=True)
+
+        # Check if key file exists, not just directory
+        if not (self.CODE_DIR / "networks" / "AMT-S.py").exists():
+            print("Downloading AMT architecture...")
+            download_recursive(self.GH_API, self.CODE_DIR)
+
+        if not self.WEIGHT_PATH.exists():
+            print("Downloading AMT-S weights...")
+            self._download(self.WEIGHT_URL, self.CODE_DIR)
+            
+    def _download(self, url: str, local_dir: Path):
+        subprocess.run(['wget', url, '-P', local_dir], check=True)
         
     def _initialize_params(self):
         """Initialize parameters for video processing."""
@@ -213,35 +320,41 @@ class MotionSmoothnessAnalyzer(VideoQualityAnalyzer):
         
     def _load_amt_model(self, model_path: str):
         """Load AMT-S model.
-        
+
         Args:
             model_path: Path to the model checkpoint
-            
+
         Returns:
             Loaded AMT-S model
         """
-        # Import AMT-S model (note the hyphen in filename)
-        import sys
         import importlib.util
-        
-        # Load the module with hyphen in filename
-        spec = importlib.util.spec_from_file_location("amt_s", "model/amt/networks/AMT-S.py")
-        amt_s_module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(amt_s_module)
-        Model = amt_s_module.Model
-        
-        # Create model with default parameters
-        model = Model(
-            corr_radius=3,
-            corr_lvls=4,
-            num_flows=3
-        )
-        
-        # Load checkpoint
-        if os.path.exists(model_path):
-            ckpt = torch.load(model_path, map_location="cpu", weights_only=False)
-            model.load_state_dict(ckpt['state_dict'])
-        
+
+        isolated_prefixes = ["utils", "networks"]
+
+        with isolated_import_context(self.CODE_DIR, isolated_prefixes, prefix_tag="_amt_ext_"):
+            # Load AMT-S entry module
+            entry_py = self.CODE_DIR / "networks" / "AMT-S.py"
+            spec = importlib.util.spec_from_file_location("_amt_s_entry", entry_py)
+            amt_s_module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(amt_s_module)
+            Model = amt_s_module.Model
+
+            # Also load utils functions needed later (store as instance attributes)
+            utils_py = self.CODE_DIR / "utils" / "utils.py"
+            spec_utils = importlib.util.spec_from_file_location("_amt_utils", utils_py)
+            utils_module = importlib.util.module_from_spec(spec_utils)
+            spec_utils.loader.exec_module(utils_module)
+            self._amt_img2tensor = utils_module.img2tensor
+            self._amt_tensor2img = utils_module.tensor2img
+            self._amt_check_dim_and_resize = utils_module.check_dim_and_resize
+            self._amt_InputPadder = utils_module.InputPadder
+
+            # Create model
+            model = Model(corr_radius=3, corr_lvls=4, num_flows=3)
+            if os.path.exists(model_path):
+                ckpt = torch.load(model_path, map_location="cpu", weights_only=False)
+                model.load_state_dict(ckpt['state_dict'])
+
         return model
     
     def _extract_frames(self, frames: List[Image.Image], start_from: int = 0) -> List[np.ndarray]:
@@ -263,39 +376,36 @@ class MotionSmoothnessAnalyzer(VideoQualityAnalyzer):
     
     def _img2tensor(self, img: np.ndarray) -> torch.Tensor:
         """Convert numpy image to tensor.
-        
+
         Args:
             img: Image as numpy array (H, W, C)
-            
+
         Returns:
             Image tensor (1, C, H, W)
         """
-        from model.amt.utils.utils import img2tensor
-        return img2tensor(img)
-    
+        return self._amt_img2tensor(img)
+
     def _tensor2img(self, tensor: torch.Tensor) -> np.ndarray:
         """Convert tensor to numpy image.
-        
+
         Args:
             tensor: Image tensor (1, C, H, W)
-            
+
         Returns:
             Image as numpy array (H, W, C)
         """
-        from model.amt.utils.utils import tensor2img
-        return tensor2img(tensor)
-    
+        return self._amt_tensor2img(tensor)
+
     def _check_dim_and_resize(self, tensor_list: List[torch.Tensor]) -> List[torch.Tensor]:
         """Check dimensions and resize tensors if needed.
-        
+
         Args:
             tensor_list: List of image tensors
-            
+
         Returns:
             List of resized tensors
         """
-        from model.amt.utils.utils import check_dim_and_resize
-        return check_dim_and_resize(tensor_list)
+        return self._amt_check_dim_and_resize(tensor_list)
     
     def _calculate_scale(self, h: int, w: int) -> float:
         """Calculate scaling factor based on available VRAM.
@@ -314,23 +424,21 @@ class MotionSmoothnessAnalyzer(VideoQualityAnalyzer):
     
     def _interpolate_frames(self, inputs: List[torch.Tensor], scale: float) -> List[torch.Tensor]:
         """Interpolate frames using AMT-S model.
-        
+
         Args:
             inputs: List of input frame tensors
             scale: Scaling factor for processing
-            
+
         Returns:
             List of interpolated frame tensors
         """
-        from model.amt.utils.utils import InputPadder
-        
         # Pad inputs
         padding = int(16 / scale)
-        padder = InputPadder(inputs[0].shape, padding)
+        padder = self._amt_InputPadder(inputs[0].shape, padding)
         inputs = padder.pad(*inputs)
-        
+
         # Perform interpolation for specified iterations
-        for i in range(self.niters):
+        for _ in range(self.niters):
             outputs = [inputs[0]]
             for in_0, in_1 in zip(inputs[:-1], inputs[1:]):
                 in_0 = in_0.to(self.device)
@@ -339,7 +447,7 @@ class MotionSmoothnessAnalyzer(VideoQualityAnalyzer):
                     imgt_pred = self.model(in_0, in_1, self.embt, scale_factor=scale, eval=True)['imgt_pred']
                 outputs += [imgt_pred.cpu(), in_1.cpu()]
             inputs = outputs
-        
+
         # Unpad outputs
         outputs = padder.unpad(*outputs)
         return outputs
@@ -427,62 +535,116 @@ class MotionSmoothnessAnalyzer(VideoQualityAnalyzer):
 
 class DynamicDegreeAnalyzer(VideoQualityAnalyzer):
     """Analyzer for evaluating dynamic degree (motion intensity) in videos using RAFT optical flow.
-    
+
     This analyzer measures the amount and intensity of motion in videos by:
     1. Computing optical flow between consecutive frames using RAFT
     2. Calculating flow magnitude for each pixel
     3. Extracting top 5% highest flow magnitudes
     4. Determining if video has sufficient dynamic motion based on thresholds
-    
+
     The score represents whether the video contains dynamic motion (1.0) or is mostly static (0.0).
     """
-    
-    def __init__(self, model_path: str = "model/raft/raft-things.pth",
+    from pathlib import Path
+
+    # GitHub API endpoint to list directory content
+    GH_API = "https://api.github.com/repos/princeton-vl/RAFT/contents/core"
+
+    # Local cache directory (project-external)
+    CODE_DIR = CACHE_DIR / "raft" / "core"
+    WEIGHT_DIR = CACHE_DIR / "raft"
+
+    def __init__(self, model_name: str = "raft-things.pth",
                  device: str = "cuda", sample_fps: int = 8):
         """Initialize the DynamicDegreeAnalyzer.
-        
+
         Args:
-            model_path: Path to the RAFT model checkpoint
+            model_name: Name of the RAFT model checkpoint
             device: Device to run the model on ('cuda' or 'cpu')
             sample_fps: Target FPS for frame sampling (default: 8)
         """
         self.device = torch.device(device if torch.cuda.is_available() else "cpu")
         self.sample_fps = sample_fps
-        
+        self.weight_path = self.WEIGHT_DIR / "models" / model_name
+
+        self._ensure_files()
+
         # Load RAFT model
-        self.model = self._load_raft_model(model_path)
+        self.model = self._load_raft_model(str(self.weight_path))
         self.model.eval()
         self.model.to(self.device)
-        
+
+    def _ensure_files(self):
+        """Ensure RAFT model code + weights available locally"""
+        self.CODE_DIR.mkdir(parents=True, exist_ok=True)
+
+        # Check if key file exists, not just directory
+        if not (self.CODE_DIR / "raft.py").exists():
+            print("Downloading RAFT architecture...")
+            download_recursive(self.GH_API, self.CODE_DIR)
+
+        # Download weights
+        if not self.weight_path.exists():
+            print("Downloading RAFT weights...")
+            self._download_file()
+
+    def _download_file(self):
+        self.WEIGHT_DIR.mkdir(parents=True, exist_ok=True)
+        wget_command = ['wget', '-P', str(self.WEIGHT_DIR), 'https://dl.dropboxusercontent.com/s/4j4z58wuv8o0mfz/models.zip']
+        unzip_command = ['unzip', '-o', '-d', str(self.WEIGHT_DIR), str(self.WEIGHT_DIR / 'models.zip')]
+        remove_command = ['rm', '-f', str(self.WEIGHT_DIR / 'models.zip')]
+
+        subprocess.run(wget_command, check=True)
+        subprocess.run(unzip_command, check=True)
+        subprocess.run(remove_command, check=True)
+
     def _load_raft_model(self, model_path: str):
         """Load RAFT optical flow model.
-        
+
         Args:
             model_path: Path to the model checkpoint
-            
+
         Returns:
             Loaded RAFT model
         """
-        from model.raft.core.raft import RAFT
-        from easydict import EasyDict as edict
-        
-        # Configure RAFT arguments
-        args = edict({
-            "model": model_path,
-            "small": False,
-            "mixed_precision": False,
-            "alternate_corr": False
-        })
-        
-        # Create and load model
-        model = RAFT(args)
-        
-        if os.path.exists(model_path):
-            ckpt = torch.load(model_path, map_location="cpu")
-            # Remove 'module.' prefix if present (from DataParallel)
-            new_ckpt = {k.replace('module.', ''): v for k, v in ckpt.items()}
-            model.load_state_dict(new_ckpt)
-        
+        import importlib.util
+
+        # RAFT internal modules that may conflict with main project
+        isolated_prefixes = ["utils", "update", "extractor", "corr", "raft", "alt_cuda_corr"]
+
+        with isolated_import_context(self.CODE_DIR, isolated_prefixes, prefix_tag="_raft_ext_"):
+            # Load RAFT entry module
+            raft_py = self.CODE_DIR / "raft.py"
+            spec = importlib.util.spec_from_file_location("_raft_entry", raft_py)
+            raft_module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(raft_module)
+            RAFT = raft_module.RAFT
+
+            # Load InputPadder for later use
+            utils_py = self.CODE_DIR / "utils" / "utils.py"
+            spec_utils = importlib.util.spec_from_file_location("_raft_utils", utils_py)
+            utils_module = importlib.util.module_from_spec(spec_utils)
+            spec_utils.loader.exec_module(utils_module)
+            self._raft_InputPadder = utils_module.InputPadder
+
+            from easydict import EasyDict as edict
+
+            # Configure RAFT arguments
+            args = edict({
+                "model": model_path,
+                "small": False,
+                "mixed_precision": False,
+                "alternate_corr": False
+            })
+
+            # Create and load model
+            model = RAFT(args)
+
+            if os.path.exists(model_path):
+                ckpt = torch.load(model_path, map_location="cpu")
+                # Remove 'module.' prefix if present (from DataParallel)
+                new_ckpt = {k.replace('module.', ''): v for k, v in ckpt.items()}
+                model.load_state_dict(new_ckpt)
+
         return model
     
     def _extract_frames_for_flow(self, frames: List[Image.Image], target_fps: int = 8) -> List[torch.Tensor]:
@@ -617,13 +779,12 @@ class DynamicDegreeAnalyzer(VideoQualityAnalyzer):
         with torch.no_grad():
             for frame1, frame2 in zip(prepared_frames[:-1], prepared_frames[1:]):
                 # Pad frames if necessary
-                from model.raft.core.utils_core.utils import InputPadder
-                padder = InputPadder(frame1.shape)
+                padder = self._raft_InputPadder(frame1.shape)
                 frame1_padded, frame2_padded = padder.pad(frame1, frame2)
-                
+
                 # Compute optical flow
                 _, flow_up = self.model(frame1_padded, frame2_padded, iters=20, test_mode=True)
-                
+
                 # Calculate flow magnitude score
                 magnitude_score = self._compute_flow_magnitude(flow_up)
                 flow_scores.append(magnitude_score)
@@ -778,7 +939,7 @@ class ImagingQualityAnalyzer(VideoQualityAnalyzer):
     
     The score represents the quality of the video (higher is better).
     """
-    def __init__(self, model_path: str = "model/musiq/musiq_spaq_ckpt-358bb6af.pth", device: str = "cuda"):
+    def __init__(self, model_path: str = "musiq_spaq_ckpt-358bb6af.pth", device: str = "cuda"):
         self.device = torch.device(device if torch.cuda.is_available() else "cpu")
         self.model = self._load_musiq(model_path)
         self.model.to(self.device)
@@ -793,15 +954,19 @@ class ImagingQualityAnalyzer(VideoQualityAnalyzer):
         Returns:
             MUSIQ model
         """
+        model_path = CACHE_DIR / model_path
+        
         # if the model_path not exists
         # then makedir and wget
         if not os.path.exists(model_path):
             os.makedirs(os.path.dirname(model_path), exist_ok=True)
             wget_command = ['wget', 'https://github.com/chaofengc/IQA-PyTorch/releases/download/v0.1-weights/musiq_spaq_ckpt-358bb6af.pth', '-P', os.path.dirname(model_path)]
             subprocess.run(wget_command, check=True)
-        
-        from pyiqa.archs.musiq_arch import MUSIQ
-        model = MUSIQ(pretrained_model_path=model_path)
+        try:
+            from pyiqa.archs.musiq_arch import MUSIQ
+        except ImportError:
+            raise ImportError("Please install pyiqa to use ImagingQualityAnalyzer: pip install pyiqa")
+        model = MUSIQ(pretrained_model_path=str(model_path))
         
         return model
     

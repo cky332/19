@@ -29,6 +29,20 @@ from evaluation.tools.image_quality_analyzer import (
 )
 import lpips
 
+
+class SilentProgressBar:
+    """A silent progress bar wrapper that supports set_description but shows no output."""
+
+    def __init__(self, iterable):
+        self.iterable = iterable
+
+    def __iter__(self):
+        return iter(self.iterable)
+
+    def set_description(self, desc):
+        """No-op for silent mode."""
+        pass
+
 class QualityPipelineReturnType(Enum):
     """Return type of the image quality analysis pipeline."""
     FULL = auto()
@@ -120,7 +134,7 @@ class ImageQualityAnalysisPipeline:
         """Return an iterable possibly wrapped with a progress bar."""
         if self.show_progress:
             return tqdm(iterable, desc="Processing", leave=True)
-        return iterable
+        return SilentProgressBar(iterable)
     
     def _get_prompt(self, index: int) -> str:
         """Get prompt from dataset."""

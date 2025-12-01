@@ -382,14 +382,24 @@ class GMUtils:
 			return None
 		checkpoint_path = Path(checkpoint)
 		repo = getattr(self.config, "huggingface_repo", None)
-		hf_dir=getattr(self.config, "hf_dir", None)
+		hf_dir = getattr(self.config, "hf_dir", None)
 		if repo:
-			try:
-				hf_path = hf_hub_download(repo_id=repo, filename=Path(checkpoint).name,cache_dir=hf_dir)
-				print(f"Downloaded GNR checkpoint from Huggingface Hub: {hf_path}")
-				checkpoint_path = Path(hf_path)
-			except Exception as e:
-				raise FileNotFoundError(f"GNR checkpoint not found on ({repo}). error: {e}")
+			# Check if file already exists locally before downloading
+			local_path = checkpoint_path if checkpoint_path.is_file() else None
+			if hf_dir:
+				potential_local = Path(hf_dir) / Path(checkpoint).name
+				if potential_local.is_file():
+					local_path = potential_local
+			if local_path and local_path.is_file():
+				print(f"Using existing GNR checkpoint: {local_path}")
+				checkpoint_path = local_path
+			else:
+				try:
+					hf_path = hf_hub_download(repo_id=repo, filename=Path(checkpoint).name, cache_dir=hf_dir)
+					print(f"Downloaded GNR checkpoint from Huggingface Hub: {hf_path}")
+					checkpoint_path = Path(hf_path)
+				except Exception as e:
+					raise FileNotFoundError(f"GNR checkpoint not found on ({repo}). error: {e}")
 		in_channels = self.config.latent_channels * (2 if self.config.gnr_classifier_type == 1 else 1)
 		return GNRRestorer(
 			checkpoint_path=checkpoint_path,
@@ -410,13 +420,25 @@ class GMUtils:
 				"joblib is required to load the GaussMarker fuser. Install joblib or disable the fuser."
 			)
 		repo = getattr(self.config, "huggingface_repo", None)
-		hf_dir=getattr(self.config, "hf_dir", None)
+		hf_dir = getattr(self.config, "hf_dir", None)
+		candidates = []
 		if repo:
-			try:
-				hf_path = hf_hub_download(repo_id=repo, filename=Path(checkpoint).name,cache_dir=hf_dir)
-				candidates = [Path(hf_path)]
-			except Exception as e:
-				raise FileNotFoundError(f"Fuser checkpoint not found on ({repo}). error: {e}")
+			# Check if file already exists locally before downloading
+			local_path = Path(checkpoint) if Path(checkpoint).is_file() else None
+			if hf_dir:
+				potential_local = Path(hf_dir) / Path(checkpoint).name
+				if potential_local.is_file():
+					local_path = potential_local
+			if local_path and local_path.is_file():
+				print(f"Using existing fuser checkpoint: {local_path}")
+				candidates = [local_path]
+			else:
+				try:
+					hf_path = hf_hub_download(repo_id=repo, filename=Path(checkpoint).name, cache_dir=hf_dir)
+					print(f"Downloaded fuser checkpoint from Huggingface Hub: {hf_path}")
+					candidates = [Path(hf_path)]
+				except Exception as e:
+					raise FileNotFoundError(f"Fuser checkpoint not found on ({repo}). error: {e}")
 		base_dir = Path(__file__).resolve().parent
 		candidates.append(base_dir / checkpoint)
 		candidates.append(base_dir.parent.parent / checkpoint)

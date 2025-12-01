@@ -153,7 +153,33 @@ class ROBINUtils:
         
         # Build hyperparameters
         hyperparameters = self.build_hyperparameters()
-        checkpoint_path=hf_hub_download(repo_id="Generative-Watermark-Toolkits/MarkDiffusion-robin", filename=f"optimized_wm5-30_embedding-step-{hyperparameters['max_train_steps']}.pt", cache_dir=self.config.hf_dir)
+        filename = f"optimized_wm5-30_embedding-step-{hyperparameters['max_train_steps']}.pt"
+
+        # Check if file already exists locally before downloading
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        checkpoint_path = None
+
+        # Check multiple potential local paths
+        potential_paths = [
+            os.path.join(base_dir, self.config.hf_dir, filename) if self.config.hf_dir else None,
+            os.path.join(self.config.hf_dir, filename) if self.config.hf_dir else None,
+            os.path.join(self.config.ckpt_dir, filename),
+        ]
+
+        for path in potential_paths:
+            if path and os.path.exists(path):
+                checkpoint_path = path
+                print(f"Using existing ROBIN checkpoint: {checkpoint_path}")
+                break
+
+        # If not found locally, download from HuggingFace
+        if checkpoint_path is None:
+            checkpoint_path = hf_hub_download(
+                repo_id="Generative-Watermark-Toolkits/MarkDiffusion-robin",
+                filename=filename,
+                cache_dir=self.config.hf_dir
+            )
+            print(f"Downloaded ROBIN checkpoint from Huggingface Hub: {checkpoint_path}")
 
         # if os.path.exists(checkpoint_path):
         if (not self.config.is_training_from_scratch):
@@ -163,7 +189,7 @@ class ROBINUtils:
                 snapshot_download(
                     repo_id="Generative-Watermark-Toolkits/MarkDiffusion-robin",
                     local_dir=self.config.ckpt_dir,
-                    repo_type="model",   
+                    repo_type="model",
                     local_dir_use_symlinks=False,
                     endpoint=os.getenv("HF_ENDPOINT", "https://huggingface.co"),
                 )

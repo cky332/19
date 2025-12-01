@@ -31,7 +31,11 @@ from utils.pipeline_utils import (
 # ============================================================================
 
 # Default model paths (can be overridden via pytest options)
+<<<<<<< HEAD
 DEFAULT_IMAGE_MODEL_PATH = "huanzi05/stable-diffusion-2-1-base"
+=======
+DEFAULT_IMAGE_MODEL_PATH = "stability-ai/stable-diffusion-2-1"
+>>>>>>> 5cc954d (fix: conftest config)
 DEFAULT_VIDEO_MODEL_PATH = "ali-vilab/text-to-video-ms-1.7b"
 
 # Test prompts
@@ -39,8 +43,8 @@ TEST_PROMPT_IMAGE = "A beautiful sunset over the ocean"
 TEST_PROMPT_VIDEO = "A cinematic timelapse of city lights at night"
 
 # Test parameters
-IMAGE_SIZE = (256, 256)
-NUM_INFERENCE_STEPS = 20
+IMAGE_SIZE = (512, 512)
+NUM_INFERENCE_STEPS = 50
 GUIDANCE_SCALE = 7.5
 GEN_SEED = 42
 NUM_FRAMES = 8

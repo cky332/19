@@ -113,7 +113,7 @@ evaluation = [
     "pyiqa>=0.1.7",
     "timm>=0.9",
     "easydict>=1.9",
-    "clip @ git+https://github.com/openai/CLIP.git",
+    # clip needs to be installed independently: pip install git+https://github.com/openai/CLIP.git
 ]
 
 # Data processing and analysis

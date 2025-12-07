@@ -13,6 +13,7 @@
 # limitations under the License.
 
 
+from typing import Optional
 import torch
 import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
@@ -52,7 +53,7 @@ class PRCVisualizer(BaseVisualizer):
                              cmap: str = "Blues",
                              use_color_bar: bool = True,
                              max_display_size: int = 50,
-                             ax: Axes | None = None,
+                             ax: Optional[Axes] = None,
                              **kwargs) -> Axes:
         """
         Draw the generator matrix visualization
@@ -95,7 +96,7 @@ class PRCVisualizer(BaseVisualizer):
                      title: str = "PRC Codeword",
                      cmap: str = "viridis",
                      use_color_bar: bool = True,
-                     ax: Axes | None = None,
+                     ax: Optional[Axes] = None,
                      **kwargs) -> Axes:
         """
         Draw the PRC codeword visualization
@@ -142,7 +143,7 @@ class PRCVisualizer(BaseVisualizer):
                               use_color_bar: bool = True,
                               vmin: float = -1.0,
                               vmax: float = 1.0,
-                              ax: Axes | None = None,
+                              ax: Optional[Axes] = None,
                               **kwargs) -> Axes:
         """
         Draw the recovered codeword (c̃) from PRC detection
@@ -189,7 +190,7 @@ class PRCVisualizer(BaseVisualizer):
                            cmap: str = "hot",
                            use_color_bar: bool = True,
                            channel: int = 0,
-                           ax: Axes | None = None,
+                           ax: Optional[Axes] = None,
                            **kwargs) -> Axes:
         """
         Draw difference map between watermarked and inverted latents

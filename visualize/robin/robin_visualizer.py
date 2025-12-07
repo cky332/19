@@ -1,3 +1,4 @@
+from typing import Optional
 import torch
 import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
@@ -20,9 +21,9 @@ class ROBINVisualizer(BaseVisualizer):
                       title: str = None,
                       cmap: str = "viridis",
                       use_color_bar: bool = True,
-                      vmin: float | None = None,
-                      vmax: float | None = None,
-                      ax: Axes | None = None,
+                      vmin: Optional[float] = None,
+                      vmax: Optional[float] = None,
+                      ax: Optional[Axes] = None,
                       **kwargs) -> Axes:
         """
         Draw FFT visualization with original watermark pattern, with all 0 background.
@@ -57,19 +58,19 @@ class ROBINVisualizer(BaseVisualizer):
         return ax
         
     def draw_inverted_pattern_fft(self, 
-                      step: int | None = None,
+                      step: Optional[int] = None,
                       title: str = None,
                       cmap: str = "viridis",
                       use_color_bar: bool = True,
-                      vmin: float | None = None,
-                      vmax: float | None = None,
-                      ax: Axes | None = None,
+                      vmin: Optional[float] = None,
+                      vmax: Optional[float] = None,
+                      ax: Optional[Axes] = None,
                       **kwargs) -> Axes:
         """
         Draw FFT visualization with inverted pattern, with all 0 background.
         
         Parameters:
-            step (int | None): The timestep of the inverted latents. If None, uses ROBIN's specific step.
+            step (Optional[int]): The timestep of the inverted latents. If None, uses ROBIN's specific step.
             title (str): The title of the plot. If None, includes watermarking step info.
             cmap (str): The colormap to use.
             use_color_bar (bool): Whether to display the colorbar.
@@ -111,9 +112,9 @@ class ROBINVisualizer(BaseVisualizer):
                                 title: str = None,
                                 cmap: str = "viridis",
                                 use_color_bar: bool = True,
-                                vmin: float | None = None,
-                                vmax: float | None = None,
-                                ax: Axes | None = None,
+                                vmin: Optional[float] = None,
+                                vmax: Optional[float] = None,
+                                ax: Optional[Axes] = None,
                                 **kwargs) -> Axes:
         """
         Draw the optimized watermark pattern (ROBIN-specific).

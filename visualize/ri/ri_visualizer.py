@@ -13,6 +13,7 @@
 # limitations under the License.
 
 
+from typing import Optional
 import torch
 import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
@@ -30,9 +31,9 @@ class RingIDVisualizer(BaseVisualizer):
                           title: str = "Ring Watermark Pattern (FFT)",
                           cmap: str = "viridis",
                           use_color_bar: bool = True,
-                          vmin: float | None = None,
-                          vmax: float | None = None,
-                          ax: Axes | None = None,
+                          vmin: Optional[float] = None,
+                          vmax: Optional[float] = None,
+                          ax: Optional[Axes] = None,
                           **kwargs) -> Axes:
         """
         Draw the ring watermark pattern in the Fourier Domain.(background all zeros)
@@ -68,9 +69,9 @@ class RingIDVisualizer(BaseVisualizer):
                           title: str = "Heter Watermark Pattern (FFT)",
                           cmap: str = "viridis",
                           use_color_bar: bool = True,
-                          vmin: float | None = None,
-                          vmax: float | None = None,
-                          ax: Axes | None = None,
+                          vmin: Optional[float] = None,
+                          vmax: Optional[float] = None,
+                          ax: Optional[Axes] = None,
                           **kwargs) -> Axes:
         """
         Draw the heter watermark pattern in the Fourier Domain.(background all zeros)
@@ -106,9 +107,9 @@ class RingIDVisualizer(BaseVisualizer):
                           title: str = "Inverted Ring Watermark Pattern (FFT)",
                           cmap: str = "viridis",
                           use_color_bar: bool = True,
-                          vmin: float | None = None,
-                          vmax: float | None = None,
-                          ax: Axes | None = None,
+                          vmin: Optional[float] = None,
+                          vmax: Optional[float] = None,
+                          ax: Optional[Axes] = None,
                           **kwargs) -> Axes:
         """
         Extract and visualize watermark pattern from reversed_latents[-1] using FFT.

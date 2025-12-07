@@ -1,3 +1,4 @@
+from typing import Optional
 import torch
 import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
@@ -15,7 +16,7 @@ class SEALVisualizer(BaseVisualizer):
         
     def draw_embedding_distributions(self,
                                     title: str = "Embedding Distributions",
-                                    ax: Axes | None = None,
+                                    ax: Optional[Axes] = None,
                                     show_legend: bool = True,
                                     show_label: bool = True,
                                     show_axis: bool = True) -> Axes:
@@ -70,10 +71,10 @@ class SEALVisualizer(BaseVisualizer):
                         title: str = "Patch Difference",
                         cmap: str = 'RdBu',
                         use_color_bar: bool = True,
-                        vmin: float | None = None,
-                        vmax: float | None = None,
+                        vmin: Optional[float] = None,
+                        vmax: Optional[float] = None,
                         show_number: bool = False,
-                        ax: Axes | None = None,
+                        ax: Optional[Axes] = None,
                         **kwargs) -> Axes:
         """
         Draw the difference between the reference_noise and reversed_latents in patch.
@@ -82,8 +83,8 @@ class SEALVisualizer(BaseVisualizer):
             title (str): The title of the plot.
             cmap (str): The colormap to use.
             use_color_bar (bool): Whether to display the colorbar.
-            vmin (float | None): Minimum value for colormap normalization.
-            vmax (float | None): Maximum value for colormap normalization.
+            vmin (Optional[float]): Minimum value for colormap normalization.
+            vmax (Optional[float]): Maximum value for colormap normalization.
             show_number (bool): Whether to display numerical values on each patch. Default: False.
             ax (plt.Axes): The axes to plot on.
             

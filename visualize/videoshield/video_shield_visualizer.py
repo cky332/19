@@ -18,6 +18,7 @@ import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
 from matplotlib.gridspec import GridSpecFromSubplotSpec
 import numpy as np
+from typing import Optional
 from visualize.base import BaseVisualizer
 from visualize.data_for_visualization import DataForVisualization
 from Crypto.Cipher import ChaCha20
@@ -86,11 +87,11 @@ class VideoShieldVisualizer(BaseVisualizer):
         return vote
     
     def draw_watermark_bits(self,
-                           channel: int | None = None,
-                           frame: int | None = None,
+                           channel: Optional[int] = None,
+                           frame: Optional[int] = None,
                            title: str = "Original Watermark Bits",
                            cmap: str = "binary",
-                           ax: Axes | None = None) -> Axes:
+                           ax: Optional[Axes] = None) -> Axes:
         """Draw the original watermark bits for VideoShield.
         
         For video watermarks, this method can visualize specific frames or average
@@ -186,11 +187,11 @@ class VideoShieldVisualizer(BaseVisualizer):
         return ax
         
     def draw_reconstructed_watermark_bits(self,
-                                          channel: int | None = None,
-                                          frame: int | None = None,
+                                          channel: Optional[int] = None,
+                                          frame: Optional[int] = None,
                                           title: str = "Reconstructed Watermark Bits",
                                           cmap: str = "binary",
-                                          ax: Axes | None = None) -> Axes:
+                                          ax: Optional[Axes] = None) -> Axes:
         """Draw the reconstructed watermark bits for VideoShield.
         
         Args:
@@ -308,7 +309,7 @@ class VideoShieldVisualizer(BaseVisualizer):
     def draw_watermarked_video_frames(self,
                                     num_frames: int = 4,
                                     title: str = "Watermarked Video Frames",
-                                    ax: Axes | None = None) -> Axes:
+                                    ax: Optional[Axes] = None) -> Axes:
         """
         Draw multiple frames from the watermarked video.
 

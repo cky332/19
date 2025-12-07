@@ -2,6 +2,7 @@ import torch
 import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
 from matplotlib.gridspec import GridSpecFromSubplotSpec
+from typing import Optional
 import numpy as np
 from visualize.base import BaseVisualizer
 from visualize.data_for_visualization import DataForVisualization
@@ -36,15 +37,15 @@ class GaussianShadingVisualizer(BaseVisualizer):
         return vote
     
     def draw_watermark_bits(self,
-                               channel: int | None = None,
+                               channel: Optional[int] = None,
                                title: str = "Original Watermark Bits",
                                cmap: str = "binary",
-                               ax: Axes | None = None) -> Axes:
+                               ax: Optional[Axes] = None) -> Axes:
         """
         Draw the original watermark bits.(sd in GS class). draw ch // channel_copy images in one ax.
         
         Parameters:
-            channel (int | None): The channel to visualize. If None, all channels are shown.
+            channel (Optional[int]): The channel to visualize. If None, all channels are shown.
             title (str): The title of the plot.
             cmap (str): The colormap to use.
             ax (Axes): The axes to plot on.
@@ -104,15 +105,15 @@ class GaussianShadingVisualizer(BaseVisualizer):
         return ax
         
     def draw_reconstructed_watermark_bits(self,
-                                          channel: int | None = None,
+                                          channel: Optional[int] = None,
                                           title: str = "Reconstructed Watermark Bits",
                                           cmap: str = "binary",
-                                          ax: Axes | None = None) -> Axes:
+                                          ax: Optional[Axes] = None) -> Axes:
         """
         Draw the reconstructed watermark bits.(reversed_latents in GS class). draw ch // channel_copy images in one ax.
         
         Parameters:
-            channel (int | None): The channel to visualize. If None, all channels are shown.
+            channel (Optional[int]): The channel to visualize. If None, all channels are shown.
             title (str): The title of the plot.
             cmap (str): The colormap to use.
             ax (Axes): The axes to plot on.

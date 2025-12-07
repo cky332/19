@@ -1,6 +1,7 @@
 import torch
 import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
+from typing import Optional
 import numpy as np
 from visualize.base import BaseVisualizer
 from visualize.data_for_visualization import DataForVisualization
@@ -15,9 +16,9 @@ class TreeRingVisualizer(BaseVisualizer):
                       title: str = "Tree-Ring FFT with Watermark Area",
                       cmap: str = "viridis",
                       use_color_bar: bool = True,
-                      vmin: float | None = None,
-                      vmax: float | None = None,
-                      ax: Axes | None = None,
+                      vmin: Optional[float] = None,
+                      vmax: Optional[float] = None,
+                      ax: Optional[Axes] = None,
                       **kwargs) -> Axes:
         """
         Draw FFT visualization with original watermark pattern, with all 0 background.
@@ -48,19 +49,19 @@ class TreeRingVisualizer(BaseVisualizer):
         return ax
         
     def draw_inverted_pattern_fft(self, 
-                      step: int | None = None,
+                      step: Optional[int] = None,
                       title: str = "Tree-Ring FFT with Inverted Watermark Area",
                       cmap: str = "viridis",
                       use_color_bar: bool = True,
-                      vmin: float | None = None,
-                      vmax: float | None = None,
-                      ax: Axes | None = None,
+                      vmin: Optional[float] = None,
+                      vmax: Optional[float] = None,
+                      ax: Optional[Axes] = None,
                       **kwargs) -> Axes:
         """
         Draw FFT visualization with inverted pattern, with all 0 background.
         
         Parameters:
-            step (int | None): The timestep of the inverted latents. If None, the last timestep is used.
+            step (Optional[int]): The timestep of the inverted latents. If None, the last timestep is used.
             title (str): The title of the plot.
             cmap (str): The colormap to use.
             use_color_bar (bool): Whether to display the colorbar.

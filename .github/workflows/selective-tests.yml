@@ -74,13 +74,12 @@ jobs:
         run: |
           micromamba run -n markdiffusion python -m pip install -U pip
           micromamba run -n markdiffusion pip install 'markdiffusion[optional]'
-          micromamba run -n markdiffusion pip install pytest jsonschema
-          micromamba run -n markdiffusion pip install --force-reinstall pyarrow qrcode
+          micromamba run -n markdiffusion pip install qrcode
 
       - name: Run evaluation fast tests
         if: steps.decide.outputs.scope == 'evaluation'
         run: |
-          micromamba run -n markdiffusion pytest -q tests/test_pipelines_fast.py --maxfail=1 --disable-warnings
+          micromamba run -n markdiffusion pytest -q tests/test_pipelines.py --maxfail=1 --disable-warnings
 
       - name: Run all algorithms (init/interface only)
         if: steps.decide.outputs.scope == 'auto'

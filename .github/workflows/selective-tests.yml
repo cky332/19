@@ -75,6 +75,7 @@ jobs:
           micromamba run -n markdiffusion python -m pip install -U pip
           micromamba run -n markdiffusion pip install 'markdiffusion[optional]'
           micromamba run -n markdiffusion pip install pytest jsonschema
+          micromamba run -n markdiffusion pip install --force-reinstall pyarrow qrcode
 
       - name: Run evaluation fast tests
         if: steps.decide.outputs.scope == 'evaluation'

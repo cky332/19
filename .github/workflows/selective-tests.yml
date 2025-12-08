@@ -6,23 +6,20 @@ on:
 jobs:
   selective:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 40
 
     steps:
-      # 1. Checkout the code
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # 为了拿到 base 分支对比
+          fetch-depth: 0
 
-      # 2. Detect Changed Files
       - name: Detect changed files
         id: changes
         uses: tj-actions/changed-files@v41
         with:
           since_last_remote_commit: true
 
-      # 3. Decide Test Scope
       - name: Decide test scope
         id: decide
         run: |
@@ -30,16 +27,13 @@ jobs:
           ALGORITHMS=""
           AUTO_CHANGED="false"
           EVAL_CHANGED="false"
-          # 提前把 changed 文件列表写成行
           echo "${{ steps.changes.outputs.all_changed_files }}" | tr ' ' '\n' > changed.txt
 
-          # AutoWatermark 改动：优先级最高 -> 测全部算法
           if grep -q '^watermark/auto_watermark\.py$' changed.txt; then
             AUTO_CHANGED="true"
             SCOPE="auto"
           fi
 
-          # evaluation 改动
           if [ "$AUTO_CHANGED" != "true" ]; then
             if grep -E -q '^evaluation/' changed.txt; then
               EVAL_CHANGED="true"
@@ -47,7 +41,6 @@ jobs:
             fi
           fi
 
-          # 按文件规则提取算法名
           if [ "$SCOPE" = "none" ]; then
             ALGOS_FROM_CONFIG=$(awk -F'/' '/^config\/[^\/]+\.json$/ {gsub(/^config\//,"",$1); gsub(/\.json$/,"",$1); print $1}' changed.txt | sort -u)
             ALGOS_FROM_DIR=$(awk -F'/' '/^watermark\/algorithms\/[^\/]+\// {print $3}' changed.txt | sort -u)
@@ -63,64 +56,49 @@ jobs:
           echo "scope=$SCOPE" >> $GITHUB_OUTPUT
           echo "algorithms=$ALGORITHMS" >> $GITHUB_OUTPUT
 
-      # 4. Install conda (using `mamba-org/provision-with-micromamba` for fast Conda setup)
+      - name: Write environment.yml
+        run: |
+          cat > environment.yml << 'EOF'
+          name: markdiffusion
+          channels:
+            - conda-forge
+          dependencies:
+            - python=3.11
+            - pip
+            - pip:
+              - -e .[optional]
+              - pytest
+              - jsonschema
+          EOF
+
       - name: Setup Conda environment
         uses: mamba-org/provision-with-micromamba@v4
         with:
-          environment-file: |
-            name: markdiffusion
-            channels:
-              - conda-forge
-            dependencies:
-              - python=3.11
-              - pip
-              - markdiffusion
-        # 如果你不使用 YAML 文件，可以通过以下方式直接创建环境：
-        # run: |
-        #   micromamba create -n markdiffusion python=3.11 -c conda-forge --strict --yes; \
-        #   micromamba activate markdiffusion
+          environment-file: environment.yml
 
-      # 5. Install optional Python dependencies via pip (including markdiffusion[optional])
-      - name: Install additional pip packages
-        run: |
-          source ~/.bashrc  # 确保 conda/mamba 环境激活
-          micromamba activate markdiffusion
-          pip install markdiffusion[optional]
-          pip install pytest jsonschema
-
-      # 6. Run tests based on environment
       - name: Run evaluation fast tests
         if: steps.decide.outputs.scope == 'evaluation'
         run: |
-          source ~/.bashrc
-          micromamba activate markdiffusion
-          pytest -q tests/test_pipelines_fast.py --maxfail=1 --disable-warnings
+          micromamba run -n markdiffusion pytest -q tests/test_pipelines_fast.py --maxfail=1 --disable-warnings
 
-      # 7. Run all algorithms (init/interface only)
       - name: Run all algorithms (init/interface only)
         if: steps.decide.outputs.scope == 'auto'
         run: |
-          source ~/.bashrc
-          micromamba activate markdiffusion
-          pytest -q test/test_watermark_algorithms.py \
+          micromamba run -n markdiffusion pytest -q test/test_watermark_algorithms.py \
             --skip-generation --skip-detection \
             --maxfail=1 --disable-warnings
 
-      # 8. Run specific algorithms (filtered)
       - name: Run specific algorithms (filtered)
         if: steps.decide.outputs.scope == 'algo'
         env:
           ALGORITHMS: ${{ steps.decide.outputs.algorithms }}
         run: |
-          source ~/.bashrc
-          micromamba activate markdiffusion
           echo "Algorithms changed: $ALGORITHMS"
-          pytest -q test/test_watermark_algorithms.py \
+          micromamba run -n markdiffusion pytest -q test/test_watermark_algorithms.py \
             --skip-generation --skip-detection \
             --algorithms "$ALGORITHMS" \
             --maxfail=1 --disable-warnings
 
-      # 9. No tests needed
       - name: No tests needed
         if: steps.decide.outputs.scope == 'none'
         run: echo "No relevant changes. Skipping tests."

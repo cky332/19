@@ -128,7 +128,7 @@ def pytest_terminal_summary(terminalreporter, exitstatus, config):
     terminalreporter.write_line(f"Skipped: {len(skipped)}")
 
 def pytest_collection_modifyitems(config, items):
-    algo_str = config.getoption("--algorithms") or os.getenv("ALGORITHMS")
+    algo_str = config.getoption("--algorithm")
     if not algo_str:
         return
     whitelist = {a.strip() for a in algo_str.split(",") if a.strip()}

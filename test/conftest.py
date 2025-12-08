@@ -31,8 +31,8 @@ from utils.pipeline_utils import (
 # ============================================================================
 
 # Default model paths (can be overridden via pytest options)
-DEFAULT_IMAGE_MODEL_PATH = "/mnt/ckpt/stable-diffusion-2-1-base"
-DEFAULT_VIDEO_MODEL_PATH = "/mnt/ckpt/text-to-video-ms-1.7b"
+DEFAULT_IMAGE_MODEL_PATH = "huanzi05/stable-diffusion-2-1-base"
+DEFAULT_VIDEO_MODEL_PATH = "ali-vilab/text-to-video-ms-1.7b"
 
 # Test prompts
 TEST_PROMPT_IMAGE = "A beautiful sunset over the ocean"
@@ -127,6 +127,28 @@ def pytest_terminal_summary(terminalreporter, exitstatus, config):
     terminalreporter.write_line(f"Failed: {len(failed)}")
     terminalreporter.write_line(f"Skipped: {len(skipped)}")
 
+def pytest_collection_modifyitems(config, items):
+    algo_str = config.getoption("--algorithms") or os.getenv("ALGORITHMS")
+    if not algo_str:
+        return
+    whitelist = {a.strip() for a in algo_str.split(",") if a.strip()}
+
+    selected, deselected = [], []
+    for item in items:
+        callspec = getattr(item, "callspec", None)
+        if callspec and "algorithm_name" in callspec.params:
+            algo = callspec.params["algorithm_name"]
+            if algo in whitelist:
+                selected.append(item)
+            else:
+                deselected.append(item)
+        else:
+            # 其它测试不受影响，默认保留
+            selected.append(item)
+
+    if deselected:
+        config.hook.pytest_deselected(items=deselected)
+        items[:] = selected
 
 # ============================================================================
 # Fixtures

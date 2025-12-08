@@ -14,7 +14,7 @@
 
 
 from abc import ABC, abstractmethod
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 import torch
 from PIL import Image
 from visualize.data_for_visualization import DataForVisualization
@@ -48,7 +48,7 @@ class BaseVisualizer(ABC):
         """
         return ifft2(ifftshift(fft_data))
     
-    def _get_latent_data(self, latents: torch.Tensor, channel: int | None = None, frame: int | None = None) -> torch.Tensor:
+    def _get_latent_data(self, latents: torch.Tensor, channel: Optional[int] = None, frame: Optional[int] = None) -> torch.Tensor:
         """
         Extract latent data with proper indexing for both T2I and T2V models.
         
@@ -82,21 +82,21 @@ class BaseVisualizer(ABC):
                 return latents[0]  # [C, H, W]
     
     def draw_orig_latents(self, 
-                          channel: int | None = None,
-                          frame: int | None = None,
+                          channel: Optional[int] = None,
+                          frame: Optional[int] = None,
                           title: str = "Original Latents", 
                           cmap: str = "viridis", 
                           use_color_bar: bool = True,
-                          vmin: float | None = None,
-                          vmax: float | None = None,
-                          ax: Axes | None = None,
+                          vmin: Optional[float] = None,
+                          vmax: Optional[float] = None,
+                          ax: Optional[Axes] = None,
                           **kwargs) -> Axes:
         """
             Draw the original latents of the watermarked image.
 
             Parameters:
-                channel (int | None): The channel of the latent tensor to visualize. If None, all 4 channels are shown.
-                frame (int | None): The frame index for T2V models. If None, uses middle frame for videos.
+                channel (Optional[int]): The channel of the latent tensor to visualize. If None, all 4 channels are shown.
+                frame (Optional[int]): The frame index for T2V models. If None, uses middle frame for videos.
                 title (str): The title of the plot.
                 cmap (str): The colormap to use.
                 use_color_bar (bool): Whether to display the colorbar.
@@ -151,21 +151,21 @@ class BaseVisualizer(ABC):
         return ax
         
     def draw_orig_latents_fft(self, 
-                          channel: int | None = None,
-                          frame: int | None = None,
+                          channel: Optional[int] = None,
+                          frame: Optional[int] = None,
                           title: str = "Original Latents in Fourier Domain", 
                           cmap: str = "viridis", 
                           use_color_bar: bool = True,
-                          vmin: float | None = None,
-                          vmax: float | None = None,
-                          ax: Axes | None = None,
+                          vmin: Optional[float] = None,
+                          vmax: Optional[float] = None,
+                          ax: Optional[Axes] = None,
                           **kwargs) -> Axes:
         """
             Draw the original latents of the watermarked image in the Fourier domain.
             
             Parameters:
-                channel (int | None): The channel of the latent tensor to visualize. If None, all 4 channels are shown.
-                frame (int | None): The frame index for T2V models. If None, uses middle frame for videos.
+                channel (Optional[int]): The channel of the latent tensor to visualize. If None, all 4 channels are shown.
+                frame (Optional[int]): The frame index for T2V models. If None, uses middle frame for videos.
                 title (str): The title of the plot.
                 cmap (str): The colormap to use.
                 use_color_bar (bool): Whether to display the colorbar.
@@ -223,23 +223,23 @@ class BaseVisualizer(ABC):
         return ax
     
     def draw_inverted_latents(self, 
-                              channel: int | None = None,
-                              frame: int | None = None,
-                              step: int | None = None,
+                              channel: Optional[int] = None,
+                              frame: Optional[int] = None,
+                              step: Optional[int] = None,
                               title: str = "Inverted Latents", 
                               cmap: str = "viridis", 
                               use_color_bar: bool = True,
-                              vmin: float | None = None,
-                              vmax: float | None = None,
-                              ax: Axes | None = None,
+                              vmin: Optional[float] = None,
+                              vmax: Optional[float] = None,
+                              ax: Optional[Axes] = None,
                               **kwargs) -> Axes:
         """
             Draw the inverted latents of the watermarked image.
             
             Parameters:
-                channel (int | None): The channel of the latent tensor to visualize. If None, all 4 channels are shown.
-                frame (int | None): The frame index for T2V models. If None, uses middle frame for videos.
-                step (int | None): The timestep of the inverted latents. If None, the last timestep is used.
+                channel (Optional[int]): The channel of the latent tensor to visualize. If None, all 4 channels are shown.
+                frame (Optional[int]): The frame index for T2V models. If None, uses middle frame for videos.
+                step (Optional[int]): The timestep of the inverted latents. If None, the last timestep is used.
                 title (str): The title of the plot.
                 cmap (str): The colormap to use.
                 use_color_bar (bool): Whether to display the colorbar.
@@ -307,23 +307,23 @@ class BaseVisualizer(ABC):
         return ax
     
     def draw_inverted_latents_fft(self, 
-                                 channel: int | None = None,
-                                 frame: int | None = None,
+                                 channel: Optional[int] = None,
+                                 frame: Optional[int] = None,
                                  step: int = -1, 
                                  title: str = "Inverted Latents in Fourier Domain", 
                                  cmap: str = "viridis", 
                                  use_color_bar: bool = True,
-                                 vmin: float | None = None,
-                                 vmax: float | None = None,
-                                 ax: Axes | None = None,
+                                 vmin: Optional[float] = None,
+                                 vmax: Optional[float] = None,
+                                 ax: Optional[Axes] = None,
                                  **kwargs) -> Axes:
         """
             Draw the inverted latents of the watermarked image in the Fourier domain.
             
             Parameters:
-                channel (int | None): The channel of the latent tensor to visualize. If None, all 4 channels are shown.
-                frame (int | None): The frame index for T2V models. If None, uses middle frame for videos.
-                step (int | None): The timestep of the inverted latents. If None, the last timestep is used.
+                channel (Optional[int]): The channel of the latent tensor to visualize. If None, all 4 channels are shown.
+                frame (Optional[int]): The frame index for T2V models. If None, uses middle frame for videos.
+                step (Optional[int]): The timestep of the inverted latents. If None, the last timestep is used.
                 title (str): The title of the plot.
                 cmap (str): The colormap to use.
                 use_color_bar (bool): Whether to display the colorbar.
@@ -383,21 +383,21 @@ class BaseVisualizer(ABC):
         return ax
     
     def draw_diff_latents_fft(self, 
-                              channel: int | None = None,
-                              frame: int | None = None,
+                              channel: Optional[int] = None,
+                              frame: Optional[int] = None,
                               title: str = "Difference between Original and Inverted Latents in Fourier Domain", 
                               cmap: str = "coolwarm", 
                               use_color_bar: bool = True,
-                              vmin: float | None = None,
-                              vmax: float | None = None,
-                              ax: Axes | None = None,
+                              vmin: Optional[float] = None,
+                              vmax: Optional[float] = None,
+                              ax: Optional[Axes] = None,
                               **kwargs) -> Axes:
         """
             Draw the difference between the original and inverted initial latents of the watermarked image in the Fourier domain.
             
             Parameters:
-                channel (int | None): The channel of the latent tensor to visualize. If None, all 4 channels are shown.
-                frame (int | None): The frame index for T2V models. If None, uses middle frame for videos.
+                channel (Optional[int]): The channel of the latent tensor to visualize. If None, all 4 channels are shown.
+                frame (Optional[int]): The frame index for T2V models. If None, uses middle frame for videos.
                 title (str): The title of the plot.
                 cmap (str): The colormap to use.
                 use_color_bar (bool): Whether to display the colorbar.
@@ -476,9 +476,9 @@ class BaseVisualizer(ABC):
     def draw_watermarked_image(self,
                                title: str = "Watermarked Image",
                                num_frames: int = 4,
-                               vmin: float | None = None,
-                               vmax: float | None = None,
-                               ax: Axes | None = None,
+                               vmin: Optional[float] = None,
+                               vmax: Optional[float] = None,
+                               ax: Optional[Axes] = None,
                                **kwargs) -> Axes:
         """
         Draw the watermarked image or video frames.
@@ -489,8 +489,8 @@ class BaseVisualizer(ABC):
         Parameters:
             title (str): The title of the plot.
             num_frames (int): Number of frames to display for videos (default: 4).
-            vmin (float | None): Minimum value for colormap.
-            vmax (float | None): Maximum value for colormap.
+            vmin (Optional[float]): Minimum value for colormap.
+            vmax (Optional[float]): Maximum value for colormap.
             ax (Axes): The axes to plot on.
 
         Returns:
@@ -505,17 +505,17 @@ class BaseVisualizer(ABC):
 
     def _draw_single_image(self,
                           title: str = "Watermarked Image",
-                          vmin: float | None = None,
-                          vmax: float | None = None,
-                          ax: Axes | None = None,
+                          vmin: Optional[float] = None,
+                          vmax: Optional[float] = None,
+                          ax: Optional[Axes] = None,
                           **kwargs) -> Axes:
         """
         Draw a single watermarked image.
 
         Parameters:
             title (str): The title of the plot.
-            vmin (float | None): Minimum value for colormap.
-            vmax (float | None): Maximum value for colormap.
+            vmin (Optional[float]): Minimum value for colormap.
+            vmax (Optional[float]): Maximum value for colormap.
             ax (Axes): The axes to plot on.
 
         Returns:
@@ -559,7 +559,7 @@ class BaseVisualizer(ABC):
     def _draw_video_frames(self,
                           title: str = "Watermarked Video Frames",
                           num_frames: int = 4,
-                          ax: Axes | None = None,
+                          ax: Optional[Axes] = None,
                           **kwargs) -> Axes:
         """
         Draw multiple frames from the watermarked video.
@@ -668,20 +668,20 @@ class BaseVisualizer(ABC):
     def visualize(self, 
                   rows: int,
                   cols: int,
-                  methods: list[str],
-                  figsize: Tuple[int, int] | None = None,
-                  method_kwargs: list[dict[str, Any]] | None = None,
-                  save_path: str | None = None) -> plt.Figure:
+                  methods: List[str],
+                  figsize: Optional[Tuple[int, int]] = None,
+                  method_kwargs: Optional[List[Dict[str, Any]]] = None,
+                  save_path: Optional[str] = None) -> plt.Figure:
         """
         Comprehensive visualization of watermark analysis.
         
         Parameters:
             rows (int): The number of rows of the subplots.
             cols (int): The number of columns of the subplots.
-            methods (list[str]): List of methods to call.
-            method_kwargs (list[dict[str, Any]] | None): List of keyword arguments for each method.
+            methods (List[str]): List of methods to call.
+            method_kwargs (Optional[List[Dict[str, Any]]]): List of keyword arguments for each method.
             figsize (Tuple[int, int]): The size of the figure.
-            save_path (str | None): The path to save the figure.
+            save_path (Optional[str]): The path to save the figure.
             
         Returns:
             plt.Figure: The matplotlib figure object.

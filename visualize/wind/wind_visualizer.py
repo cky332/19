@@ -1,3 +1,4 @@
+from typing import Optional
 import torch
 import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
@@ -15,19 +16,19 @@ class WINDVisualizer(BaseVisualizer):
         self.group_pattern = self.data.group_patterns[index] # shape: [4, 64, 64]
     
     def draw_group_pattern_fft(self,
-                           channel: int | None = None,
+                           channel: Optional[int] = None,
                            title: str = "Group Pattern in Fourier Domain",
                            cmap: str = "viridis",
                            use_color_bar: bool = True,
-                           vmin: float | None = None,
-                           vmax: float | None = None,
-                           ax: Axes | None = None,
+                           vmin: Optional[float] = None,
+                           vmax: Optional[float] = None,
+                           ax: Optional[Axes] = None,
                            **kwargs) -> Axes:
         """
         Draw the group pattern in Fourier Domain.
         
         Parameters:
-            channel (int | None): The channel of the latent tensor to visualize. If None, all 4 channels are shown.
+            channel (Optional[int]): The channel of the latent tensor to visualize. If None, all 4 channels are shown.
             title (str): The title of the plot.
             cmap (str): The colormap to use.
             use_color_bar (bool): Whether to display the colorbar.
@@ -81,19 +82,19 @@ class WINDVisualizer(BaseVisualizer):
         
     
     def draw_orig_noise_wo_group_pattern(self,
-                                         channel: int | None = None,
+                                         channel: Optional[int] = None,
                          title: str = "Original Noise without Group Pattern",
                          cmap: str = "viridis",
                          use_color_bar: bool = True,
-                         vmin: float | None = None,
-                         vmax: float | None = None,
-                         ax: Axes | None = None,
+                         vmin: Optional[float] = None,
+                         vmax: Optional[float] = None,
+                         ax: Optional[Axes] = None,
                          **kwargs) -> Axes:
         """
         Draw the original noise without group pattern.
         
         Parameters:
-            channel (int | None): The channel of the latent tensor to visualize. If None, all 4 channels are shown.
+            channel (Optional[int]): The channel of the latent tensor to visualize. If None, all 4 channels are shown.
             title (str): The title of the plot.
             cmap (str): The colormap to use.
             use_color_bar (bool): Whether to display the colorbar.
@@ -154,19 +155,19 @@ class WINDVisualizer(BaseVisualizer):
         return ax
     
     def draw_inverted_noise_wo_group_pattern(self,
-                                             channel: int | None = None,
+                                             channel: Optional[int] = None,
                           title: str = "Inverted Noise without Group Pattern",
                           cmap: str = "viridis",
                           use_color_bar: bool = True,
-                          vmin: float | None = None,
-                          vmax: float | None = None,
-                          ax: Axes | None = None,
+                          vmin: Optional[float] = None,
+                          vmax: Optional[float] = None,
+                          ax: Optional[Axes] = None,
                           **kwargs) -> Axes:
         """
         Draw the inverted noise without group pattern.
         
         Parameters:
-            channel (int | None): The channel of the latent tensor to visualize. If None, all 4 channels are shown.
+            channel (Optional[int]): The channel of the latent tensor to visualize. If None, all 4 channels are shown.
             title (str): The title of the plot.
             cmap (str): The colormap to use.
             use_color_bar (bool): Whether to display the colorbar.
@@ -229,19 +230,19 @@ class WINDVisualizer(BaseVisualizer):
         return ax
     
     def draw_diff_noise_wo_group_pattern(self,
-                                         channel: int | None = None,
+                                         channel: Optional[int] = None,
                           title: str = "Difference map without Group Pattern",
                           cmap: str = "coolwarm",
                           use_color_bar: bool = True,
-                          vmin: float | None = None,
-                          vmax: float | None = None,
-                          ax: Axes | None = None,
+                          vmin: Optional[float] = None,
+                          vmax: Optional[float] = None,
+                          ax: Optional[Axes] = None,
                           **kwargs) -> Axes:
         """
         Draw the difference between original and inverted noise after removing group pattern.
         
         Parameters:
-            channel (int | None): The channel of the latent tensor to visualize. If None, all 4 channels are shown.
+            channel (Optional[int]): The channel of the latent tensor to visualize. If None, all 4 channels are shown.
             title (str): The title of the plot.
             cmap (str): The colormap to use.
             use_color_bar (bool): Whether to display the colorbar.
@@ -324,11 +325,11 @@ class WINDVisualizer(BaseVisualizer):
         return ax
                               
     def draw_inverted_group_pattern_fft(self,
-                                            channel: int | None = None,
+                                            channel: Optional[int] = None,
                                             title: str = "WIND Two-Stage Detection Visualization",
                                             cmap: str = "viridis",
                                             use_color_bar: bool = True,
-                                            ax: Axes | None = None,
+                                            ax: Optional[Axes] = None,
                                             **kwargs) -> Axes:
         
         # Get inverted latents

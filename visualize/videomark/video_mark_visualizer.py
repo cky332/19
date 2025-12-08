@@ -18,6 +18,7 @@ import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
 from matplotlib.gridspec import GridSpecFromSubplotSpec
 import numpy as np
+from typing import Optional
 from visualize.base import BaseVisualizer
 from visualize.data_for_visualization import DataForVisualization
 
@@ -50,7 +51,7 @@ class VideoMarkVisualizer(BaseVisualizer):
     def draw_watermarked_video_frames(self,
                                     num_frames: int = 4,
                                     title: str = "Watermarked Video Frames",
-                                    ax: Axes | None = None) -> Axes:
+                                    ax: Optional[Axes] = None) -> Axes:
         """
         Draw multiple frames from the watermarked video.
 
@@ -80,7 +81,7 @@ class VideoMarkVisualizer(BaseVisualizer):
                              cmap: str = "Blues",
                              use_color_bar: bool = True,
                              max_display_size: int = 50,
-                             ax: Axes | None = None,
+                             ax: Optional[Axes] = None,
                              **kwargs) -> Axes:
         """
         Draw the generator matrix visualization
@@ -123,7 +124,7 @@ class VideoMarkVisualizer(BaseVisualizer):
                      title: str = "VideoMark Codeword",
                      cmap: str = "viridis",
                      use_color_bar: bool = True,
-                     ax: Axes | None = None,
+                     ax: Optional[Axes] = None,
                      **kwargs) -> Axes:
         """
         Draw the PRC codeword visualization
@@ -170,7 +171,7 @@ class VideoMarkVisualizer(BaseVisualizer):
                               use_color_bar: bool = True,
                               vmin: float = -1.0,
                               vmax: float = 1.0,
-                              ax: Axes | None = None,
+                              ax: Optional[Axes] = None,
                               **kwargs) -> Axes:
 
         if hasattr(self.data, 'recovered_prc') and self.data.recovered_prc is not None:
@@ -208,7 +209,7 @@ class VideoMarkVisualizer(BaseVisualizer):
                            use_color_bar: bool = True,
                            channel: int = 0,
                            frame: int =0,
-                           ax: Axes | None = None,
+                           ax: Optional[Axes] = None,
                            **kwargs) -> Axes:
         """
         Draw difference map between watermarked and inverted latents

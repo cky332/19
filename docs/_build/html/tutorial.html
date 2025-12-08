@@ -1,0 +1,1238 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tutorial &mdash; MarkDiffusion 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=8d563738"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+      <script src="_static/copybutton.js?v=fd10adb8"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Watermarking Algorithms" href="user_guide/algorithms.html" />
+    <link rel="prev" title="Quick Start" href="quickstart.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #5F259F" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            MarkDiffusion
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#requirements">Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#basic-installation">Basic Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#installation-with-conda">Installation with Conda</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#gpu-support">GPU Support</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#algorithm-specific-setup">Algorithm-Specific Setup</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#gaussmarker-gm">GaussMarker (GM)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#seal">SEAL</a></li>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#other-algorithms">Other Algorithms</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#verification">Verification</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#troubleshooting">Troubleshooting</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#common-issues">Common Issues</a></li>
+<li class="toctree-l3"><a class="reference internal" href="installation.html#getting-help">Getting Help</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#next-steps">Next Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quick Start</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#basic-workflow">Basic Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#step-1-setup-and-configuration">Step 1: Setup and Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#step-2-load-a-watermarking-algorithm">Step 2: Load a Watermarking Algorithm</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#step-3-generate-watermarked-media">Step 3: Generate Watermarked Media</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="quickstart.html#image-generation">Image Generation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="quickstart.html#video-generation">Video Generation</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#step-4-detect-watermarks">Step 4: Detect Watermarks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#complete-example">Complete Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#comparing-multiple-algorithms">Comparing Multiple Algorithms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#next-steps">Next Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Tutorial</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#tutorial-1-basic-image-watermarking">Tutorial 1: Basic Image Watermarking</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#using-tree-ring-watermark">Using Tree-Ring Watermark</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#using-gaussian-shading-watermark">Using Gaussian-Shading Watermark</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#tutorial-2-visualizing-watermark-mechanisms">Tutorial 2: Visualizing Watermark Mechanisms</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#tree-ring-visualization">Tree-Ring Visualization</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#gaussian-shading-visualization">Gaussian-Shading Visualization</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#robin-visualization">ROBIN Visualization</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#tutorial-3-evaluating-watermark-quality">Tutorial 3: Evaluating Watermark Quality</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#image-quality-evaluation">Image Quality Evaluation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#robustness-evaluation">Robustness Evaluation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#multiple-attacks-evaluation">Multiple Attacks Evaluation</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#tutorial-4-video-watermarking">Tutorial 4: Video Watermarking</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#basic-video-watermarking">Basic Video Watermarking</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#video-quality-evaluation">Video Quality Evaluation</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#tutorial-5-custom-configuration">Tutorial 5: Custom Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#batch-processing">Batch Processing</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#next-steps">Next Steps</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="user_guide/algorithms.html">Watermarking Algorithms</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/algorithms.html#algorithm-overview">Algorithm Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/algorithms.html#pattern-based-methods">Pattern-Based Methods</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="user_guide/algorithms.html#tree-ring-tr">Tree-Ring (TR)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="user_guide/algorithms.html#ring-id-ri">Ring-ID (RI)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="user_guide/algorithms.html#robin">ROBIN</a></li>
+<li class="toctree-l3"><a class="reference internal" href="user_guide/algorithms.html#wind">WIND</a></li>
+<li class="toctree-l3"><a class="reference internal" href="user_guide/algorithms.html#sfw">SFW</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/algorithms.html#key-based-methods">Key-Based Methods</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="user_guide/algorithms.html#gaussian-shading-gs">Gaussian-Shading (GS)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="user_guide/algorithms.html#gaussmarker-gm">GaussMarker (GM)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="user_guide/algorithms.html#prc">PRC</a></li>
+<li class="toctree-l3"><a class="reference internal" href="user_guide/algorithms.html#seal">SEAL</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/algorithms.html#video-watermarking-methods">Video Watermarking Methods</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="user_guide/algorithms.html#videoshield">VideoShield</a></li>
+<li class="toctree-l3"><a class="reference internal" href="user_guide/algorithms.html#videomark">VideoMark</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/algorithms.html#algorithm-comparison">Algorithm Comparison</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="user_guide/algorithms.html#choosing-the-right-algorithm">Choosing the Right Algorithm</a></li>
+<li class="toctree-l3"><a class="reference internal" href="user_guide/algorithms.html#id1">Algorithm Comparison</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/algorithms.html#next-steps">Next Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="user_guide/watermarking.html">Watermarking Workflow</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/watermarking.html#basic-workflow">Basic Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/watermarking.html#configuration">Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="user_guide/watermarking.html#diffusion-model-setup">Diffusion Model Setup</a></li>
+<li class="toctree-l3"><a class="reference internal" href="user_guide/watermarking.html#diffusionconfig-parameters">DiffusionConfig Parameters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="user_guide/watermarking.html#algorithm-configuration">Algorithm Configuration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="user_guide/watermarking.html#configuration-file-structure">Configuration File Structure</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/watermarking.html#generation">Generation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="user_guide/watermarking.html#image-generation">Image Generation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="user_guide/watermarking.html#video-generation">Video Generation</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/watermarking.html#detection">Detection</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="user_guide/watermarking.html#basic-detection">Basic Detection</a></li>
+<li class="toctree-l3"><a class="reference internal" href="user_guide/watermarking.html#batch-detection">Batch Detection</a></li>
+<li class="toctree-l3"><a class="reference internal" href="user_guide/watermarking.html#detection-with-custom-parameters">Detection with Custom Parameters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="user_guide/watermarking.html#video-detection">Video Detection</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/watermarking.html#watermark-removal-prevention">Watermark Removal Prevention</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="user_guide/watermarking.html#testing-against-attacks">Testing Against Attacks</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/watermarking.html#next-steps">Next Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="user_guide/visualization.html">Visualization</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/visualization.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/visualization.html#basic-usage">Basic Usage</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="user_guide/visualization.html#simple-visualization">Simple Visualization</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/visualization.html#visualization-methods-by-algorithm">Visualization Methods by Algorithm</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="user_guide/visualization.html#tree-ring-tr">Tree-Ring (TR)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="user_guide/visualization.html#gaussian-shading-gs">Gaussian-Shading (GS)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="user_guide/visualization.html#robin">ROBIN</a></li>
+<li class="toctree-l3"><a class="reference internal" href="user_guide/visualization.html#gaussmarker-gm">GaussMarker (GM)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="user_guide/visualization.html#videoshield">VideoShield</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/visualization.html#advanced-visualization">Advanced Visualization</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="user_guide/visualization.html#custom-layout">Custom Layout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="user_guide/visualization.html#comparing-methods">Comparing Methods</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/visualization.html#next-steps">Next Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="user_guide/evaluation.html">Evaluation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/evaluation.html#overview">Overview</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="user_guide/evaluation.html#evaluation-dimensions">Evaluation Dimensions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="user_guide/evaluation.html#evaluation-components">Evaluation Components</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/evaluation.html#detectability-evaluation">Detectability Evaluation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="user_guide/evaluation.html#basic-detection-evaluation">Basic Detection Evaluation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="user_guide/evaluation.html#detection-metrics">Detection Metrics</a></li>
+<li class="toctree-l3"><a class="reference internal" href="user_guide/evaluation.html#fixed-threshold-evaluation">Fixed Threshold Evaluation</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/evaluation.html#robustness-evaluation">Robustness Evaluation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="user_guide/evaluation.html#image-attacks">Image Attacks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="user_guide/evaluation.html#video-attacks">Video Attacks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="user_guide/evaluation.html#combined-attacks">Combined Attacks</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/evaluation.html#quality-evaluation">Quality Evaluation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="user_guide/evaluation.html#image-quality-metrics">Image Quality Metrics</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="user_guide/evaluation.html#direct-quality-analysis">Direct Quality Analysis</a></li>
+<li class="toctree-l4"><a class="reference internal" href="user_guide/evaluation.html#referenced-quality-analysis">Referenced Quality Analysis</a></li>
+<li class="toctree-l4"><a class="reference internal" href="user_guide/evaluation.html#compared-quality-analysis">Compared Quality Analysis</a></li>
+<li class="toctree-l4"><a class="reference internal" href="user_guide/evaluation.html#group-quality-analysis">Group Quality Analysis</a></li>
+<li class="toctree-l4"><a class="reference internal" href="user_guide/evaluation.html#repeat-quality-analysis">Repeat Quality Analysis</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="user_guide/evaluation.html#video-quality-metrics">Video Quality Metrics</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/evaluation.html#comprehensive-evaluation">Comprehensive Evaluation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="user_guide/evaluation.html#full-evaluation-suite">Full Evaluation Suite</a></li>
+<li class="toctree-l3"><a class="reference internal" href="user_guide/evaluation.html#compare-multiple-algorithms">Compare Multiple Algorithms</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/evaluation.html#best-practices">Best Practices</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="user_guide/evaluation.html#sample-size-selection">Sample Size Selection</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="user_guide/evaluation.html#next-steps">Next Steps</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api/watermark.html">Watermark API</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api/watermark.html#autowatermark">AutoWatermark</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/watermark.html#watermark.auto_watermark.AutoWatermark"><code class="docutils literal notranslate"><span class="pre">AutoWatermark</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.auto_watermark.AutoWatermark.__init__"><code class="docutils literal notranslate"><span class="pre">AutoWatermark.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.auto_watermark.AutoWatermark.load"><code class="docutils literal notranslate"><span class="pre">AutoWatermark.load()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.auto_watermark.AutoWatermark.list_supported_algorithms"><code class="docutils literal notranslate"><span class="pre">AutoWatermark.list_supported_algorithms()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/watermark.html#base-watermark">Base Watermark</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/watermark.html#watermark.base.BaseWatermark"><code class="docutils literal notranslate"><span class="pre">BaseWatermark</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.base.BaseWatermark.__init__"><code class="docutils literal notranslate"><span class="pre">BaseWatermark.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.base.BaseWatermark.get_orig_watermarked_latents"><code class="docutils literal notranslate"><span class="pre">BaseWatermark.get_orig_watermarked_latents()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.base.BaseWatermark.set_orig_watermarked_latents"><code class="docutils literal notranslate"><span class="pre">BaseWatermark.set_orig_watermarked_latents()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.base.BaseWatermark.generate_watermarked_media"><code class="docutils literal notranslate"><span class="pre">BaseWatermark.generate_watermarked_media()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.base.BaseWatermark.generate_unwatermarked_media"><code class="docutils literal notranslate"><span class="pre">BaseWatermark.generate_unwatermarked_media()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.base.BaseWatermark.detect_watermark_in_media"><code class="docutils literal notranslate"><span class="pre">BaseWatermark.detect_watermark_in_media()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.base.BaseWatermark.get_data_for_visualize"><code class="docutils literal notranslate"><span class="pre">BaseWatermark.get_data_for_visualize()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/watermark.html#module-watermark.tr.tr">Tree-Ring Watermark</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/watermark.html#watermark.tr.tr.TRConfig"><code class="docutils literal notranslate"><span class="pre">TRConfig</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.tr.tr.TRConfig.initialize_parameters"><code class="docutils literal notranslate"><span class="pre">TRConfig.initialize_parameters()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.tr.tr.TRConfig.algorithm_name"><code class="docutils literal notranslate"><span class="pre">TRConfig.algorithm_name</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/watermark.html#watermark.tr.tr.TRUtils"><code class="docutils literal notranslate"><span class="pre">TRUtils</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.tr.tr.TRUtils.__init__"><code class="docutils literal notranslate"><span class="pre">TRUtils.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.tr.tr.TRUtils.inject_watermark"><code class="docutils literal notranslate"><span class="pre">TRUtils.inject_watermark()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/watermark.html#watermark.tr.tr.TR"><code class="docutils literal notranslate"><span class="pre">TR</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.tr.tr.TR.__init__"><code class="docutils literal notranslate"><span class="pre">TR.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.tr.tr.TR.get_data_for_visualize"><code class="docutils literal notranslate"><span class="pre">TR.get_data_for_visualize()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/watermark.html#module-watermark.gs.gs">Gaussian-Shading Watermark</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/watermark.html#watermark.gs.gs.GSConfig"><code class="docutils literal notranslate"><span class="pre">GSConfig</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.gs.gs.GSConfig.initialize_parameters"><code class="docutils literal notranslate"><span class="pre">GSConfig.initialize_parameters()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.gs.gs.GSConfig.algorithm_name"><code class="docutils literal notranslate"><span class="pre">GSConfig.algorithm_name</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/watermark.html#watermark.gs.gs.GSUtils"><code class="docutils literal notranslate"><span class="pre">GSUtils</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.gs.gs.GSUtils.__init__"><code class="docutils literal notranslate"><span class="pre">GSUtils.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.gs.gs.GSUtils.inject_watermark"><code class="docutils literal notranslate"><span class="pre">GSUtils.inject_watermark()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/watermark.html#watermark.gs.gs.GS"><code class="docutils literal notranslate"><span class="pre">GS</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.gs.gs.GS.__init__"><code class="docutils literal notranslate"><span class="pre">GS.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.gs.gs.GS.get_data_for_visualize"><code class="docutils literal notranslate"><span class="pre">GS.get_data_for_visualize()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/watermark.html#module-watermark.robin.robin">ROBIN Watermark</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/watermark.html#watermark.robin.robin.ROBINConfig"><code class="docutils literal notranslate"><span class="pre">ROBINConfig</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.robin.robin.ROBINConfig.initialize_parameters"><code class="docutils literal notranslate"><span class="pre">ROBINConfig.initialize_parameters()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.robin.robin.ROBINConfig.algorithm_name"><code class="docutils literal notranslate"><span class="pre">ROBINConfig.algorithm_name</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/watermark.html#watermark.robin.robin.ROBINUtils"><code class="docutils literal notranslate"><span class="pre">ROBINUtils</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.robin.robin.ROBINUtils.__init__"><code class="docutils literal notranslate"><span class="pre">ROBINUtils.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.robin.robin.ROBINUtils.build_generation_params"><code class="docutils literal notranslate"><span class="pre">ROBINUtils.build_generation_params()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.robin.robin.ROBINUtils.generate_clean_images"><code class="docutils literal notranslate"><span class="pre">ROBINUtils.generate_clean_images()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.robin.robin.ROBINUtils.build_watermarking_args"><code class="docutils literal notranslate"><span class="pre">ROBINUtils.build_watermarking_args()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.robin.robin.ROBINUtils.build_hyperparameters"><code class="docutils literal notranslate"><span class="pre">ROBINUtils.build_hyperparameters()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.robin.robin.ROBINUtils.optimize_watermark"><code class="docutils literal notranslate"><span class="pre">ROBINUtils.optimize_watermark()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.robin.robin.ROBINUtils.initialize_detector"><code class="docutils literal notranslate"><span class="pre">ROBINUtils.initialize_detector()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.robin.robin.ROBINUtils.preprocess_image_for_detection"><code class="docutils literal notranslate"><span class="pre">ROBINUtils.preprocess_image_for_detection()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.robin.robin.ROBINUtils.extract_latents_for_detection"><code class="docutils literal notranslate"><span class="pre">ROBINUtils.extract_latents_for_detection()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/watermark.html#watermark.robin.robin.ROBIN"><code class="docutils literal notranslate"><span class="pre">ROBIN</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.robin.robin.ROBIN.__init__"><code class="docutils literal notranslate"><span class="pre">ROBIN.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.robin.robin.ROBIN.get_data_for_visualize"><code class="docutils literal notranslate"><span class="pre">ROBIN.get_data_for_visualize()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/watermark.html#module-watermark.wind.wind">WIND Watermark</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/watermark.html#watermark.wind.wind.WINDConfig"><code class="docutils literal notranslate"><span class="pre">WINDConfig</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.wind.wind.WINDConfig.initialize_parameters"><code class="docutils literal notranslate"><span class="pre">WINDConfig.initialize_parameters()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.wind.wind.WINDConfig.algorithm_name"><code class="docutils literal notranslate"><span class="pre">WINDConfig.algorithm_name</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/watermark.html#watermark.wind.wind.WINDUtils"><code class="docutils literal notranslate"><span class="pre">WINDUtils</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.wind.wind.WINDUtils.__init__"><code class="docutils literal notranslate"><span class="pre">WINDUtils.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.wind.wind.WINDUtils.inject_watermark"><code class="docutils literal notranslate"><span class="pre">WINDUtils.inject_watermark()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/watermark.html#watermark.wind.wind.WIND"><code class="docutils literal notranslate"><span class="pre">WIND</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.wind.wind.WIND.__init__"><code class="docutils literal notranslate"><span class="pre">WIND.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.wind.wind.WIND.get_data_for_visualize"><code class="docutils literal notranslate"><span class="pre">WIND.get_data_for_visualize()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/watermark.html#module-watermark.sfw.sfw">SFW Watermark</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/watermark.html#watermark.sfw.sfw.SFWConfig"><code class="docutils literal notranslate"><span class="pre">SFWConfig</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.sfw.sfw.SFWConfig.initialize_parameters"><code class="docutils literal notranslate"><span class="pre">SFWConfig.initialize_parameters()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.sfw.sfw.SFWConfig.algorithm_name"><code class="docutils literal notranslate"><span class="pre">SFWConfig.algorithm_name</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/watermark.html#watermark.sfw.sfw.SFWUtils"><code class="docutils literal notranslate"><span class="pre">SFWUtils</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.sfw.sfw.SFWUtils.__init__"><code class="docutils literal notranslate"><span class="pre">SFWUtils.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.sfw.sfw.SFWUtils.fft"><code class="docutils literal notranslate"><span class="pre">SFWUtils.fft()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.sfw.sfw.SFWUtils.ifft"><code class="docutils literal notranslate"><span class="pre">SFWUtils.ifft()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.sfw.sfw.SFWUtils.rfft"><code class="docutils literal notranslate"><span class="pre">SFWUtils.rfft()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.sfw.sfw.SFWUtils.irfft"><code class="docutils literal notranslate"><span class="pre">SFWUtils.irfft()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.sfw.sfw.SFWUtils.circle_mask"><code class="docutils literal notranslate"><span class="pre">SFWUtils.circle_mask()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.sfw.sfw.SFWUtils.enforce_hermitian_symmetry"><code class="docutils literal notranslate"><span class="pre">SFWUtils.enforce_hermitian_symmetry()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.sfw.sfw.SFWUtils.make_Fourier_treering_pattern"><code class="docutils literal notranslate"><span class="pre">SFWUtils.make_Fourier_treering_pattern()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.sfw.sfw.SFWUtils.QRCodeGenerator"><code class="docutils literal notranslate"><span class="pre">SFWUtils.QRCodeGenerator</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.sfw.sfw.SFWUtils.make_hsqr_pattern"><code class="docutils literal notranslate"><span class="pre">SFWUtils.make_hsqr_pattern()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.sfw.sfw.SFWUtils.RounderRingMask"><code class="docutils literal notranslate"><span class="pre">SFWUtils.RounderRingMask</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.sfw.sfw.SFWUtils.inject_wm"><code class="docutils literal notranslate"><span class="pre">SFWUtils.inject_wm()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.sfw.sfw.SFWUtils.inject_hsqr"><code class="docutils literal notranslate"><span class="pre">SFWUtils.inject_hsqr()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/watermark.html#watermark.sfw.sfw.SFW"><code class="docutils literal notranslate"><span class="pre">SFW</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.sfw.sfw.SFW.__init__"><code class="docutils literal notranslate"><span class="pre">SFW.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.sfw.sfw.SFW.get_data_for_visualize"><code class="docutils literal notranslate"><span class="pre">SFW.get_data_for_visualize()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/watermark.html#module-watermark.gm.gm">GaussMarker</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/watermark.html#watermark.gm.gm.circle_mask"><code class="docutils literal notranslate"><span class="pre">circle_mask()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/watermark.html#watermark.gm.gm.set_complex_sign"><code class="docutils literal notranslate"><span class="pre">set_complex_sign()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/watermark.html#watermark.gm.gm.extract_complex_sign"><code class="docutils literal notranslate"><span class="pre">extract_complex_sign()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/watermark.html#watermark.gm.gm.GaussianShadingChaCha"><code class="docutils literal notranslate"><span class="pre">GaussianShadingChaCha</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.gm.gm.GaussianShadingChaCha.channel_copy"><code class="docutils literal notranslate"><span class="pre">GaussianShadingChaCha.channel_copy</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.gm.gm.GaussianShadingChaCha.width_copy"><code class="docutils literal notranslate"><span class="pre">GaussianShadingChaCha.width_copy</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.gm.gm.GaussianShadingChaCha.height_copy"><code class="docutils literal notranslate"><span class="pre">GaussianShadingChaCha.height_copy</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.gm.gm.GaussianShadingChaCha.fpr"><code class="docutils literal notranslate"><span class="pre">GaussianShadingChaCha.fpr</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.gm.gm.GaussianShadingChaCha.user_number"><code class="docutils literal notranslate"><span class="pre">GaussianShadingChaCha.user_number</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.gm.gm.GaussianShadingChaCha.latent_channels"><code class="docutils literal notranslate"><span class="pre">GaussianShadingChaCha.latent_channels</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.gm.gm.GaussianShadingChaCha.latent_height"><code class="docutils literal notranslate"><span class="pre">GaussianShadingChaCha.latent_height</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.gm.gm.GaussianShadingChaCha.latent_width"><code class="docutils literal notranslate"><span class="pre">GaussianShadingChaCha.latent_width</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.gm.gm.GaussianShadingChaCha.dtype"><code class="docutils literal notranslate"><span class="pre">GaussianShadingChaCha.dtype</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.gm.gm.GaussianShadingChaCha.device"><code class="docutils literal notranslate"><span class="pre">GaussianShadingChaCha.device</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.gm.gm.GaussianShadingChaCha.watermark_seed"><code class="docutils literal notranslate"><span class="pre">GaussianShadingChaCha.watermark_seed</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.gm.gm.GaussianShadingChaCha.key_seed"><code class="docutils literal notranslate"><span class="pre">GaussianShadingChaCha.key_seed</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.gm.gm.GaussianShadingChaCha.nonce_seed"><code class="docutils literal notranslate"><span class="pre">GaussianShadingChaCha.nonce_seed</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.gm.gm.GaussianShadingChaCha.watermark"><code class="docutils literal notranslate"><span class="pre">GaussianShadingChaCha.watermark</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.gm.gm.GaussianShadingChaCha.key"><code class="docutils literal notranslate"><span class="pre">GaussianShadingChaCha.key</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.gm.gm.GaussianShadingChaCha.nonce"><code class="docutils literal notranslate"><span class="pre">GaussianShadingChaCha.nonce</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.gm.gm.GaussianShadingChaCha.message_bits"><code class="docutils literal notranslate"><span class="pre">GaussianShadingChaCha.message_bits</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.gm.gm.GaussianShadingChaCha.create_watermark_and_return_w_m"><code class="docutils literal notranslate"><span class="pre">GaussianShadingChaCha.create_watermark_and_return_w_m()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.gm.gm.GaussianShadingChaCha.diffusion_inverse"><code class="docutils literal notranslate"><span class="pre">GaussianShadingChaCha.diffusion_inverse()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.gm.gm.GaussianShadingChaCha.pred_m_from_latent"><code class="docutils literal notranslate"><span class="pre">GaussianShadingChaCha.pred_m_from_latent()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.gm.gm.GaussianShadingChaCha.pred_w_from_latent"><code class="docutils literal notranslate"><span class="pre">GaussianShadingChaCha.pred_w_from_latent()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.gm.gm.GaussianShadingChaCha.pred_w_from_m"><code class="docutils literal notranslate"><span class="pre">GaussianShadingChaCha.pred_w_from_m()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.gm.gm.GaussianShadingChaCha.watermark_tensor"><code class="docutils literal notranslate"><span class="pre">GaussianShadingChaCha.watermark_tensor()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.gm.gm.GaussianShadingChaCha.__init__"><code class="docutils literal notranslate"><span class="pre">GaussianShadingChaCha.__init__()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/watermark.html#watermark.gm.gm.GMUtils"><code class="docutils literal notranslate"><span class="pre">GMUtils</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.gm.gm.GMUtils.__init__"><code class="docutils literal notranslate"><span class="pre">GMUtils.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.gm.gm.GMUtils.inject_watermark"><code class="docutils literal notranslate"><span class="pre">GMUtils.inject_watermark()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.gm.gm.GMUtils.generate_watermarked_latents"><code class="docutils literal notranslate"><span class="pre">GMUtils.generate_watermarked_latents()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.gm.gm.GMUtils.detect_from_latents"><code class="docutils literal notranslate"><span class="pre">GMUtils.detect_from_latents()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/watermark.html#watermark.gm.gm.GMConfig"><code class="docutils literal notranslate"><span class="pre">GMConfig</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.gm.gm.GMConfig.initialize_parameters"><code class="docutils literal notranslate"><span class="pre">GMConfig.initialize_parameters()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.gm.gm.GMConfig.algorithm_name"><code class="docutils literal notranslate"><span class="pre">GMConfig.algorithm_name</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/watermark.html#watermark.gm.gm.GM"><code class="docutils literal notranslate"><span class="pre">GM</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.gm.gm.GM.__init__"><code class="docutils literal notranslate"><span class="pre">GM.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.gm.gm.GM.get_data_for_visualize"><code class="docutils literal notranslate"><span class="pre">GM.get_data_for_visualize()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/watermark.html#module-watermark.prc.prc">PRC Watermark</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/watermark.html#watermark.prc.prc.PRCConfig"><code class="docutils literal notranslate"><span class="pre">PRCConfig</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.prc.prc.PRCConfig.initialize_parameters"><code class="docutils literal notranslate"><span class="pre">PRCConfig.initialize_parameters()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.prc.prc.PRCConfig.algorithm_name"><code class="docutils literal notranslate"><span class="pre">PRCConfig.algorithm_name</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/watermark.html#watermark.prc.prc.PRCUtils"><code class="docutils literal notranslate"><span class="pre">PRCUtils</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.prc.prc.PRCUtils.__init__"><code class="docutils literal notranslate"><span class="pre">PRCUtils.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.prc.prc.PRCUtils.inject_watermark"><code class="docutils literal notranslate"><span class="pre">PRCUtils.inject_watermark()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/watermark.html#watermark.prc.prc.PRC"><code class="docutils literal notranslate"><span class="pre">PRC</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.prc.prc.PRC.__init__"><code class="docutils literal notranslate"><span class="pre">PRC.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.prc.prc.PRC.get_data_for_visualize"><code class="docutils literal notranslate"><span class="pre">PRC.get_data_for_visualize()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/watermark.html#module-watermark.seal.seal">SEAL Watermark</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/watermark.html#watermark.seal.seal.SEALConfig"><code class="docutils literal notranslate"><span class="pre">SEALConfig</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.seal.seal.SEALConfig.initialize_parameters"><code class="docutils literal notranslate"><span class="pre">SEALConfig.initialize_parameters()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.seal.seal.SEALConfig.algorithm_name"><code class="docutils literal notranslate"><span class="pre">SEALConfig.algorithm_name</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/watermark.html#watermark.seal.seal.SEALUtils"><code class="docutils literal notranslate"><span class="pre">SEALUtils</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.seal.seal.SEALUtils.__init__"><code class="docutils literal notranslate"><span class="pre">SEALUtils.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.seal.seal.SEALUtils.generate_caption"><code class="docutils literal notranslate"><span class="pre">SEALUtils.generate_caption()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.seal.seal.SEALUtils.generate_initial_noise"><code class="docutils literal notranslate"><span class="pre">SEALUtils.generate_initial_noise()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/watermark.html#watermark.seal.seal.SEAL"><code class="docutils literal notranslate"><span class="pre">SEAL</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.seal.seal.SEAL.__init__"><code class="docutils literal notranslate"><span class="pre">SEAL.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.seal.seal.SEAL.get_data_for_visualize"><code class="docutils literal notranslate"><span class="pre">SEAL.get_data_for_visualize()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/watermark.html#module-watermark.videoshield.video_shield">VideoShield</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/watermark.html#watermark.videoshield.video_shield.VideoShieldConfig"><code class="docutils literal notranslate"><span class="pre">VideoShieldConfig</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.videoshield.video_shield.VideoShieldConfig.initialize_parameters"><code class="docutils literal notranslate"><span class="pre">VideoShieldConfig.initialize_parameters()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.videoshield.video_shield.VideoShieldConfig.algorithm_name"><code class="docutils literal notranslate"><span class="pre">VideoShieldConfig.algorithm_name</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/watermark.html#watermark.videoshield.video_shield.VideoShieldUtils"><code class="docutils literal notranslate"><span class="pre">VideoShieldUtils</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.videoshield.video_shield.VideoShieldUtils.__init__"><code class="docutils literal notranslate"><span class="pre">VideoShieldUtils.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.videoshield.video_shield.VideoShieldUtils.create_watermark_and_return_w"><code class="docutils literal notranslate"><span class="pre">VideoShieldUtils.create_watermark_and_return_w()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/watermark.html#watermark.videoshield.video_shield.VideoShieldWatermark"><code class="docutils literal notranslate"><span class="pre">VideoShieldWatermark</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.videoshield.video_shield.VideoShieldWatermark.__init__"><code class="docutils literal notranslate"><span class="pre">VideoShieldWatermark.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.videoshield.video_shield.VideoShieldWatermark.get_data_for_visualize"><code class="docutils literal notranslate"><span class="pre">VideoShieldWatermark.get_data_for_visualize()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/watermark.html#module-watermark.videomark.video_mark">VideoMark</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/watermark.html#watermark.videomark.video_mark.VideoMarkConfig"><code class="docutils literal notranslate"><span class="pre">VideoMarkConfig</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.videomark.video_mark.VideoMarkConfig.initialize_parameters"><code class="docutils literal notranslate"><span class="pre">VideoMarkConfig.initialize_parameters()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.videomark.video_mark.VideoMarkConfig.algorithm_name"><code class="docutils literal notranslate"><span class="pre">VideoMarkConfig.algorithm_name</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/watermark.html#watermark.videomark.video_mark.VideoMarkUtils"><code class="docutils literal notranslate"><span class="pre">VideoMarkUtils</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.videomark.video_mark.VideoMarkUtils.__init__"><code class="docutils literal notranslate"><span class="pre">VideoMarkUtils.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.videomark.video_mark.VideoMarkUtils.inject_watermark"><code class="docutils literal notranslate"><span class="pre">VideoMarkUtils.inject_watermark()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/watermark.html#watermark.videomark.video_mark.VideoMarkWatermark"><code class="docutils literal notranslate"><span class="pre">VideoMarkWatermark</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.videomark.video_mark.VideoMarkWatermark.__init__"><code class="docutils literal notranslate"><span class="pre">VideoMarkWatermark.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/watermark.html#watermark.videomark.video_mark.VideoMarkWatermark.get_data_for_visualize"><code class="docutils literal notranslate"><span class="pre">VideoMarkWatermark.get_data_for_visualize()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api/detection.html">Detection API</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api/detection.html#base-detector">Base Detector</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/detection.html#detection.base.BaseDetector"><code class="docutils literal notranslate"><span class="pre">BaseDetector</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/detection.html#detection.base.BaseDetector.__init__"><code class="docutils literal notranslate"><span class="pre">BaseDetector.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/detection.html#detection.base.BaseDetector.eval_watermark"><code class="docutils literal notranslate"><span class="pre">BaseDetector.eval_watermark()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/detection.html#detection-methods">Detection Methods</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/detection.html#module-detection.tr.tr_detection">Tree-Ring Detection</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/detection.html#detection.tr.tr_detection.TRDetector"><code class="docutils literal notranslate"><span class="pre">TRDetector</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/detection.html#module-detection.gs.gs_detection">Gaussian-Shading Detection</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/detection.html#detection.gs.gs_detection.GSDetector"><code class="docutils literal notranslate"><span class="pre">GSDetector</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/detection.html#module-detection.robin.robin_detection">ROBIN Detection</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/detection.html#detection.robin.robin_detection.ROBINDetector"><code class="docutils literal notranslate"><span class="pre">ROBINDetector</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/detection.html#module-detection.wind.wind_detection">WIND Detection</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/detection.html#detection.wind.wind_detection.WINDetector"><code class="docutils literal notranslate"><span class="pre">WINDetector</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/detection.html#module-detection.sfw.sfw_detection">SFW Detection</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/detection.html#detection.sfw.sfw_detection.SFWDetector"><code class="docutils literal notranslate"><span class="pre">SFWDetector</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/detection.html#module-detection.gm.gm_detection">GaussMarker Detection</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/detection.html#detection.gm.gm_detection.GMDetector"><code class="docutils literal notranslate"><span class="pre">GMDetector</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/detection.html#module-detection.prc.prc_detection">PRC Detection</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/detection.html#detection.prc.prc_detection.PRCDetector"><code class="docutils literal notranslate"><span class="pre">PRCDetector</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/detection.html#module-detection.seal.seal_detection">SEAL Detection</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/detection.html#detection.seal.seal_detection.SEALDetector"><code class="docutils literal notranslate"><span class="pre">SEALDetector</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/detection.html#module-detection.videoshield.videoshield_detection">VideoShield Detection</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/detection.html#detection.videoshield.videoshield_detection.VideoShieldDetector"><code class="docutils literal notranslate"><span class="pre">VideoShieldDetector</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/detection.html#module-detection.videomark.videomark_detection">VideoMark Detection</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/detection.html#detection.videomark.videomark_detection.VideoMarkDetector"><code class="docutils literal notranslate"><span class="pre">VideoMarkDetector</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api/visualization.html">Visualization API</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api/visualization.html#autovisualizer">AutoVisualizer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/visualization.html#base-visualizer">Base Visualizer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/visualization.html#algorithm-specific-visualizers">Algorithm-Specific Visualizers</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/visualization.html#tree-ring-visualizer">Tree-Ring Visualizer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/visualization.html#gaussian-shading-visualizer">Gaussian-Shading Visualizer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/visualization.html#robin-visualizer">ROBIN Visualizer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/visualization.html#wind-visualizer">WIND Visualizer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/visualization.html#sfw-visualizer">SFW Visualizer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/visualization.html#gaussmarker-visualizer">GaussMarker Visualizer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/visualization.html#prc-visualizer">PRC Visualizer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/visualization.html#seal-visualizer">SEAL Visualizer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/visualization.html#videoshield-visualizer">VideoShield Visualizer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/visualization.html#videomark-visualizer">VideoMark Visualizer</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api/evaluation.html">Evaluation API</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api/evaluation.html#pipelines">Pipelines</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/evaluation.html#module-evaluation.pipelines.detection">Detection Pipelines</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/evaluation.html#evaluation.pipelines.detection.DetectionPipelineReturnType"><code class="docutils literal notranslate"><span class="pre">DetectionPipelineReturnType</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/evaluation.html#evaluation.pipelines.detection.WatermarkDetectionResult"><code class="docutils literal notranslate"><span class="pre">WatermarkDetectionResult</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/evaluation.html#evaluation.pipelines.detection.WatermarkDetectionPipeline"><code class="docutils literal notranslate"><span class="pre">WatermarkDetectionPipeline</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/evaluation.html#evaluation.pipelines.detection.WatermarkedMediaDetectionPipeline"><code class="docutils literal notranslate"><span class="pre">WatermarkedMediaDetectionPipeline</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/evaluation.html#evaluation.pipelines.detection.UnWatermarkedMediaDetectionPipeline"><code class="docutils literal notranslate"><span class="pre">UnWatermarkedMediaDetectionPipeline</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/evaluation.html#module-evaluation.pipelines.image_quality_analysis">Image Quality Analysis Pipelines</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/evaluation.html#evaluation.pipelines.image_quality_analysis.QualityPipelineReturnType"><code class="docutils literal notranslate"><span class="pre">QualityPipelineReturnType</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/evaluation.html#evaluation.pipelines.image_quality_analysis.DatasetForEvaluation"><code class="docutils literal notranslate"><span class="pre">DatasetForEvaluation</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/evaluation.html#evaluation.pipelines.image_quality_analysis.QualityComparisonResult"><code class="docutils literal notranslate"><span class="pre">QualityComparisonResult</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/evaluation.html#evaluation.pipelines.image_quality_analysis.ImageQualityAnalysisPipeline"><code class="docutils literal notranslate"><span class="pre">ImageQualityAnalysisPipeline</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/evaluation.html#evaluation.pipelines.image_quality_analysis.DirectImageQualityAnalysisPipeline"><code class="docutils literal notranslate"><span class="pre">DirectImageQualityAnalysisPipeline</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/evaluation.html#evaluation.pipelines.image_quality_analysis.ReferencedImageQualityAnalysisPipeline"><code class="docutils literal notranslate"><span class="pre">ReferencedImageQualityAnalysisPipeline</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/evaluation.html#evaluation.pipelines.image_quality_analysis.GroupImageQualityAnalysisPipeline"><code class="docutils literal notranslate"><span class="pre">GroupImageQualityAnalysisPipeline</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/evaluation.html#evaluation.pipelines.image_quality_analysis.RepeatImageQualityAnalysisPipeline"><code class="docutils literal notranslate"><span class="pre">RepeatImageQualityAnalysisPipeline</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/evaluation.html#evaluation.pipelines.image_quality_analysis.ComparedImageQualityAnalysisPipeline"><code class="docutils literal notranslate"><span class="pre">ComparedImageQualityAnalysisPipeline</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/evaluation.html#module-evaluation.pipelines.video_quality_analysis">Video Quality Analysis Pipelines</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/evaluation.html#evaluation.pipelines.video_quality_analysis.QualityPipelineReturnType"><code class="docutils literal notranslate"><span class="pre">QualityPipelineReturnType</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/evaluation.html#evaluation.pipelines.video_quality_analysis.DatasetForEvaluation"><code class="docutils literal notranslate"><span class="pre">DatasetForEvaluation</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/evaluation.html#evaluation.pipelines.video_quality_analysis.QualityComparisonResult"><code class="docutils literal notranslate"><span class="pre">QualityComparisonResult</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/evaluation.html#evaluation.pipelines.video_quality_analysis.VideoQualityAnalysisPipeline"><code class="docutils literal notranslate"><span class="pre">VideoQualityAnalysisPipeline</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/evaluation.html#evaluation.pipelines.video_quality_analysis.DirectVideoQualityAnalysisPipeline"><code class="docutils literal notranslate"><span class="pre">DirectVideoQualityAnalysisPipeline</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/evaluation.html#module-evaluation.dataset">Datasets</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/evaluation.html#evaluation.dataset.BaseDataset"><code class="docutils literal notranslate"><span class="pre">BaseDataset</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/evaluation.html#evaluation.dataset.BaseDataset.__init__"><code class="docutils literal notranslate"><span class="pre">BaseDataset.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/evaluation.html#evaluation.dataset.BaseDataset.num_samples"><code class="docutils literal notranslate"><span class="pre">BaseDataset.num_samples</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/evaluation.html#evaluation.dataset.BaseDataset.num_references"><code class="docutils literal notranslate"><span class="pre">BaseDataset.num_references</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/evaluation.html#evaluation.dataset.BaseDataset.get_prompt"><code class="docutils literal notranslate"><span class="pre">BaseDataset.get_prompt()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/evaluation.html#evaluation.dataset.BaseDataset.get_reference"><code class="docutils literal notranslate"><span class="pre">BaseDataset.get_reference()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/evaluation.html#evaluation.dataset.BaseDataset.__len__"><code class="docutils literal notranslate"><span class="pre">BaseDataset.__len__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/evaluation.html#evaluation.dataset.BaseDataset.__getitem__"><code class="docutils literal notranslate"><span class="pre">BaseDataset.__getitem__()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/evaluation.html#evaluation.dataset.StableDiffusionPromptsDataset"><code class="docutils literal notranslate"><span class="pre">StableDiffusionPromptsDataset</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/evaluation.html#evaluation.dataset.StableDiffusionPromptsDataset.__init__"><code class="docutils literal notranslate"><span class="pre">StableDiffusionPromptsDataset.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/evaluation.html#evaluation.dataset.StableDiffusionPromptsDataset.name"><code class="docutils literal notranslate"><span class="pre">StableDiffusionPromptsDataset.name</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/evaluation.html#evaluation.dataset.MSCOCODataset"><code class="docutils literal notranslate"><span class="pre">MSCOCODataset</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/evaluation.html#evaluation.dataset.MSCOCODataset.__init__"><code class="docutils literal notranslate"><span class="pre">MSCOCODataset.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/evaluation.html#evaluation.dataset.MSCOCODataset.name"><code class="docutils literal notranslate"><span class="pre">MSCOCODataset.name</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/evaluation.html#evaluation.dataset.VBenchDataset"><code class="docutils literal notranslate"><span class="pre">VBenchDataset</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/evaluation.html#evaluation.dataset.VBenchDataset.__init__"><code class="docutils literal notranslate"><span class="pre">VBenchDataset.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/evaluation.html#evaluation.dataset.VBenchDataset.name"><code class="docutils literal notranslate"><span class="pre">VBenchDataset.name</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/evaluation.html#evaluation-tools">Evaluation Tools</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/evaluation.html#module-evaluation.tools.success_rate_calculator">Success Rate Calculators</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/evaluation.html#evaluation.tools.success_rate_calculator.DetectionResult"><code class="docutils literal notranslate"><span class="pre">DetectionResult</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/evaluation.html#evaluation.tools.success_rate_calculator.BaseSuccessRateCalculator"><code class="docutils literal notranslate"><span class="pre">BaseSuccessRateCalculator</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/evaluation.html#evaluation.tools.success_rate_calculator.FundamentalSuccessRateCalculator"><code class="docutils literal notranslate"><span class="pre">FundamentalSuccessRateCalculator</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/evaluation.html#evaluation.tools.success_rate_calculator.DynamicThresholdSuccessRateCalculator"><code class="docutils literal notranslate"><span class="pre">DynamicThresholdSuccessRateCalculator</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/evaluation.html#module-evaluation.tools.image_editor">Image Editors (Attacks)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/evaluation.html#evaluation.tools.image_editor.ImageEditor"><code class="docutils literal notranslate"><span class="pre">ImageEditor</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/evaluation.html#evaluation.tools.image_editor.JPEGCompression"><code class="docutils literal notranslate"><span class="pre">JPEGCompression</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/evaluation.html#evaluation.tools.image_editor.Rotation"><code class="docutils literal notranslate"><span class="pre">Rotation</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/evaluation.html#evaluation.tools.image_editor.CrSc"><code class="docutils literal notranslate"><span class="pre">CrSc</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/evaluation.html#evaluation.tools.image_editor.GaussianBlurring"><code class="docutils literal notranslate"><span class="pre">GaussianBlurring</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/evaluation.html#evaluation.tools.image_editor.GaussianNoise"><code class="docutils literal notranslate"><span class="pre">GaussianNoise</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/evaluation.html#evaluation.tools.image_editor.Brightness"><code class="docutils literal notranslate"><span class="pre">Brightness</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/evaluation.html#evaluation.tools.image_editor.Mask"><code class="docutils literal notranslate"><span class="pre">Mask</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/evaluation.html#evaluation.tools.image_editor.Overlay"><code class="docutils literal notranslate"><span class="pre">Overlay</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/evaluation.html#evaluation.tools.image_editor.AdaptiveNoiseInjection"><code class="docutils literal notranslate"><span class="pre">AdaptiveNoiseInjection</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/evaluation.html#module-evaluation.tools.video_editor">Video Editors (Attacks)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/evaluation.html#evaluation.tools.video_editor.VideoEditor"><code class="docutils literal notranslate"><span class="pre">VideoEditor</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/evaluation.html#evaluation.tools.video_editor.MPEG4Compression"><code class="docutils literal notranslate"><span class="pre">MPEG4Compression</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/evaluation.html#evaluation.tools.video_editor.VideoCodecAttack"><code class="docutils literal notranslate"><span class="pre">VideoCodecAttack</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/evaluation.html#evaluation.tools.video_editor.FrameAverage"><code class="docutils literal notranslate"><span class="pre">FrameAverage</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/evaluation.html#evaluation.tools.video_editor.FrameRateAdapter"><code class="docutils literal notranslate"><span class="pre">FrameRateAdapter</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/evaluation.html#evaluation.tools.video_editor.FrameSwap"><code class="docutils literal notranslate"><span class="pre">FrameSwap</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/evaluation.html#evaluation.tools.video_editor.FrameInterpolationAttack"><code class="docutils literal notranslate"><span class="pre">FrameInterpolationAttack</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/evaluation.html#module-evaluation.tools.image_quality_analyzer">Image Quality Analyzers</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/evaluation.html#evaluation.tools.image_quality_analyzer.ImageQualityAnalyzer"><code class="docutils literal notranslate"><span class="pre">ImageQualityAnalyzer</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/evaluation.html#evaluation.tools.image_quality_analyzer.DirectImageQualityAnalyzer"><code class="docutils literal notranslate"><span class="pre">DirectImageQualityAnalyzer</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/evaluation.html#evaluation.tools.image_quality_analyzer.ReferencedImageQualityAnalyzer"><code class="docutils literal notranslate"><span class="pre">ReferencedImageQualityAnalyzer</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/evaluation.html#evaluation.tools.image_quality_analyzer.GroupImageQualityAnalyzer"><code class="docutils literal notranslate"><span class="pre">GroupImageQualityAnalyzer</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/evaluation.html#evaluation.tools.image_quality_analyzer.RepeatImageQualityAnalyzer"><code class="docutils literal notranslate"><span class="pre">RepeatImageQualityAnalyzer</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/evaluation.html#evaluation.tools.image_quality_analyzer.ComparedImageQualityAnalyzer"><code class="docutils literal notranslate"><span class="pre">ComparedImageQualityAnalyzer</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/evaluation.html#evaluation.tools.image_quality_analyzer.InceptionScoreCalculator"><code class="docutils literal notranslate"><span class="pre">InceptionScoreCalculator</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/evaluation.html#evaluation.tools.image_quality_analyzer.CLIPScoreCalculator"><code class="docutils literal notranslate"><span class="pre">CLIPScoreCalculator</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/evaluation.html#evaluation.tools.image_quality_analyzer.FIDCalculator"><code class="docutils literal notranslate"><span class="pre">FIDCalculator</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/evaluation.html#evaluation.tools.image_quality_analyzer.LPIPSAnalyzer"><code class="docutils literal notranslate"><span class="pre">LPIPSAnalyzer</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/evaluation.html#evaluation.tools.image_quality_analyzer.PSNRAnalyzer"><code class="docutils literal notranslate"><span class="pre">PSNRAnalyzer</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/evaluation.html#evaluation.tools.image_quality_analyzer.NIQECalculator"><code class="docutils literal notranslate"><span class="pre">NIQECalculator</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/evaluation.html#evaluation.tools.image_quality_analyzer.SSIMAnalyzer"><code class="docutils literal notranslate"><span class="pre">SSIMAnalyzer</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/evaluation.html#evaluation.tools.image_quality_analyzer.BRISQUEAnalyzer"><code class="docutils literal notranslate"><span class="pre">BRISQUEAnalyzer</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/evaluation.html#evaluation.tools.image_quality_analyzer.VIFAnalyzer"><code class="docutils literal notranslate"><span class="pre">VIFAnalyzer</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/evaluation.html#evaluation.tools.image_quality_analyzer.FSIMAnalyzer"><code class="docutils literal notranslate"><span class="pre">FSIMAnalyzer</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/evaluation.html#module-evaluation.tools.video_quality_analyzer">Video Quality Analyzers</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/evaluation.html#evaluation.tools.video_quality_analyzer.dino_transform_Image"><code class="docutils literal notranslate"><span class="pre">dino_transform_Image()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/evaluation.html#evaluation.tools.video_quality_analyzer.VideoQualityAnalyzer"><code class="docutils literal notranslate"><span class="pre">VideoQualityAnalyzer</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/evaluation.html#evaluation.tools.video_quality_analyzer.SubjectConsistencyAnalyzer"><code class="docutils literal notranslate"><span class="pre">SubjectConsistencyAnalyzer</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/evaluation.html#evaluation.tools.video_quality_analyzer.MotionSmoothnessAnalyzer"><code class="docutils literal notranslate"><span class="pre">MotionSmoothnessAnalyzer</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/evaluation.html#evaluation.tools.video_quality_analyzer.DynamicDegreeAnalyzer"><code class="docutils literal notranslate"><span class="pre">DynamicDegreeAnalyzer</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/evaluation.html#evaluation.tools.video_quality_analyzer.BackgroundConsistencyAnalyzer"><code class="docutils literal notranslate"><span class="pre">BackgroundConsistencyAnalyzer</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/evaluation.html#evaluation.tools.video_quality_analyzer.ImagingQualityAnalyzer"><code class="docutils literal notranslate"><span class="pre">ImagingQualityAnalyzer</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api/utils.html">Utilities API</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api/utils.html#module-utils.diffusion_config">Diffusion Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/utils.html#utils.diffusion_config.DiffusionConfig"><code class="docutils literal notranslate"><span class="pre">DiffusionConfig</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/utils.html#utils.diffusion_config.DiffusionConfig.__init__"><code class="docutils literal notranslate"><span class="pre">DiffusionConfig.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/utils.html#utils.diffusion_config.DiffusionConfig.pipeline_type"><code class="docutils literal notranslate"><span class="pre">DiffusionConfig.pipeline_type</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/utils.html#utils.diffusion_config.DiffusionConfig.is_video_pipeline"><code class="docutils literal notranslate"><span class="pre">DiffusionConfig.is_video_pipeline</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/utils.html#utils.diffusion_config.DiffusionConfig.is_image_pipeline"><code class="docutils literal notranslate"><span class="pre">DiffusionConfig.is_image_pipeline</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/utils.html#utils.diffusion_config.DiffusionConfig.pipeline_requirements"><code class="docutils literal notranslate"><span class="pre">DiffusionConfig.pipeline_requirements</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/utils.html#module-utils.pipeline_utils">Pipeline Utilities</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/utils.html#utils.pipeline_utils.get_pipeline_type"><code class="docutils literal notranslate"><span class="pre">get_pipeline_type()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/utils.html#utils.pipeline_utils.is_video_pipeline"><code class="docutils literal notranslate"><span class="pre">is_video_pipeline()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/utils.html#utils.pipeline_utils.is_image_pipeline"><code class="docutils literal notranslate"><span class="pre">is_image_pipeline()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/utils.html#utils.pipeline_utils.is_t2v_pipeline"><code class="docutils literal notranslate"><span class="pre">is_t2v_pipeline()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/utils.html#utils.pipeline_utils.is_i2v_pipeline"><code class="docutils literal notranslate"><span class="pre">is_i2v_pipeline()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/utils.html#utils.pipeline_utils.get_pipeline_requirements"><code class="docutils literal notranslate"><span class="pre">get_pipeline_requirements()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/utils.html#module-utils.media_utils">Media Utilities</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/utils.html#utils.media_utils.torch_to_numpy"><code class="docutils literal notranslate"><span class="pre">torch_to_numpy()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/utils.html#utils.media_utils.pil_to_torch"><code class="docutils literal notranslate"><span class="pre">pil_to_torch()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/utils.html#utils.media_utils.numpy_to_pil"><code class="docutils literal notranslate"><span class="pre">numpy_to_pil()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/utils.html#utils.media_utils.cv2_to_pil"><code class="docutils literal notranslate"><span class="pre">cv2_to_pil()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/utils.html#utils.media_utils.pil_to_cv2"><code class="docutils literal notranslate"><span class="pre">pil_to_cv2()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/utils.html#utils.media_utils.transform_to_model_format"><code class="docutils literal notranslate"><span class="pre">transform_to_model_format()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/utils.html#utils.media_utils.set_inversion"><code class="docutils literal notranslate"><span class="pre">set_inversion()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/utils.html#utils.media_utils.get_random_latents"><code class="docutils literal notranslate"><span class="pre">get_random_latents()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/utils.html#utils.media_utils.decoder_inv_optimization"><code class="docutils literal notranslate"><span class="pre">decoder_inv_optimization()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/utils.html#utils.media_utils.tensor2vid"><code class="docutils literal notranslate"><span class="pre">tensor2vid()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/utils.html#utils.media_utils.convert_video_frames_to_images"><code class="docutils literal notranslate"><span class="pre">convert_video_frames_to_images()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/utils.html#utils.media_utils.save_video_frames"><code class="docutils literal notranslate"><span class="pre">save_video_frames()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/utils.html#utils.media_utils.get_media_latents"><code class="docutils literal notranslate"><span class="pre">get_media_latents()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/utils.html#utils.media_utils.decode_media_latents"><code class="docutils literal notranslate"><span class="pre">decode_media_latents()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/utils.html#module-utils.utils">General Utilities</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/utils.html#utils.utils.inherit_docstring"><code class="docutils literal notranslate"><span class="pre">inherit_docstring()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/utils.html#utils.utils.load_config_file"><code class="docutils literal notranslate"><span class="pre">load_config_file()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/utils.html#utils.utils.load_json_as_list"><code class="docutils literal notranslate"><span class="pre">load_json_as_list()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/utils.html#utils.utils.create_directory_for_file"><code class="docutils literal notranslate"><span class="pre">create_directory_for_file()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/utils.html#utils.utils.set_random_seed"><code class="docutils literal notranslate"><span class="pre">set_random_seed()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/utils.html#module-utils.callbacks">Callbacks</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/utils.html#utils.callbacks.DenoisingLatentsCollector"><code class="docutils literal notranslate"><span class="pre">DenoisingLatentsCollector</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/utils.html#utils.callbacks.DenoisingLatentsCollector.__init__"><code class="docutils literal notranslate"><span class="pre">DenoisingLatentsCollector.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/utils.html#utils.callbacks.DenoisingLatentsCollector.latents_list"><code class="docutils literal notranslate"><span class="pre">DenoisingLatentsCollector.latents_list</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/utils.html#utils.callbacks.DenoisingLatentsCollector.timesteps_list"><code class="docutils literal notranslate"><span class="pre">DenoisingLatentsCollector.timesteps_list</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/utils.html#utils.callbacks.DenoisingLatentsCollector.get_latents_at_step"><code class="docutils literal notranslate"><span class="pre">DenoisingLatentsCollector.get_latents_at_step()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/utils.html#utils.callbacks.DenoisingLatentsCollector.clear"><code class="docutils literal notranslate"><span class="pre">DenoisingLatentsCollector.clear()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api/utils.html#inversions">Inversions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api/utils.html#module-inversions.base_inversion">Base Inversion</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/utils.html#inversions.base_inversion.BaseInversion"><code class="docutils literal notranslate"><span class="pre">BaseInversion</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/utils.html#module-inversions.ddim_inversion">DDIM Inversion</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/utils.html#inversions.ddim_inversion.DDIMInversion"><code class="docutils literal notranslate"><span class="pre">DDIMInversion</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="api/utils.html#module-inversions.exact_inversion">Exact Inversion</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/utils.html#inversions.exact_inversion.ExactInversion"><code class="docutils literal notranslate"><span class="pre">ExactInversion</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/utils.html#inversions.exact_inversion.StepScheduler"><code class="docutils literal notranslate"><span class="pre">StepScheduler</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Additional Resources</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#version-1-0-0-2025-01-xx">Version 1.0.0 (2025-01-XX)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="changelog.html#initial-release">Initial Release</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#recent-updates">Recent Updates</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#upcoming-features">Upcoming Features</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#contributing">Contributing</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to MarkDiffusion</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="contributing.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="contributing.html#development-guidelines">Development Guidelines</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="contributing.html#code-style">Code Style</a></li>
+<li class="toctree-l3"><a class="reference internal" href="contributing.html#documentation">Documentation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="contributing.html#testing">Testing</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="contributing.html#contribution-process">Contribution Process</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="contributing.html#adding-a-new-algorithm">Adding a New Algorithm</a></li>
+<li class="toctree-l3"><a class="reference internal" href="contributing.html#adding-evaluation-tools">Adding Evaluation Tools</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="contributing.html#submission-checklist">Submission Checklist</a></li>
+<li class="toctree-l2"><a class="reference internal" href="contributing.html#additional-information">Additional Information</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="code_of_conduct.html">Code of Conduct</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="code_of_conduct.html#community-standards">Community Standards</a></li>
+<li class="toctree-l2"><a class="reference internal" href="code_of_conduct.html#quick-reference">Quick Reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="code_of_conduct.html#reporting">Reporting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="code_of_conduct.html#attribution">Attribution</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="citation.html">Citation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="citation.html#bibtex">BibTeX</a></li>
+<li class="toctree-l2"><a class="reference internal" href="citation.html#apa-style">APA Style</a></li>
+<li class="toctree-l2"><a class="reference internal" href="citation.html#mla-style">MLA Style</a></li>
+<li class="toctree-l2"><a class="reference internal" href="citation.html#algorithm-specific-citations">Algorithm-Specific Citations</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="citation.html#tree-ring-watermark">Tree-Ring Watermark</a></li>
+<li class="toctree-l3"><a class="reference internal" href="citation.html#ring-id">Ring-ID</a></li>
+<li class="toctree-l3"><a class="reference internal" href="citation.html#robin">ROBIN</a></li>
+<li class="toctree-l3"><a class="reference internal" href="citation.html#wind">WIND</a></li>
+<li class="toctree-l3"><a class="reference internal" href="citation.html#sfw">SFW</a></li>
+<li class="toctree-l3"><a class="reference internal" href="citation.html#gaussian-shading">Gaussian-Shading</a></li>
+<li class="toctree-l3"><a class="reference internal" href="citation.html#gaussmarker">GaussMarker</a></li>
+<li class="toctree-l3"><a class="reference internal" href="citation.html#prc">PRC</a></li>
+<li class="toctree-l3"><a class="reference internal" href="citation.html#seal">SEAL</a></li>
+<li class="toctree-l3"><a class="reference internal" href="citation.html#videoshield">VideoShield</a></li>
+<li class="toctree-l3"><a class="reference internal" href="citation.html#videomark">VideoMark</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="citation.html#acknowledgments">Acknowledgments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="citation.html#using-markdiffusion-in-publications">Using MarkDiffusion in Publications</a></li>
+<li class="toctree-l2"><a class="reference internal" href="citation.html#license">License</a></li>
+<li class="toctree-l2"><a class="reference internal" href="citation.html#contact">Contact</a></li>
+<li class="toctree-l2"><a class="reference internal" href="citation.html#updates">Updates</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #5F259F" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">MarkDiffusion</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Tutorial</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/tutorial.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="tutorial">
+<h1>Tutorial<a class="headerlink" href="#tutorial" title="Link to this heading"></a></h1>
+<p>This tutorial provides step-by-step examples for using MarkDiffusion’s main features.</p>
+<section id="tutorial-1-basic-image-watermarking">
+<h2>Tutorial 1: Basic Image Watermarking<a class="headerlink" href="#tutorial-1-basic-image-watermarking" title="Link to this heading"></a></h2>
+<p>Learn how to watermark images using different algorithms.</p>
+<section id="using-tree-ring-watermark">
+<h3>Using Tree-Ring Watermark<a class="headerlink" href="#using-tree-ring-watermark" title="Link to this heading"></a></h3>
+<p>Tree-Ring is a pattern-based watermarking method that embeds invisible patterns in the frequency domain.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">watermark.auto_watermark</span><span class="w"> </span><span class="kn">import</span> <span class="n">AutoWatermark</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">utils.diffusion_config</span><span class="w"> </span><span class="kn">import</span> <span class="n">DiffusionConfig</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">diffusers</span><span class="w"> </span><span class="kn">import</span> <span class="n">StableDiffusionPipeline</span><span class="p">,</span> <span class="n">DPMSolverMultistepScheduler</span>
+
+<span class="c1"># Setup</span>
+<span class="n">device</span> <span class="o">=</span> <span class="s1">&#39;cuda&#39;</span> <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span> <span class="k">else</span> <span class="s1">&#39;cpu&#39;</span>
+<span class="n">model_id</span> <span class="o">=</span> <span class="s2">&quot;stabilityai/stable-diffusion-2-1&quot;</span>
+
+<span class="n">scheduler</span> <span class="o">=</span> <span class="n">DPMSolverMultistepScheduler</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span><span class="n">model_id</span><span class="p">,</span> <span class="n">subfolder</span><span class="o">=</span><span class="s2">&quot;scheduler&quot;</span><span class="p">)</span>
+<span class="n">pipe</span> <span class="o">=</span> <span class="n">StableDiffusionPipeline</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span><span class="n">model_id</span><span class="p">,</span> <span class="n">scheduler</span><span class="o">=</span><span class="n">scheduler</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+
+<span class="n">diffusion_config</span> <span class="o">=</span> <span class="n">DiffusionConfig</span><span class="p">(</span>
+    <span class="n">scheduler</span><span class="o">=</span><span class="n">scheduler</span><span class="p">,</span>
+    <span class="n">pipe</span><span class="o">=</span><span class="n">pipe</span><span class="p">,</span>
+    <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">,</span>
+    <span class="n">image_size</span><span class="o">=</span><span class="p">(</span><span class="mi">512</span><span class="p">,</span> <span class="mi">512</span><span class="p">),</span>
+    <span class="n">num_inference_steps</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
+    <span class="n">guidance_scale</span><span class="o">=</span><span class="mf">7.5</span><span class="p">,</span>
+    <span class="n">gen_seed</span><span class="o">=</span><span class="mi">42</span><span class="p">,</span>
+    <span class="n">inversion_type</span><span class="o">=</span><span class="s2">&quot;ddim&quot;</span>
+<span class="p">)</span>
+
+<span class="c1"># Load Tree-Ring watermark</span>
+<span class="n">tr_watermark</span> <span class="o">=</span> <span class="n">AutoWatermark</span><span class="o">.</span><span class="n">load</span><span class="p">(</span>
+    <span class="s1">&#39;TR&#39;</span><span class="p">,</span>
+    <span class="n">algorithm_config</span><span class="o">=</span><span class="s1">&#39;config/TR.json&#39;</span><span class="p">,</span>
+    <span class="n">diffusion_config</span><span class="o">=</span><span class="n">diffusion_config</span>
+<span class="p">)</span>
+
+<span class="c1"># Generate watermarked image</span>
+<span class="n">prompt</span> <span class="o">=</span> <span class="s2">&quot;A majestic mountain landscape with snow peaks&quot;</span>
+<span class="n">watermarked_img</span> <span class="o">=</span> <span class="n">tr_watermark</span><span class="o">.</span><span class="n">generate_watermarked_media</span><span class="p">(</span><span class="n">prompt</span><span class="p">)</span>
+<span class="n">watermarked_img</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s2">&quot;tr_watermarked.png&quot;</span><span class="p">)</span>
+
+<span class="c1"># Detect watermark</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">tr_watermark</span><span class="o">.</span><span class="n">detect_watermark_in_media</span><span class="p">(</span><span class="n">watermarked_img</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Tree-Ring Detection: </span><span class="si">{</span><span class="n">result</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="using-gaussian-shading-watermark">
+<h3>Using Gaussian-Shading Watermark<a class="headerlink" href="#using-gaussian-shading-watermark" title="Link to this heading"></a></h3>
+<p>Gaussian-Shading is a key-based method that provides provable performance-lossless watermarking.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Load Gaussian-Shading watermark</span>
+<span class="n">gs_watermark</span> <span class="o">=</span> <span class="n">AutoWatermark</span><span class="o">.</span><span class="n">load</span><span class="p">(</span>
+    <span class="s1">&#39;GS&#39;</span><span class="p">,</span>
+    <span class="n">algorithm_config</span><span class="o">=</span><span class="s1">&#39;config/GS.json&#39;</span><span class="p">,</span>
+    <span class="n">diffusion_config</span><span class="o">=</span><span class="n">diffusion_config</span>
+<span class="p">)</span>
+
+<span class="c1"># Generate watermarked image</span>
+<span class="n">watermarked_img</span> <span class="o">=</span> <span class="n">gs_watermark</span><span class="o">.</span><span class="n">generate_watermarked_media</span><span class="p">(</span><span class="n">prompt</span><span class="p">)</span>
+<span class="n">watermarked_img</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s2">&quot;gs_watermarked.png&quot;</span><span class="p">)</span>
+
+<span class="c1"># Detect watermark</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">gs_watermark</span><span class="o">.</span><span class="n">detect_watermark_in_media</span><span class="p">(</span><span class="n">watermarked_img</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Gaussian-Shading Detection: </span><span class="si">{</span><span class="n">result</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="tutorial-2-visualizing-watermark-mechanisms">
+<h2>Tutorial 2: Visualizing Watermark Mechanisms<a class="headerlink" href="#tutorial-2-visualizing-watermark-mechanisms" title="Link to this heading"></a></h2>
+<p>Learn how to visualize watermarking mechanisms using the same approach as in <code class="docutils literal notranslate"><span class="pre">MarkDiffusion_demo.ipynb</span></code>.</p>
+<section id="tree-ring-visualization">
+<h3>Tree-Ring Visualization<a class="headerlink" href="#tree-ring-visualization" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">visualize.auto_visualization</span><span class="w"> </span><span class="kn">import</span> <span class="n">AutoVisualizer</span>
+
+<span class="c1"># Get visualization data</span>
+<span class="n">data_for_visualization</span> <span class="o">=</span> <span class="n">mywatermark</span><span class="o">.</span><span class="n">get_data_for_visualize</span><span class="p">(</span><span class="n">watermarked_image</span><span class="p">)</span>
+
+<span class="c1"># Load visualizer</span>
+<span class="n">visualizer</span> <span class="o">=</span> <span class="n">AutoVisualizer</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;TR&#39;</span><span class="p">,</span> <span class="n">data_for_visualization</span><span class="o">=</span><span class="n">data_for_visualization</span><span class="p">)</span>
+
+<span class="c1"># Create visualization with specific methods and channels</span>
+<span class="n">method_kwargs</span> <span class="o">=</span> <span class="p">[{},</span> <span class="p">{</span><span class="s2">&quot;channel&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">},</span> <span class="p">{},</span> <span class="p">{</span><span class="s2">&quot;channel&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">},</span> <span class="p">{}]</span>
+<span class="n">fig</span> <span class="o">=</span> <span class="n">visualizer</span><span class="o">.</span><span class="n">visualize</span><span class="p">(</span>
+    <span class="n">rows</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="n">cols</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+    <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;draw_pattern_fft&#39;</span><span class="p">,</span> <span class="s1">&#39;draw_orig_latents_fft&#39;</span><span class="p">,</span> <span class="s1">&#39;draw_watermarked_image&#39;</span><span class="p">,</span>
+             <span class="s1">&#39;draw_inverted_latents_fft&#39;</span><span class="p">,</span> <span class="s1">&#39;draw_inverted_pattern_fft&#39;</span><span class="p">],</span>
+    <span class="n">method_kwargs</span><span class="o">=</span><span class="n">method_kwargs</span><span class="p">,</span>
+    <span class="n">save_path</span><span class="o">=</span><span class="s1">&#39;TR_watermark_visualization.pdf&#39;</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="gaussian-shading-visualization">
+<h3>Gaussian-Shading Visualization<a class="headerlink" href="#gaussian-shading-visualization" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">visualize.auto_visualization</span><span class="w"> </span><span class="kn">import</span> <span class="n">AutoVisualizer</span>
+
+<span class="n">data_for_visualization</span> <span class="o">=</span> <span class="n">mywatermark</span><span class="o">.</span><span class="n">get_data_for_visualize</span><span class="p">(</span><span class="n">watermarked_image</span><span class="p">)</span>
+<span class="n">visualizer</span> <span class="o">=</span> <span class="n">AutoVisualizer</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;GS&#39;</span><span class="p">,</span> <span class="n">data_for_visualization</span><span class="o">=</span><span class="n">data_for_visualization</span><span class="p">)</span>
+
+<span class="n">method_kwargs</span> <span class="o">=</span> <span class="p">[{</span><span class="s2">&quot;channel&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">},</span> <span class="p">{</span><span class="s2">&quot;channel&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">},</span> <span class="p">{},</span> <span class="p">{</span><span class="s2">&quot;channel&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">},</span> <span class="p">{</span><span class="s2">&quot;channel&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">}]</span>
+<span class="n">fig</span> <span class="o">=</span> <span class="n">visualizer</span><span class="o">.</span><span class="n">visualize</span><span class="p">(</span>
+    <span class="n">rows</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="n">cols</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+    <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;draw_watermark_bits&#39;</span><span class="p">,</span> <span class="s1">&#39;draw_orig_latents&#39;</span><span class="p">,</span> <span class="s1">&#39;draw_watermarked_image&#39;</span><span class="p">,</span>
+             <span class="s1">&#39;draw_inverted_latents&#39;</span><span class="p">,</span> <span class="s1">&#39;draw_reconstructed_watermark_bits&#39;</span><span class="p">],</span>
+    <span class="n">method_kwargs</span><span class="o">=</span><span class="n">method_kwargs</span><span class="p">,</span>
+    <span class="n">save_path</span><span class="o">=</span><span class="s1">&#39;GS_watermark_visualization.pdf&#39;</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="robin-visualization">
+<h3>ROBIN Visualization<a class="headerlink" href="#robin-visualization" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">visualize.auto_visualization</span><span class="w"> </span><span class="kn">import</span> <span class="n">AutoVisualizer</span>
+
+<span class="n">data_for_visualization</span> <span class="o">=</span> <span class="n">mywatermark</span><span class="o">.</span><span class="n">get_data_for_visualize</span><span class="p">(</span><span class="n">watermarked_image</span><span class="p">)</span>
+<span class="n">visualizer</span> <span class="o">=</span> <span class="n">AutoVisualizer</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;ROBIN&#39;</span><span class="p">,</span> <span class="n">data_for_visualization</span><span class="o">=</span><span class="n">data_for_visualization</span><span class="p">)</span>
+
+<span class="n">method_kwargs</span> <span class="o">=</span> <span class="p">[{},</span> <span class="p">{</span><span class="s2">&quot;channel&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">},</span> <span class="p">{},</span> <span class="p">{</span><span class="s2">&quot;channel&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">},</span> <span class="p">{}]</span>
+<span class="n">fig</span> <span class="o">=</span> <span class="n">visualizer</span><span class="o">.</span><span class="n">visualize</span><span class="p">(</span>
+    <span class="n">rows</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="n">cols</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+    <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;draw_pattern_fft&#39;</span><span class="p">,</span> <span class="s1">&#39;draw_orig_latents_fft&#39;</span><span class="p">,</span> <span class="s1">&#39;draw_watermarked_image&#39;</span><span class="p">,</span>
+             <span class="s1">&#39;draw_inverted_latents_fft&#39;</span><span class="p">,</span> <span class="s1">&#39;draw_inverted_pattern_fft&#39;</span><span class="p">],</span>
+    <span class="n">method_kwargs</span><span class="o">=</span><span class="n">method_kwargs</span><span class="p">,</span>
+    <span class="n">save_path</span><span class="o">=</span><span class="s1">&#39;ROBIN_watermark_visualization.pdf&#39;</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="tutorial-3-evaluating-watermark-quality">
+<h2>Tutorial 3: Evaluating Watermark Quality<a class="headerlink" href="#tutorial-3-evaluating-watermark-quality" title="Link to this heading"></a></h2>
+<p>Assess the quality and robustness of watermarks.</p>
+<section id="image-quality-evaluation">
+<h3>Image Quality Evaluation<a class="headerlink" href="#image-quality-evaluation" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">evaluation.dataset</span><span class="w"> </span><span class="kn">import</span> <span class="n">StableDiffusionPromptsDataset</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">evaluation.pipelines.image_quality_analysis</span><span class="w"> </span><span class="kn">import</span> <span class="n">ComparedImageQualityAnalysisPipeline</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">evaluation.tools.image_quality_analyzer</span><span class="w"> </span><span class="kn">import</span> <span class="n">PSNRAnalyzer</span><span class="p">,</span> <span class="n">SSIMAnalyzer</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">evaluation.pipelines.image_quality_analysis</span><span class="w"> </span><span class="kn">import</span> <span class="n">QualityPipelineReturnType</span>
+
+<span class="c1"># Create dataset</span>
+<span class="n">dataset</span> <span class="o">=</span> <span class="n">StableDiffusionPromptsDataset</span><span class="p">(</span><span class="n">max_samples</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span>
+
+<span class="c1"># Setup quality analysis pipeline</span>
+<span class="n">pipeline</span> <span class="o">=</span> <span class="n">ComparedImageQualityAnalysisPipeline</span><span class="p">(</span>
+    <span class="n">dataset</span><span class="o">=</span><span class="n">dataset</span><span class="p">,</span>
+    <span class="n">watermarked_image_editor_list</span><span class="o">=</span><span class="p">[],</span>
+    <span class="n">unwatermarked_image_editor_list</span><span class="o">=</span><span class="p">[],</span>
+    <span class="n">analyzers</span><span class="o">=</span><span class="p">[</span><span class="n">PSNRAnalyzer</span><span class="p">(),</span> <span class="n">SSIMAnalyzer</span><span class="p">()],</span>
+    <span class="n">show_progress</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">return_type</span><span class="o">=</span><span class="n">QualityPipelineReturnType</span><span class="o">.</span><span class="n">MEAN_SCORES</span>
+<span class="p">)</span>
+
+<span class="c1"># Evaluate watermark quality</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">gs_watermark</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;PSNR: </span><span class="si">{</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;PSNR&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> dB&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;SSIM: </span><span class="si">{</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;SSIM&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="robustness-evaluation">
+<h3>Robustness Evaluation<a class="headerlink" href="#robustness-evaluation" title="Link to this heading"></a></h3>
+<p>Test watermark robustness against various attacks:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">evaluation.tools.image_editor</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">JPEGCompression</span><span class="p">,</span> <span class="n">GaussianBlurring</span><span class="p">,</span> <span class="n">GaussianNoise</span><span class="p">,</span> <span class="n">Rotation</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">evaluation.pipelines.detection</span><span class="w"> </span><span class="kn">import</span> <span class="n">WatermarkedMediaDetectionPipeline</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">evaluation.pipelines.detection</span><span class="w"> </span><span class="kn">import</span> <span class="n">DetectionPipelineReturnType</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">evaluation.tools.success_rate_calculator</span><span class="w"> </span><span class="kn">import</span> <span class="n">DynamicThresholdSuccessRateCalculator</span>
+
+<span class="c1"># Test against JPEG compression</span>
+<span class="n">dataset</span> <span class="o">=</span> <span class="n">StableDiffusionPromptsDataset</span><span class="p">(</span><span class="n">max_samples</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+
+<span class="c1"># Create detection pipeline with JPEG attack</span>
+<span class="n">detection_pipeline</span> <span class="o">=</span> <span class="n">WatermarkedMediaDetectionPipeline</span><span class="p">(</span>
+    <span class="n">dataset</span><span class="o">=</span><span class="n">dataset</span><span class="p">,</span>
+    <span class="n">media_editor_list</span><span class="o">=</span><span class="p">[</span><span class="n">JPEGCompression</span><span class="p">(</span><span class="n">quality</span><span class="o">=</span><span class="mi">75</span><span class="p">)],</span>
+    <span class="n">show_progress</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">return_type</span><span class="o">=</span><span class="n">DetectionPipelineReturnType</span><span class="o">.</span><span class="n">SCORES</span>
+<span class="p">)</span>
+
+<span class="c1"># Evaluate detection after attack</span>
+<span class="n">detection_kwargs</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;num_inference_steps&quot;</span><span class="p">:</span> <span class="mi">50</span><span class="p">,</span>
+    <span class="s2">&quot;guidance_scale&quot;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span>
+<span class="p">}</span>
+
+<span class="n">scores</span> <span class="o">=</span> <span class="n">detection_pipeline</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">gs_watermark</span><span class="p">,</span> <span class="n">detection_kwargs</span><span class="o">=</span><span class="n">detection_kwargs</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Detection scores after JPEG compression: </span><span class="si">{</span><span class="n">scores</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="multiple-attacks-evaluation">
+<h3>Multiple Attacks Evaluation<a class="headerlink" href="#multiple-attacks-evaluation" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Test robustness against multiple attacks</span>
+<span class="n">attacks</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;JPEG-75&#39;</span><span class="p">:</span> <span class="n">JPEGCompression</span><span class="p">(</span><span class="n">quality</span><span class="o">=</span><span class="mi">75</span><span class="p">),</span>
+    <span class="s1">&#39;JPEG-50&#39;</span><span class="p">:</span> <span class="n">JPEGCompression</span><span class="p">(</span><span class="n">quality</span><span class="o">=</span><span class="mi">50</span><span class="p">),</span>
+    <span class="s1">&#39;Blur&#39;</span><span class="p">:</span> <span class="n">GaussianBlurring</span><span class="p">(</span><span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">),</span>
+    <span class="s1">&#39;Noise&#39;</span><span class="p">:</span> <span class="n">GaussianNoise</span><span class="p">(</span><span class="n">std</span><span class="o">=</span><span class="mf">0.05</span><span class="p">),</span>
+    <span class="s1">&#39;Rotation&#39;</span><span class="p">:</span> <span class="n">Rotation</span><span class="p">(</span><span class="n">angle</span><span class="o">=</span><span class="mi">15</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="n">results</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="k">for</span> <span class="n">attack_name</span><span class="p">,</span> <span class="n">attack_editor</span> <span class="ow">in</span> <span class="n">attacks</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="n">pipeline</span> <span class="o">=</span> <span class="n">WatermarkedMediaDetectionPipeline</span><span class="p">(</span>
+        <span class="n">dataset</span><span class="o">=</span><span class="n">dataset</span><span class="p">,</span>
+        <span class="n">media_editor_list</span><span class="o">=</span><span class="p">[</span><span class="n">attack_editor</span><span class="p">],</span>
+        <span class="n">show_progress</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">return_type</span><span class="o">=</span><span class="n">DetectionPipelineReturnType</span><span class="o">.</span><span class="n">SCORES</span>
+    <span class="p">)</span>
+    <span class="n">scores</span> <span class="o">=</span> <span class="n">pipeline</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">gs_watermark</span><span class="p">,</span> <span class="n">detection_kwargs</span><span class="o">=</span><span class="n">detection_kwargs</span><span class="p">)</span>
+    <span class="n">results</span><span class="p">[</span><span class="n">attack_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">scores</span>
+
+<span class="c1"># Print results</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">=== Robustness Results ===&quot;</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">attack</span><span class="p">,</span> <span class="n">scores</span> <span class="ow">in</span> <span class="n">results</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="n">avg_score</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">scores</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">scores</span><span class="p">)</span> <span class="k">if</span> <span class="n">scores</span> <span class="k">else</span> <span class="mi">0</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">attack</span><span class="si">}</span><span class="s2">: Average Score = </span><span class="si">{</span><span class="n">avg_score</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="tutorial-4-video-watermarking">
+<h2>Tutorial 4: Video Watermarking<a class="headerlink" href="#tutorial-4-video-watermarking" title="Link to this heading"></a></h2>
+<p>Learn how to watermark videos using VideoShield or VideoMark.</p>
+<section id="basic-video-watermarking">
+<h3>Basic Video Watermarking<a class="headerlink" href="#basic-video-watermarking" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">diffusers</span><span class="w"> </span><span class="kn">import</span> <span class="n">DiffusionPipeline</span>
+
+<span class="c1"># Setup for video generation</span>
+<span class="n">video_model_id</span> <span class="o">=</span> <span class="s2">&quot;cerspense/zeroscope_v2_576w&quot;</span>
+<span class="n">video_pipe</span> <span class="o">=</span> <span class="n">DiffusionPipeline</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span>
+    <span class="n">video_model_id</span><span class="p">,</span>
+    <span class="n">torch_dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float16</span>
+<span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+
+<span class="n">video_diffusion_config</span> <span class="o">=</span> <span class="n">DiffusionConfig</span><span class="p">(</span>
+    <span class="n">scheduler</span><span class="o">=</span><span class="n">video_pipe</span><span class="o">.</span><span class="n">scheduler</span><span class="p">,</span>
+    <span class="n">pipe</span><span class="o">=</span><span class="n">video_pipe</span><span class="p">,</span>
+    <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">,</span>
+    <span class="n">image_size</span><span class="o">=</span><span class="p">(</span><span class="mi">576</span><span class="p">,</span> <span class="mi">320</span><span class="p">),</span>
+    <span class="n">num_inference_steps</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span>
+    <span class="n">guidance_scale</span><span class="o">=</span><span class="mf">7.5</span><span class="p">,</span>
+    <span class="n">gen_seed</span><span class="o">=</span><span class="mi">42</span><span class="p">,</span>
+    <span class="n">num_frames</span><span class="o">=</span><span class="mi">16</span>
+<span class="p">)</span>
+
+<span class="c1"># Load VideoShield watermark</span>
+<span class="n">video_watermark</span> <span class="o">=</span> <span class="n">AutoWatermark</span><span class="o">.</span><span class="n">load</span><span class="p">(</span>
+    <span class="s1">&#39;VideoShield&#39;</span><span class="p">,</span>
+    <span class="n">algorithm_config</span><span class="o">=</span><span class="s1">&#39;config/VideoShield.json&#39;</span><span class="p">,</span>
+    <span class="n">diffusion_config</span><span class="o">=</span><span class="n">video_diffusion_config</span>
+<span class="p">)</span>
+
+<span class="c1"># Generate watermarked video</span>
+<span class="n">prompt</span> <span class="o">=</span> <span class="s2">&quot;A drone flying over a beach at sunset&quot;</span>
+<span class="n">video_frames</span> <span class="o">=</span> <span class="n">video_watermark</span><span class="o">.</span><span class="n">generate_watermarked_media</span><span class="p">(</span><span class="n">prompt</span><span class="p">)</span>
+
+<span class="c1"># Save frames</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="s2">&quot;output_video&quot;</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">frame</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">video_frames</span><span class="p">):</span>
+    <span class="n">frame</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;output_video/frame_</span><span class="si">{</span><span class="n">i</span><span class="si">:</span><span class="s2">04d</span><span class="si">}</span><span class="s2">.png&quot;</span><span class="p">)</span>
+
+<span class="c1"># Detect watermark in video</span>
+<span class="n">detection_result</span> <span class="o">=</span> <span class="n">video_watermark</span><span class="o">.</span><span class="n">detect_watermark_in_media</span><span class="p">(</span><span class="n">video_frames</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Video watermark detection: </span><span class="si">{</span><span class="n">detection_result</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="video-quality-evaluation">
+<h3>Video Quality Evaluation<a class="headerlink" href="#video-quality-evaluation" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">evaluation.dataset</span><span class="w"> </span><span class="kn">import</span> <span class="n">VBenchDataset</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">evaluation.pipelines.video_quality_analysis</span><span class="w"> </span><span class="kn">import</span> <span class="n">DirectVideoQualityAnalysisPipeline</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">evaluation.tools.video_quality_analyzer</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">SubjectConsistencyAnalyzer</span><span class="p">,</span>
+    <span class="n">MotionSmoothnessAnalyzer</span>
+<span class="p">)</span>
+
+<span class="c1"># Create video dataset</span>
+<span class="n">video_dataset</span> <span class="o">=</span> <span class="n">VBenchDataset</span><span class="p">(</span><span class="n">max_samples</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">dimension</span><span class="o">=</span><span class="s1">&#39;subject_consistency&#39;</span><span class="p">)</span>
+
+<span class="c1"># Setup video quality pipeline</span>
+<span class="n">video_pipeline</span> <span class="o">=</span> <span class="n">DirectVideoQualityAnalysisPipeline</span><span class="p">(</span>
+    <span class="n">dataset</span><span class="o">=</span><span class="n">video_dataset</span><span class="p">,</span>
+    <span class="n">watermarked_video_editor_list</span><span class="o">=</span><span class="p">[],</span>
+    <span class="n">unwatermarked_video_editor_list</span><span class="o">=</span><span class="p">[],</span>
+    <span class="n">watermarked_frame_editor_list</span><span class="o">=</span><span class="p">[],</span>
+    <span class="n">unwatermarked_frame_editor_list</span><span class="o">=</span><span class="p">[],</span>
+    <span class="n">analyzers</span><span class="o">=</span><span class="p">[</span><span class="n">SubjectConsistencyAnalyzer</span><span class="p">(</span><span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">)],</span>
+    <span class="n">show_progress</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">return_type</span><span class="o">=</span><span class="n">QualityPipelineReturnType</span><span class="o">.</span><span class="n">MEAN_SCORES</span>
+<span class="p">)</span>
+
+<span class="c1"># Evaluate video quality</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">video_pipeline</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">video_watermark</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Subject consistency: </span><span class="si">{</span><span class="n">results</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="tutorial-5-custom-configuration">
+<h2>Tutorial 5: Custom Configuration<a class="headerlink" href="#tutorial-5-custom-configuration" title="Link to this heading"></a></h2>
+<p>Customize watermarking parameters for your specific needs.</p>
+<section id="batch-processing">
+<h3>Batch Processing<a class="headerlink" href="#batch-processing" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">prompts</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;A serene lake at dawn&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;A bustling city street at night&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;A colorful flower garden&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;A snowy mountain peak&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;A tropical beach paradise&quot;</span>
+<span class="p">]</span>
+
+<span class="n">output_dir</span> <span class="o">=</span> <span class="s2">&quot;batch_output&quot;</span>
+<span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">output_dir</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">prompt</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">prompts</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Processing </span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">prompts</span><span class="p">)</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">prompt</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Generate watermarked image</span>
+    <span class="n">img</span> <span class="o">=</span> <span class="n">gs_watermark</span><span class="o">.</span><span class="n">generate_watermarked_media</span><span class="p">(</span><span class="n">prompt</span><span class="p">)</span>
+    <span class="n">img</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">output_dir</span><span class="si">}</span><span class="s2">/watermarked_</span><span class="si">{</span><span class="n">i</span><span class="si">:</span><span class="s2">03d</span><span class="si">}</span><span class="s2">.png&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Detect watermark</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">gs_watermark</span><span class="o">.</span><span class="n">detect_watermark_in_media</span><span class="p">(</span><span class="n">img</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Detection: </span><span class="si">{</span><span class="n">result</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="next-steps">
+<h2>Next Steps<a class="headerlink" href="#next-steps" title="Link to this heading"></a></h2>
+<p>Explore more advanced topics:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="user_guide/algorithms.html"><span class="doc">Watermarking Algorithms</span></a> - Detailed algorithm documentation</p></li>
+<li><p><a class="reference internal" href="api/watermark.html"><span class="doc">Watermark API</span></a> - Complete API reference</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="quickstart.html" class="btn btn-neutral float-left" title="Quick Start" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="user_guide/algorithms.html" class="btn btn-neutral float-right" title="Watermarking Algorithms" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, MarkDiffusion Team.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

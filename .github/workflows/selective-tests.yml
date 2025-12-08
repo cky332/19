@@ -56,25 +56,23 @@ jobs:
           echo "scope=$SCOPE" >> $GITHUB_OUTPUT
           echo "algorithms=$ALGORITHMS" >> $GITHUB_OUTPUT
 
-      - name: Write environment.yml
-        run: |
-          cat > environment.yml << 'EOF'
-          name: markdiffusion
-          channels:
-            - conda-forge
-          dependencies:
-            - python=3.11
-            - pip
-            - pip:
-              - -e .[optional]
-              - pytest
-              - jsonschema
-          EOF
-
-      - name: Setup Conda environment
-        uses: mamba-org/provision-with-micromamba@v4
+      - name: Setup micromamba
+        uses: mamba-org/setup-micromamba@v2
         with:
-          environment-file: environment.yml
+          environment-name: markdiffusion
+          condarc: |
+            channels:
+              - conda-forge
+          create-args: >-
+            python=3.11
+            pip
+          cache-environment: true
+
+      - name: Install project and test deps
+        run: |
+          micromamba run -n markdiffusion python -m pip install -U pip
+          micromamba run -n markdiffusion pip install -e ".[optional]"
+          micromamba run -n markdiffusion pip install pytest jsonschema
 
       - name: Run evaluation fast tests
         if: steps.decide.outputs.scope == 'evaluation'

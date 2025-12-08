@@ -63,15 +63,17 @@ jobs:
           condarc: |
             channels:
               - conda-forge
+            channel_priority: strict
           create-args: >-
             python=3.11
             pip
+            markdiffusion
           cache-environment: true
 
-      - name: Install project and test deps
+      - name: Install optional extras and test deps
         run: |
           micromamba run -n markdiffusion python -m pip install -U pip
-          micromamba run -n markdiffusion pip install -e ".[optional]"
+          micromamba run -n markdiffusion pip install 'markdiffusion[optional]'
           micromamba run -n markdiffusion pip install pytest jsonschema
 
       - name: Run evaluation fast tests

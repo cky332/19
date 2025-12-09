@@ -12,7 +12,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "markdiffusion"
-dynamic = ["version"]
+version = "0.1.0"
 description = "An Open-Source Toolkit for Generative Watermarking of Latent Diffusion Models"
 readme = {file = "README.md", content-type = "text/markdown"}
 license = {text = "Apache-2.0"}
@@ -233,5 +233,5 @@ exclude_lines = [
 # Dynamic Version Configuration
 # ============================================================================
 
-[tool.setuptools.dynamic]
-version = {attr = "markdiffusion.__version__"}
+# [tool.setuptools.dynamic]
+# version = {attr = "markdiffusion.__version__"}

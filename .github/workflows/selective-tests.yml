@@ -80,7 +80,7 @@ jobs:
             pip
             pyarrow
             pandas
-            numpy
+            numpy<2.0
           cache-environment: true
 
       - name: Install local package and deps
@@ -88,7 +88,7 @@ jobs:
           micromamba run -n markdiffusion conda install -y markdiffusion || echo "Conda package not found, proceeding to pip..."
           micromamba run -n markdiffusion python -m pip install -U pip
           micromamba run -n markdiffusion pip install -e '.[optional]'
-          micromamba run -n markdiffusion pip install qrcode
+          micromamba run -n markdiffusion pip install qrcode easydict
 
       - name: Run evaluation fast tests
         if: steps.decide.outputs.scope == 'evaluation'

@@ -17,8 +17,6 @@ jobs:
       - name: Detect changed files
         id: changes
         uses: tj-actions/changed-files@v41
-        with:
-          since_last_remote_commit: true
 
       - name: Decide test scope
         id: decide
@@ -35,7 +33,7 @@ jobs:
           fi
 
           if [ "$AUTO_CHANGED" != "true" ]; then
-            if grep -E -q '^evaluation/' changed.txt; then
+            if grep -E -q '^tests?/|^evaluation/' changed.txt; then
               EVAL_CHANGED="true"
               SCOPE="evaluation"
             fi
@@ -52,7 +50,9 @@ jobs:
             fi
           fi
 
-          echo "SCOPE=$SCOPE"
+          echo "Detected Scope: $SCOPE"
+          echo "Detected Algorithms: $ALGORITHMS"
+          
           echo "scope=$SCOPE" >> $GITHUB_OUTPUT
           echo "algorithms=$ALGORITHMS" >> $GITHUB_OUTPUT
 
@@ -67,13 +67,16 @@ jobs:
           create-args: >-
             python=3.11
             pip
-            markdiffusion
+            pyarrow
+            pandas
+            numpy
           cache-environment: true
 
-      - name: Install optional extras and test deps
+      - name: Install local package and deps
         run: |
+          micromamba run -n markdiffusion conda install -y markdiffusion || echo "Conda package not found, proceeding to pip..."
           micromamba run -n markdiffusion python -m pip install -U pip
-          micromamba run -n markdiffusion pip install 'markdiffusion[optional]'
+          micromamba run -n markdiffusion pip install -e '.[optional]'
           micromamba run -n markdiffusion pip install qrcode
 
       - name: Run evaluation fast tests
@@ -84,7 +87,7 @@ jobs:
       - name: Run all algorithms (init/interface only)
         if: steps.decide.outputs.scope == 'auto'
         run: |
-          micromamba run -n markdiffusion pytest -q test/test_watermark_algorithms.py \
+          micromamba run -n markdiffusion pytest -q tests/test_watermark_algorithms.py \
             --skip-generation --skip-detection \
             --maxfail=1 --disable-warnings
 
@@ -94,11 +97,11 @@ jobs:
           ALGORITHMS: ${{ steps.decide.outputs.algorithms }}
         run: |
           echo "Algorithms changed: $ALGORITHMS"
-          micromamba run -n markdiffusion pytest -q test/test_watermark_algorithms.py \
+          micromamba run -n markdiffusion pytest -q tests/test_watermark_algorithms.py \
             --skip-generation --skip-detection \
             --algorithms "$ALGORITHMS" \
             --maxfail=1 --disable-warnings
 
       - name: No tests needed
         if: steps.decide.outputs.scope == 'none'
-        run: echo "No relevant changes. Skipping tests."
+        run: echo "No relevant changes detected. Skipping tests."

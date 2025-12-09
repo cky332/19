@@ -93,16 +93,16 @@ jobs:
           micromamba run -n markdiffusion pip install -e '.[optional]' --no-cache-dir
           micromamba run -n markdiffusion pip install qrcode easydict --no-cache-dir
 
-      # - name: Run evaluation fast tests
-      #   if: steps.decide.outputs.run_eval == 'true'
-      #   run: |
-      #     micromamba run -n markdiffusion pytest -q test/test_pipelines.py --maxfail=1 --disable-warnings
+      - name: Run evaluation fast tests
+        if: steps.decide.outputs.run_eval == 'true'
+        run: |
+          micromamba run -n markdiffusion pytest -q test/ci/test_pipelines.py --maxfail=1 --disable-warnings
 
-      - name: Run all algorithms (init/interface only)
+      - name: Run all algorithms (interface/generate only)
         if: steps.decide.outputs.run_auto == 'true'
         run: |
-          micromamba run -n markdiffusion pytest -q test/test_watermark_algorithms.py \
-            --maxfail=1 --disable-warnings --skip-detection
+          micromamba run -n markdiffusion pytest -q test/ci/test_watermark_algorithms.py \
+            --maxfail=1 --disable-warnings
 
       - name: Run specific algorithms (filtered)
         if: steps.decide.outputs.run_algo == 'true'
@@ -110,8 +110,7 @@ jobs:
           ALGORITHMS: ${{ steps.decide.outputs.algorithms }}
         run: |
           echo "Algorithms changed: $ALGORITHMS"
-          micromamba run -n markdiffusion pytest -q test/test_watermark_algorithms.py \
-            --skip-generation --skip-detection \
+          micromamba run -n markdiffusion pytest -q test/ci/test_watermark_algorithms.py \
             --algorithms "$ALGORITHMS" \
             --maxfail=1 --disable-warnings
 

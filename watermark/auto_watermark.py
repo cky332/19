@@ -99,3 +99,4 @@ class AutoWatermark:
                 raise ValueError(f"Unknown pipeline type: {pipeline_type}. Supported types are: {', '.join(PIPELINE_SUPPORTED_WATERMARKS.keys())}")
             return PIPELINE_SUPPORTED_WATERMARKS[pipeline_type]
 
+# try all

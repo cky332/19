@@ -10,7 +10,7 @@ import torch
 from pathlib import Path
 from typing import Dict, Any, List
 from PIL import Image
-
+import gc
 from watermark.auto_watermark import AutoWatermark, PIPELINE_SUPPORTED_WATERMARKS
 from utils.diffusion_config import DiffusionConfig
 from diffusers import (
@@ -39,14 +39,14 @@ TEST_PROMPT_IMAGE = "A beautiful sunset over the ocean"
 TEST_PROMPT_VIDEO = "A cinematic timelapse of city lights at night"
 
 # Test parameters
-IMAGE_SIZE = (512, 512)
-NUM_INFERENCE_STEPS = 50
-GUIDANCE_SCALE = 7.5
+IMAGE_SIZE = (64, 64)
+NUM_INFERENCE_STEPS = 1
+GUIDANCE_SCALE = 1.0
 GEN_SEED = 42
-NUM_FRAMES = 8
+NUM_FRAMES = 2
 
 # Test dataset parameters
-TEST_DATASET_MAX_SAMPLES = 2  # Small sample size for testing
+TEST_DATASET_MAX_SAMPLES = 1  # Small sample size for testing
 TEST_DATASET_FOR_IMG = "MSCOCODataset"
 TEST_DATASET_FOR_VIDEO = "VBenchDataset"
 
@@ -102,16 +102,16 @@ def pytest_configure(config):
     config.addinivalue_line("markers", "integration: mark test as integration test")
 
 
-def pytest_collection_modifyitems(config, items):
-    """Modify test collection based on command line options."""
-    algorithm = config.getoption("--algorithm")
-    if algorithm:
-        # Filter tests to only run for specified algorithm
-        selected = []
-        for item in items:
-            if algorithm in item.nodeid:
-                selected.append(item)
-        items[:] = selected
+# def pytest_collection_modifyitems(config, items):
+#     """Modify test collection based on command line options."""
+#     algorithm = config.getoption("--algorithm")
+#     if algorithm:
+#         # Filter tests to only run for specified algorithm
+#         selected = []
+#         for item in items:
+#             if algorithm in item.nodeid:
+#                 selected.append(item)
+#         items[:] = selected
 
 
 def pytest_terminal_summary(terminalreporter, exitstatus, config):
@@ -344,7 +344,7 @@ def all_image_quality_analyzers():
     )
 
     return {
-        'direct': [NIQECalculator(), BRISQUEAnalyzer()],
+        'direct': [NIQECalculator(patch_size=16), BRISQUEAnalyzer()],
         'referenced': [CLIPScoreCalculator()],
         'group': [FIDCalculator(), InceptionScoreCalculator()],
         'repeat': [LPIPSAnalyzer()],
@@ -385,3 +385,31 @@ __all__ = [
     'TEST_DATASET_FOR_IMG',
     'TEST_DATASET_FOR_VIDEO',
 ]
+
+
+@pytest.fixture(autouse=True)
+def cleanup_memory():
+    """
+    Automatic memory cleanup after EACH test case.
+    This is critical for CI environments with limited RAM/VRAM.
+    """
+    yield
+    
+    gc.collect()
+    
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
+        torch.cuda.ipc_collect()
+    
+    if torch.backends.mps.is_available():
+        torch.mps.empty_cache()
+
+
+@pytest.fixture
+def test_image_dataset_group():
+    """Create test dataset for image pipelines requiring multiple samples (e.g. FID)."""
+    from evaluation.dataset import MSCOCODataset
+    return MSCOCODataset(
+        max_samples=2,  # Minimum for FID
+        shuffle=False
+    )

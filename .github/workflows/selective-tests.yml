@@ -82,12 +82,12 @@ jobs:
       - name: Run evaluation fast tests
         if: steps.decide.outputs.scope == 'evaluation'
         run: |
-          micromamba run -n markdiffusion pytest -q tests/test_pipelines.py --maxfail=1 --disable-warnings
+          micromamba run -n markdiffusion pytest -q test/test_pipelines.py --maxfail=1 --disable-warnings
 
       - name: Run all algorithms (init/interface only)
         if: steps.decide.outputs.scope == 'auto'
         run: |
-          micromamba run -n markdiffusion pytest -q tests/test_watermark_algorithms.py \
+          micromamba run -n markdiffusion pytest -q test/test_watermark_algorithms.py \
             --skip-generation --skip-detection \
             --maxfail=1 --disable-warnings
 

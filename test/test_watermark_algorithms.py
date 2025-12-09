@@ -45,10 +45,20 @@ from .conftest import (
 def test_image_watermark_initialization(algorithm_name, image_diffusion_config):
     """Test that image watermark algorithms can be initialized correctly."""
     try:
+        # Prepare kwargs for specific algorithms that need adjustment for small test images
+        kwargs = {}
+        if algorithm_name == 'RI':
+            # RI requires radius to fit in the latent space
+            # For 64x64 image, latent is 8x8. Center is 4.
+            # Max radius = 8 - 4 = 4.
+            kwargs['radius'] = 4
+            kwargs['radius_cutoff'] = 1
+
         watermark = AutoWatermark.load(
             algorithm_name,
             algorithm_config=f'config/{algorithm_name}.json',
-            diffusion_config=image_diffusion_config
+            diffusion_config=image_diffusion_config,
+            **kwargs
         )
         assert watermark is not None
         assert watermark.config is not None
@@ -67,10 +77,17 @@ def test_image_watermark_generation(algorithm_name, image_diffusion_config, skip
         pytest.skip("Generation tests skipped by --skip-generation flag")
 
     try:
+        # Prepare kwargs for specific algorithms that need adjustment for small test images
+        kwargs = {}
+        if algorithm_name == 'RI':
+            kwargs['radius'] = 4
+            kwargs['radius_cutoff'] = 1
+
         watermark = AutoWatermark.load(
             algorithm_name,
             algorithm_config=f'config/{algorithm_name}.json',
-            diffusion_config=image_diffusion_config
+            diffusion_config=image_diffusion_config,
+            **kwargs
         )
 
         # Generate watermarked image
@@ -98,10 +115,17 @@ def test_image_unwatermarked_generation(algorithm_name, image_diffusion_config, 
         pytest.skip("Generation tests skipped by --skip-generation flag")
 
     try:
+        # Prepare kwargs for specific algorithms that need adjustment for small test images
+        kwargs = {}
+        if algorithm_name == 'RI':
+            kwargs['radius'] = 4
+            kwargs['radius_cutoff'] = 1
+
         watermark = AutoWatermark.load(
             algorithm_name,
             algorithm_config=f'config/{algorithm_name}.json',
-            diffusion_config=image_diffusion_config
+            diffusion_config=image_diffusion_config,
+            **kwargs
         )
 
         # Generate unwatermarked image
@@ -127,10 +151,17 @@ def test_image_watermark_detection(algorithm_name, image_diffusion_config, skip_
         pytest.skip("Detection tests skipped by --skip-detection flag")
 
     try:
+        # Prepare kwargs for specific algorithms that need adjustment for small test images
+        kwargs = {}
+        if algorithm_name == 'RI':
+            kwargs['radius'] = 4
+            kwargs['radius_cutoff'] = 1
+
         watermark = AutoWatermark.load(
             algorithm_name,
             algorithm_config=f'config/{algorithm_name}.json',
-            diffusion_config=image_diffusion_config
+            diffusion_config=image_diffusion_config,
+            **kwargs
         )
 
         # Generate watermarked and unwatermarked images
@@ -168,10 +199,17 @@ def test_image_watermark_detection(algorithm_name, image_diffusion_config, skip_
 def test_video_watermark_initialization(algorithm_name, video_diffusion_config):
     """Test that video watermark algorithms can be initialized correctly."""
     try:
+        # Prepare kwargs for specific algorithms that need adjustment for small test videos
+        kwargs = {}
+        if algorithm_name == 'VideoShield':
+            # VideoShield requires k_f <= num_frames
+            kwargs['k_f'] = 1
+
         watermark = AutoWatermark.load(
             algorithm_name,
             algorithm_config=f'config/{algorithm_name}.json',
-            diffusion_config=video_diffusion_config
+            diffusion_config=video_diffusion_config,
+            **kwargs
         )
         assert watermark is not None
         assert watermark.config is not None
@@ -190,10 +228,16 @@ def test_video_watermark_generation(algorithm_name, video_diffusion_config, skip
         pytest.skip("Generation tests skipped by --skip-generation flag")
 
     try:
+        # Prepare kwargs for specific algorithms that need adjustment for small test videos
+        kwargs = {}
+        if algorithm_name == 'VideoShield':
+            kwargs['k_f'] = 1
+
         watermark = AutoWatermark.load(
             algorithm_name,
             algorithm_config=f'config/{algorithm_name}.json',
-            diffusion_config=video_diffusion_config
+            diffusion_config=video_diffusion_config,
+            **kwargs
         )
 
         # Generate watermarked video
@@ -225,10 +269,16 @@ def test_video_unwatermarked_generation(algorithm_name, video_diffusion_config, 
         pytest.skip("Generation tests skipped by --skip-generation flag")
 
     try:
+        # Prepare kwargs for specific algorithms that need adjustment for small test videos
+        kwargs = {}
+        if algorithm_name == 'VideoShield':
+            kwargs['k_f'] = 1
+
         watermark = AutoWatermark.load(
             algorithm_name,
             algorithm_config=f'config/{algorithm_name}.json',
-            diffusion_config=video_diffusion_config
+            diffusion_config=video_diffusion_config,
+            **kwargs
         )
 
         # Generate unwatermarked video
@@ -258,10 +308,16 @@ def test_video_watermark_detection(algorithm_name, video_diffusion_config, skip_
         pytest.skip("Detection tests skipped by --skip-detection flag")
 
     try:
+        # Prepare kwargs for specific algorithms that need adjustment for small test videos
+        kwargs = {}
+        if algorithm_name == 'VideoShield':
+            kwargs['k_f'] = 1
+
         watermark = AutoWatermark.load(
             algorithm_name,
             algorithm_config=f'config/{algorithm_name}.json',
-            diffusion_config=video_diffusion_config
+            diffusion_config=video_diffusion_config,
+            **kwargs
         )
 
         # Generate watermarked and unwatermarked videos

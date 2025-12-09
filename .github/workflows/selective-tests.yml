@@ -32,39 +32,41 @@ jobs:
       - name: Decide test scope
         id: decide
         run: |
-          SCOPE="none"
+          RUN_AUTO="false"
+          RUN_EVAL="false"
+          RUN_ALGO="false"
           ALGORITHMS=""
-          AUTO_CHANGED="false"
-          EVAL_CHANGED="false"
+          
           echo "${{ steps.changes.outputs.all_changed_files }}" | tr ' ' '\n' > changed.txt
 
-          if grep -q '^watermark/auto_watermark\.py$' changed.txt; then
-            AUTO_CHANGED="true"
-            SCOPE="auto"
+          if grep -E -q '^watermark/(auto_watermark|base|auto_config|__init__)\.py$' changed.txt; then
+            RUN_AUTO="true"
+            echo "Detected core framework changes."
           fi
 
-          if [ "$AUTO_CHANGED" != "true" ]; then
-            if grep -E -q '^tests?/|^evaluation/' changed.txt; then
-              EVAL_CHANGED="true"
-              SCOPE="evaluation"
-            fi
+          if grep -E -q '^test/|^evaluation/' changed.txt; then
+            RUN_EVAL="true"
+            echo "Detected evaluation/test changes."
           fi
 
-          if [ "$SCOPE" = "none" ]; then
-            ALGOS_FROM_CONFIG=$(awk -F'/' '/^config\/[^\/]+\.json$/ {gsub(/^config\//,"",$1); gsub(/\.json$/,"",$1); print $1}' changed.txt | sort -u)
-            ALGOS_FROM_DIR=$(awk -F'/' '/^watermark\/algorithms\/[^\/]+\// {print $3}' changed.txt | sort -u)
+          ALGOS_FROM_CONFIG=$(awk -F'/' '/^config\/[^\/]+\.json$/ {gsub(/^config\//,"",$1); gsub(/\.json$/,"",$1); print $1}' changed.txt | sort -u)
 
-            ALGORITHMS=$(printf "%s\n%s\n" "$ALGOS_FROM_CONFIG" "$ALGOS_FROM_DIR" | grep -v '^$' | sort -u | paste -sd, -)
+          ALGOS_FROM_DIR=$(awk -F'/' '$1=="watermark" && $2 !~ /\./ {print $2}' changed.txt | sort -u)
 
-            if [ -n "$ALGORITHMS" ]; then
-              SCOPE="algo"
-            fi
+          ALGORITHMS=$(printf "%s\n%s\n" "$ALGOS_FROM_CONFIG" "$ALGOS_FROM_DIR" | grep -v '^$' | sort -u | paste -sd, -)
+
+          if [ -n "$ALGORITHMS" ]; then
+            RUN_ALGO="true"
           fi
 
-          echo "Detected Scope: $SCOPE"
+          echo "Run Auto: $RUN_AUTO"
+          echo "Run Eval: $RUN_EVAL"
+          echo "Run Algo: $RUN_ALGO"
           echo "Detected Algorithms: $ALGORITHMS"
           
-          echo "scope=$SCOPE" >> $GITHUB_OUTPUT
+          echo "run_auto=$RUN_AUTO" >> $GITHUB_OUTPUT
+          echo "run_eval=$RUN_EVAL" >> $GITHUB_OUTPUT
+          echo "run_algo=$RUN_ALGO" >> $GITHUB_OUTPUT
           echo "algorithms=$ALGORITHMS" >> $GITHUB_OUTPUT
 
       - name: Setup micromamba
@@ -87,32 +89,33 @@ jobs:
         run: |
           micromamba run -n markdiffusion conda install -y markdiffusion || echo "Conda package not found, proceeding to pip..."
           micromamba run -n markdiffusion python -m pip install -U pip
-          micromamba run -n markdiffusion pip install -e '.[optional]'
-          micromamba run -n markdiffusion pip install qrcode easydict
+          micromamba run -n markdiffusion pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+          micromamba run -n markdiffusion pip install -e '.[optional]' --no-cache-dir
+          micromamba run -n markdiffusion pip install qrcode easydict --no-cache-dir
 
       - name: Run evaluation fast tests
-        if: steps.decide.outputs.scope == 'evaluation'
+        if: steps.decide.outputs.run_eval == 'true'
         run: |
           micromamba run -n markdiffusion pytest -q test/test_pipelines.py --maxfail=1 --disable-warnings
 
       - name: Run all algorithms (init/interface only)
-        if: steps.decide.outputs.scope == 'auto'
+        if: steps.decide.outputs.run_auto == 'true'
         run: |
           micromamba run -n markdiffusion pytest -q test/test_watermark_algorithms.py \
             --skip-generation --skip-detection \
             --maxfail=1 --disable-warnings
 
       - name: Run specific algorithms (filtered)
-        if: steps.decide.outputs.scope == 'algo'
+        if: steps.decide.outputs.run_algo == 'true'
         env:
           ALGORITHMS: ${{ steps.decide.outputs.algorithms }}
         run: |
           echo "Algorithms changed: $ALGORITHMS"
-          micromamba run -n markdiffusion pytest -q tests/test_watermark_algorithms.py \
+          micromamba run -n markdiffusion pytest -q test/test_watermark_algorithms.py \
             --skip-generation --skip-detection \
             --algorithms "$ALGORITHMS" \
             --maxfail=1 --disable-warnings
 
       - name: No tests needed
-        if: steps.decide.outputs.scope == 'none'
+        if: steps.decide.outputs.run_auto == 'false' && steps.decide.outputs.run_eval == 'false' && steps.decide.outputs.run_algo == 'false'
         run: echo "No relevant changes detected. Skipping tests."

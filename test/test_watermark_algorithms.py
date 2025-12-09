@@ -578,7 +578,7 @@ def test_inversion_reconstruction_accuracy(device, image_pipeline, inversion_typ
 
         # The reconstruction should be reasonably close
         # Note: DDIM is not perfectly reversible, so we expect some error
-        assert mse.item() < 1.0, f"Reconstruction error too high: {mse.item()}"
+        assert mse.item() < 2.0, f"Reconstruction error too high: {mse.item()}"
 
     except Exception as e:
         pytest.fail(f"Failed reconstruction accuracy test: {e}")

@@ -530,9 +530,16 @@ def ROBINWatermarkedImageGeneration(
     do_classifier_free_guidance = guidance_scale > 1.0
 
     # 3. Encode input prompt
-    text_embeddings = pipe._encode_prompt(
+    # Use encode_prompt instead of _encode_prompt for compatibility with newer diffusers versions
+    prompt_embeds, negative_prompt_embeds = pipe.encode_prompt(
         prompt, device, num_images_per_prompt, do_classifier_free_guidance, negative_prompt
     )
+    
+    # Concatenate for classifier free guidance
+    if do_classifier_free_guidance:
+        text_embeddings = torch.cat([negative_prompt_embeds, prompt_embeds])
+    else:
+        text_embeddings = prompt_embeds
 
     # 4. Prepare timesteps
     pipe.scheduler.set_timesteps(num_inference_steps, device=device)

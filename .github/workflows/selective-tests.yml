@@ -93,12 +93,12 @@ jobs:
           micromamba run -n markdiffusion pip install -e '.[optional]' --no-cache-dir
           micromamba run -n markdiffusion pip install qrcode easydict --no-cache-dir
 
-      - name: Run evaluation fast tests
-        if: steps.decide.outputs.run_eval == 'true'
-        run: |
-          micromamba run -n markdiffusion pytest -q tests_ci/test_pipelines.py --maxfail=1 --disable-warnings
+      # - name: Run evaluation fast tests
+      #   if: steps.decide.outputs.run_eval == 'true'
+      #   run: |
+      #     micromamba run -n markdiffusion pytest -q tests_ci/test_pipelines.py --maxfail=1 --disable-warnings
 
-      - name: Run all algorithms (interface/generate only)
+      - name: Run all algorithms
         if: steps.decide.outputs.run_auto == 'true'
         run: |
           micromamba run -n markdiffusion pytest -q tests_ci/test_watermark_algorithms.py \

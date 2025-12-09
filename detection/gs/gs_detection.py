@@ -60,7 +60,10 @@ class GSDetector(BaseDetector):
             dec_mes = reduce(lambda a, b: 2 * a + b, message[i : i + 1])
             dec_mes = int(dec_mes)
             z[i] = truncnorm.rvs(ppf[dec_mes], ppf[dec_mes + 1])
-        z = torch.from_numpy(z).reshape(1, 4, 64, 64).half()
+        
+        # Calculate dimensions dynamically assuming square latents
+        spatial_size = int(np.sqrt(self.latentlength / 4))
+        z = torch.from_numpy(z).reshape(1, 4, spatial_size, spatial_size).half()
         return z.cuda()
     
     def _stream_key_decrypt(self, reversed_m):
@@ -68,18 +71,29 @@ class GSDetector(BaseDetector):
         cipher = ChaCha20.new(key=self.chacha_key, nonce=self.chacha_nonce)
         sd_byte = cipher.decrypt(np.packbits(reversed_m).tobytes())
         sd_bit = np.unpackbits(np.frombuffer(sd_byte, dtype=np.uint8))
-        sd_tensor = torch.from_numpy(sd_bit).reshape(1, 4, 64, 64).to(torch.uint8)
+        
+        # Calculate dimensions dynamically
+        total_elements = sd_bit.size
+        spatial_size = int(np.sqrt(total_elements / 4))
+        
+        sd_tensor = torch.from_numpy(sd_bit).reshape(1, 4, spatial_size, spatial_size).to(torch.uint8)
         return sd_tensor.cuda()
     
     def _diffusion_inverse(self, reversed_sd):
         """Inverse the diffusion process to extract the watermark."""
+        _, _, H, W = reversed_sd.shape
+        
         ch_stride = 4 // self.channel_copy
-        hw_stride = 64 // self.hw_copy
+        hw_stride_h = H // self.hw_copy
+        hw_stride_w = W // self.hw_copy
+        
         ch_list = [ch_stride] * self.channel_copy
-        hw_list = [hw_stride] * self.hw_copy
+        hw_list_h = [hw_stride_h] * self.hw_copy
+        hw_list_w = [hw_stride_w] * self.hw_copy
+        
         split_dim1 = torch.cat(torch.split(reversed_sd, tuple(ch_list), dim=1), dim=0)
-        split_dim2 = torch.cat(torch.split(split_dim1, tuple(hw_list), dim=2), dim=0)
-        split_dim3 = torch.cat(torch.split(split_dim2, tuple(hw_list), dim=3), dim=0)
+        split_dim2 = torch.cat(torch.split(split_dim1, tuple(hw_list_h), dim=2), dim=0)
+        split_dim3 = torch.cat(torch.split(split_dim2, tuple(hw_list_w), dim=3), dim=0)
         vote = torch.sum(split_dim3, dim=0).clone()
         vote[vote <= self.vote_threshold] = 0
         vote[vote > self.vote_threshold] = 1

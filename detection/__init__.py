@@ -12,32 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-<<<<<<< HEAD
-"""
-Detection module for MarkDiffusion.
-
-This module provides detection functionality for various watermarking algorithms.
-"""
-
-__all__ = [
-    'base',
-    'gm',
-    'gs',
-    'prc',
-    'ri',
-    'robin',
-    'seal',
-    'sfw',
-    'tr',
-    'videomark',
-    'videoshield',
-    'wind',
-]
-
-=======
 """Detection module for watermark verification and extraction."""
 
 from .base import BaseDetector
 
 __all__ = ["BaseDetector"]
->>>>>>> 444c535 (feat: add pyproject.toml)

@@ -12,23 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-<<<<<<< HEAD
-"""
-Utility functions for MarkDiffusion.
-
-This module provides various utility functions for callbacks, diffusion configuration,
-media processing, pipeline utilities, and general utilities.
-"""
-
-__all__ = [
-    'callbacks',
-    'diffusion_config',
-    'media_utils',
-    'pipeline_utils',
-    'utils',
-]
-
-=======
 """Utility functions and helpers for MarkDiffusion."""
 
 from .utils import set_random_seed, load_config_file
@@ -63,4 +46,3 @@ __all__ = [
     "is_t2v_pipeline",
     "is_i2v_pipeline",
 ]
->>>>>>> 444c535 (feat: add pyproject.toml)

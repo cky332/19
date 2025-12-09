@@ -169,7 +169,7 @@ class ROBINUtils:
                 )
             
             print(f"Loading checkpoint from {checkpoint_path}")
-            checkpoint = torch.load(checkpoint_path)
+            checkpoint = torch.load(checkpoint_path, map_location=self.config.device)
             optimized_watermark = checkpoint['opt_wm'].to(self.config.device)
             optimized_watermarking_signal = checkpoint['opt_acond'].to(self.config.device)
 

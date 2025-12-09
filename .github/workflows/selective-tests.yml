@@ -96,12 +96,12 @@ jobs:
       - name: Run evaluation fast tests
         if: steps.decide.outputs.run_eval == 'true'
         run: |
-          micromamba run -n markdiffusion pytest -q test/ci/test_pipelines.py --maxfail=1 --disable-warnings
+          micromamba run -n markdiffusion pytest -q tests_ci/test_pipelines.py --maxfail=1 --disable-warnings
 
       - name: Run all algorithms (interface/generate only)
         if: steps.decide.outputs.run_auto == 'true'
         run: |
-          micromamba run -n markdiffusion pytest -q test/ci/test_watermark_algorithms.py \
+          micromamba run -n markdiffusion pytest -q tests_ci/test_watermark_algorithms.py \
             --maxfail=1 --disable-warnings
 
       - name: Run specific algorithms (filtered)
@@ -110,7 +110,7 @@ jobs:
           ALGORITHMS: ${{ steps.decide.outputs.algorithms }}
         run: |
           echo "Algorithms changed: $ALGORITHMS"
-          micromamba run -n markdiffusion pytest -q test/ci/test_watermark_algorithms.py \
+          micromamba run -n markdiffusion pytest -q tests_ci/test_watermark_algorithms.py \
             --algorithms "$ALGORITHMS" \
             --maxfail=1 --disable-warnings
 

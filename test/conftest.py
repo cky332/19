@@ -31,8 +31,8 @@ from utils.pipeline_utils import (
 # ============================================================================
 
 # Default model paths (can be overridden via pytest options)
-DEFAULT_IMAGE_MODEL_PATH = "huanzi05/stable-diffusion-2-1-base"
-DEFAULT_VIDEO_MODEL_PATH = "ali-vilab/text-to-video-ms-1.7b"
+DEFAULT_IMAGE_MODEL_PATH = "/mnt/ckpt/stable-diffusion-2-1-base/"
+DEFAULT_VIDEO_MODEL_PATH = "/mnt/ckpt/text-to-video-ms-1.7b"
 
 # Test prompts
 TEST_PROMPT_IMAGE = "A beautiful sunset over the ocean"
@@ -344,7 +344,7 @@ def all_image_quality_analyzers():
     )
 
     return {
-        'direct': [NIQECalculator(), BRISQUEAnalyzer()],
+        'direct': [NIQECalculator(patch_size=16), BRISQUEAnalyzer()],
         'referenced': [CLIPScoreCalculator()],
         'group': [FIDCalculator(), InceptionScoreCalculator()],
         'repeat': [LPIPSAnalyzer()],
@@ -403,3 +403,13 @@ def cleanup_memory():
     
     if torch.backends.mps.is_available():
         torch.mps.empty_cache()
+
+
+@pytest.fixture
+def test_image_dataset_group():
+    """Create test dataset for image pipelines requiring multiple samples (e.g. FID)."""
+    from evaluation.dataset import MSCOCODataset
+    return MSCOCODataset(
+        max_samples=2,  # Minimum for FID
+        shuffle=False
+    )

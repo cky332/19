@@ -166,7 +166,8 @@ def test_detection_pipeline_with_all_video_editors(test_video_dataset, all_video
         watermark = AutoWatermark.load(
             'VideoShield',
             algorithm_config='config/VideoShield.json',
-            diffusion_config=video_diffusion_config
+            diffusion_config=video_diffusion_config,
+            k_f=1  # Override k_f to 1 to support small num_frames in testing
         )
 
         # Call evaluate method
@@ -212,7 +213,8 @@ def test_direct_image_quality_pipeline_saturation(test_image_dataset, all_image_
         watermark = AutoWatermark.load(
             'TR',
             algorithm_config='config/TR.json',
-            diffusion_config=image_diffusion_config
+            diffusion_config=image_diffusion_config,
+            
         )
 
         # Call evaluate method
@@ -280,10 +282,10 @@ def test_referenced_image_quality_pipeline_saturation(test_image_dataset, all_im
 @pytest.mark.pipeline
 @pytest.mark.quality
 @pytest.mark.slow
-def test_group_image_quality_pipeline_saturation(test_image_dataset, all_image_editors, all_image_quality_analyzers, image_diffusion_config):
+def test_group_image_quality_pipeline_saturation(test_image_dataset_group, all_image_editors, all_image_quality_analyzers, image_diffusion_config):
     """Saturation test: GroupImageQualityAnalysisPipeline with all editors and analyzers."""
     pipeline = GroupImageQualityAnalysisPipeline(
-        dataset=test_image_dataset,
+        dataset=test_image_dataset_group,
         watermarked_image_editor_list=all_image_editors,
         unwatermarked_image_editor_list=all_image_editors,
         analyzers=all_image_quality_analyzers['group'],
@@ -436,7 +438,8 @@ def test_video_quality_pipeline_saturation(test_video_dataset, all_video_editors
         watermark = AutoWatermark.load(
             'VideoShield',
             algorithm_config='config/VideoShield.json',
-            diffusion_config=video_diffusion_config
+            diffusion_config=video_diffusion_config,
+            k_f=1  # Override k_f to 1 to support small num_frames in testing
         )
 
         # Call evaluate method

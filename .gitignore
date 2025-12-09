@@ -15,7 +15,7 @@ backup
 test_*.py
 !test_watermark_algorithms.py
 !test_pipelines.py
-dino
+dino_*
 test.ipynb
 model/musiq/musiq_spaq_ckpt-358bb6af.pth
 VBench

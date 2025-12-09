@@ -371,13 +371,25 @@ class ROBIN(BaseWatermark):
         inversion_kwargs = {k: v for k, v in kwargs.items() if k not in ['decoder_inv', 'guidance_scale', 'num_inference_steps']}
 
         # Extract and reverse latents for detection using utils
-        reversed_latents = self.config.inversion.forward_diffusion(
+        reversed_latents_list = self.config.inversion.forward_diffusion(
             latents=image_latents,
             text_embeddings=text_embeddings,
             guidance_scale=guidance_scale_to_use,
             num_inference_steps=num_steps_to_use,
             **inversion_kwargs
-        )[num_steps_to_use - 1 - self.config.watermarking_step]
+        )
+        
+        # Handle case where forward_diffusion returns a single tensor instead of a list
+        if isinstance(reversed_latents_list, torch.Tensor):
+            reversed_latents = reversed_latents_list
+        else:
+            # Ensure index is within bounds
+            target_index = num_steps_to_use - 1 - self.config.watermarking_step
+            if target_index < 0:
+                target_index = 0
+            elif target_index >= len(reversed_latents_list):
+                target_index = len(reversed_latents_list) - 1
+            reversed_latents = reversed_latents_list[target_index]
         
         # Evaluate watermark
         if 'detector_type' in kwargs:

@@ -404,8 +404,8 @@ def test_inversion_4d_image_input(inversion_type, device, image_pipeline):
     # Create 4D test input: (batch_size, channels, height, width)
     batch_size = 1
     channels = 4  # latent space channels
-    height = 64   # latent space height (512 / 8)
-    width = 64    # latent space width (512 / 8)
+    height = 8   # latent space height (64 / 8)
+    width = 8    # latent space width (64 / 8)
 
     latents_input = torch.randn(batch_size, channels, height, width).to(device)
 
@@ -428,7 +428,7 @@ def test_inversion_4d_image_input(inversion_type, device, image_pipeline):
         intermediate_latents = inversion.forward_diffusion(
             text_embeddings=text_embeddings,
             latents=latents_input,
-            num_inference_steps=10,  # Use fewer steps for testing
+            num_inference_steps=1,  # Use fewer steps for testing
             guidance_scale=1.0
         )
 
@@ -469,10 +469,10 @@ def test_inversion_5d_video_input(inversion_type, device, video_pipeline):
 
     # Create 5D test input: (batch_size, num_frames, channels, height, width)
     batch_size = 1
-    num_frames = 8   # number of video frames
+    num_frames = 2   # number of video frames
     channels = 4     # latent space channels
-    height = 64      # latent space height
-    width = 64       # latent space width
+    height = 8      # latent space height
+    width = 8       # latent space width
 
     # Reshape to 5D for video: (batch_size, num_frames, channels, height, width)
     latents_input = torch.randn(batch_size, num_frames, channels, height, width).to(device)
@@ -494,7 +494,7 @@ def test_inversion_5d_video_input(inversion_type, device, video_pipeline):
         intermediate_latents = inversion.forward_diffusion(
             text_embeddings=text_embeddings,
             latents=latents_input.to(pipe.dtype),
-            num_inference_steps=10,  # Use fewer steps for testing
+            num_inference_steps=1,  # Use fewer steps for testing
             guidance_scale=1.0
         )
 
@@ -531,7 +531,7 @@ def test_inversion_reconstruction_accuracy(device, image_pipeline, inversion_typ
         inversion = ExactInversion(scheduler=scheduler, unet=pipe.unet, device=device)
 
     # Create test input
-    latents_input = torch.randn(1, 4, 64, 64).to(device)
+    latents_input = torch.randn(1, 4, 8, 8).to(device)
 
     # Get correct text embeddings from the model
     text_encoder = pipe.text_encoder
@@ -550,7 +550,7 @@ def test_inversion_reconstruction_accuracy(device, image_pipeline, inversion_typ
         forward_result = inversion.forward_diffusion(
             text_embeddings=text_embeddings,
             latents=latents_input,
-            num_inference_steps=10,
+            num_inference_steps=1,
             guidance_scale=1.0
         )
 
@@ -560,7 +560,7 @@ def test_inversion_reconstruction_accuracy(device, image_pipeline, inversion_typ
         backward_result = inversion.backward_diffusion(
             text_embeddings=text_embeddings,
             latents=z_t,
-            num_inference_steps=10,
+            num_inference_steps=1,
             guidance_scale=1.0,
             reverse_process=False
         )

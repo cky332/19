@@ -10,6 +10,7 @@ from visualize.data_for_visualization import DataForVisualization
 from detection.sfw.sfw_detection import SFWDetector
 import torchvision.transforms as tforms
 import qrcode
+import logging
 import os
 
 class SFWConfig(BaseConfig):
@@ -298,7 +299,7 @@ class SFWUtils:
         patch_size = qr_pix_len + 2 # 44
         
         if h < patch_size or w < patch_size:
-            logger.warning(f"Latent size ({h}x{w}) too small for SFW HSQR injection (required {patch_size}x{patch_size}). Skipping injection.")
+            logging.warning(f"Latent size ({h}x{w}) too small for SFW HSQR injection (required {patch_size}x{patch_size}). Skipping injection.")
             return inverted_latent
 
         start_h = (h - patch_size) // 2

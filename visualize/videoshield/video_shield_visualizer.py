@@ -216,7 +216,7 @@ class VideoShieldVisualizer(BaseVisualizer):
         reversed_sd = torch.from_numpy(reversed_sd_flat).reshape(reversed_latent.shape).to(torch.uint8)
         
         # Extract watermark through voting mechanism
-        reversed_watermark = self._diffusion_inverse(reversed_sd.cuda())
+        reversed_watermark = self._diffusion_inverse(reversed_sd.to(self.data.device))
         
         # Calculate bit accuracy
         bit_acc = (reversed_watermark == self.data.watermark).float().mean().item()

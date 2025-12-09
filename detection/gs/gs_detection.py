@@ -64,7 +64,7 @@ class GSDetector(BaseDetector):
         # Calculate dimensions dynamically assuming square latents
         spatial_size = int(np.sqrt(self.latentlength / 4))
         z = torch.from_numpy(z).reshape(1, 4, spatial_size, spatial_size).half()
-        return z.cuda()
+        return z.to(self.device)
     
     def _stream_key_decrypt(self, reversed_m):
         """Decrypt the watermark using ChaCha20 cipher."""
@@ -77,7 +77,7 @@ class GSDetector(BaseDetector):
         spatial_size = int(np.sqrt(total_elements / 4))
         
         sd_tensor = torch.from_numpy(sd_bit).reshape(1, 4, spatial_size, spatial_size).to(torch.uint8)
-        return sd_tensor.cuda()
+        return sd_tensor.to(self.device)
     
     def _diffusion_inverse(self, reversed_sd):
         """Inverse the diffusion process to extract the watermark."""

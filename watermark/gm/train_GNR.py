@@ -318,7 +318,8 @@ def main(args):
     num_steps = args.train_steps
     bs = args.batch_size
 
-    model = UNet(4, 4, nf=args.model_nf).cuda()
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    model = UNet(4, 4, nf=args.model_nf).to(device)
     model_parameters = filter(lambda p: p.requires_grad, model.parameters())
     n_params = sum([np.prod(p.size()) for p in model_parameters])
     print('Number of trainable parameters in model: %d' % n_params)
@@ -345,8 +346,8 @@ def main(args):
     for i, batch in tqdm(enumerate(data_loader)):
         x, y = batch
         # print(x[0, 0])
-        x = x.cuda()
-        y = y.cuda().float()
+        x = x.to(device)
+        y = y.to(device).float()
 
         pred = model(x)
         loss = criterion(pred, y)

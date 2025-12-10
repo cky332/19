@@ -140,20 +140,32 @@ class VideoShieldDetector(BaseDetector):
         h_stride = height // self.k_h
         w_stride = width // self.k_w
 
-        if not all([ch_stride, frame_stride, h_stride, w_stride]):
-            logger.error(
-                "Invalid strides detected (c:%s, f:%s, h:%s, w:%s).", 
-                ch_stride,
-                frame_stride,
-                h_stride,
-                w_stride,
-            )
-            return torch.zeros_like(self.watermark)
+        # Ensure strides are at least 1
+        ch_stride = max(1, ch_stride)
+        frame_stride = max(1, frame_stride)
+        h_stride = max(1, h_stride)
+        w_stride = max(1, w_stride)
 
-        ch_list = [ch_stride] * self.k_c
-        frame_list = [frame_stride] * self.k_f
-        h_list = [h_stride] * self.k_h
-        w_list = [w_stride] * self.k_w
+        # Adjust repetition factors if dimensions are too small
+        k_c = min(self.k_c, channels)
+        k_f = min(self.k_f, frames)
+        k_h = min(self.k_h, height)
+        k_w = min(self.k_w, width)
+
+        ch_list = [ch_stride] * k_c
+        frame_list = [frame_stride] * k_f
+        h_list = [h_stride] * k_h
+        w_list = [w_stride] * k_w
+
+        # Handle remainder pixels
+        if sum(ch_list) < channels:
+            ch_list[-1] += channels - sum(ch_list)
+        if sum(frame_list) < frames:
+            frame_list[-1] += frames - sum(frame_list)
+        if sum(h_list) < height:
+            h_list[-1] += height - sum(h_list)
+        if sum(w_list) < width:
+            w_list[-1] += width - sum(w_list)
 
         try:
             split_dim1 = torch.cat(torch.split(watermark_r, tuple(ch_list), dim=1), dim=0)
@@ -182,9 +194,27 @@ class VideoShieldDetector(BaseDetector):
         h_stride = height // self.k_h
         w_stride = width // self.k_w
         
-        ch_list = [ch_stride] * self.k_c
-        h_list = [h_stride] * self.k_h
-        w_list = [w_stride] * self.k_w
+        # Ensure strides are at least 1
+        ch_stride = max(1, ch_stride)
+        h_stride = max(1, h_stride)
+        w_stride = max(1, w_stride)
+        
+        # Adjust repetition factors if dimensions are too small
+        k_c = min(self.k_c, channels)
+        k_h = min(self.k_h, height)
+        k_w = min(self.k_w, width)
+        
+        ch_list = [ch_stride] * k_c
+        h_list = [h_stride] * k_h
+        w_list = [w_stride] * k_w
+        
+        # Handle remainder pixels
+        if sum(ch_list) < channels:
+            ch_list[-1] += channels - sum(ch_list)
+        if sum(h_list) < height:
+            h_list[-1] += height - sum(h_list)
+        if sum(w_list) < width:
+            w_list[-1] += width - sum(w_list)
         
         try:
             split_dim1 = torch.cat(torch.split(watermark_r, tuple(ch_list), dim=1), dim=0)

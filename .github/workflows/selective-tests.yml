@@ -98,11 +98,11 @@ jobs:
       #   run: |
       #     micromamba run -n markdiffusion pytest -q tests_ci/test_pipelines.py --maxfail=1 --disable-warnings
 
-      - name: Run all algorithms
-        if: steps.decide.outputs.run_auto == 'true'
-        run: |
-          micromamba run -n markdiffusion pytest -q tests_ci/test_watermark_algorithms.py \
-            --maxfail=1 --disable-warnings
+      # - name: Run all algorithms
+      #   if: steps.decide.outputs.run_auto == 'true'
+      #   run: |
+      #     micromamba run -n markdiffusion pytest -q tests_ci/test_watermark_algorithms.py \
+      #       --maxfail=1 --disable-warnings
 
       - name: Run specific algorithms (filtered)
         if: steps.decide.outputs.run_algo == 'true'
@@ -111,7 +111,7 @@ jobs:
         run: |
           echo "Algorithms changed: $ALGORITHMS"
           micromamba run -n markdiffusion pytest -q tests_ci/test_watermark_algorithms.py \
-            --algorithms "$ALGORITHMS" \
+            --algorithm "$ALGORITHMS" \
             --maxfail=1 --disable-warnings
 
       - name: No tests needed

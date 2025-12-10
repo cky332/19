@@ -1,7 +1,17 @@
 name: Selective Tests with Conda
 
 on:
+  workflow_dispatch:
+
   pull_request:
+
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   selective:
@@ -50,13 +60,17 @@ jobs:
           fi
 
           ALGOS_FROM_CONFIG=$(awk -F'/' '/^config\/[^\/]+\.json$/ {gsub(/^config\//,"",$1); gsub(/\.json$/,"",$1); print $1}' changed.txt | sort -u)
-
           ALGOS_FROM_DIR=$(awk -F'/' '$1=="watermark" && $2 !~ /\./ {print $2}' changed.txt | sort -u)
-
           ALGORITHMS=$(printf "%s\n%s\n" "$ALGOS_FROM_CONFIG" "$ALGOS_FROM_DIR" | grep -v '^$' | sort -u | paste -sd, -)
 
           if [ -n "$ALGORITHMS" ]; then
             RUN_ALGO="true"
+          fi
+
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "Manual trigger detected. Forcing full test scope."
+            RUN_AUTO="true"
+            RUN_EVAL="true"
           fi
 
           echo "Run Auto: $RUN_AUTO"
@@ -93,19 +107,20 @@ jobs:
           micromamba run -n markdiffusion pip install -e '.[optional]' --no-cache-dir
           micromamba run -n markdiffusion pip install qrcode easydict --no-cache-dir
 
-      # - name: Run evaluation fast tests
-      #   if: steps.decide.outputs.run_eval == 'true'
-      #   run: |
-      #     micromamba run -n markdiffusion pytest -q tests_ci/test_pipelines.py --maxfail=1 --disable-warnings
+      - name: Run evaluation fast tests
+        if: steps.decide.outputs.run_eval == 'true'
+        run: |
+          micromamba run -n markdiffusion pytest -q tests_ci/test_pipelines.py --maxfail=1 --disable-warnings
 
-      # - name: Run all algorithms
-      #   if: steps.decide.outputs.run_auto == 'true'
-      #   run: |
-      #     micromamba run -n markdiffusion pytest -q tests_ci/test_watermark_algorithms.py \
-      #       --maxfail=1 --disable-warnings
+      - name: Run all algorithms (init/interface only)
+        if: steps.decide.outputs.run_auto == 'true'
+        run: |
+          micromamba run -n markdiffusion pytest -q tests_ci/test_watermark_algorithms.py \
+            --skip-generation --skip-detection \
+            --maxfail=1 --disable-warnings
 
       - name: Run specific algorithms (filtered)
-        if: steps.decide.outputs.run_algo == 'true'
+        if: steps.decide.outputs.run_algo == 'true' && steps.decide.outputs.run_auto != 'true'
         env:
           ALGORITHMS: ${{ steps.decide.outputs.algorithms }}
         run: |

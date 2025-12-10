@@ -35,16 +35,38 @@ class ROBINDetector(BaseDetector):
                         detector_type: str = "l1_distance") -> float:
         reversed_latents_fft = torch.fft.fftshift(torch.fft.fft2(reversed_latents), dim=(-1, -2))
         
+        # Resize mask and gt_patch if dimensions don't match
+        if self.watermarking_mask.shape[-1] != reversed_latents.shape[-1]:
+            target_size = reversed_latents.shape[-1]
+            
+            # Resize mask (nearest neighbor for boolean mask)
+            mask_float = self.watermarking_mask.float()
+            mask_resized = F.interpolate(mask_float, size=(target_size, target_size), mode='nearest')
+            current_mask = mask_resized.bool()
+            
+            # Resize gt_patch (bilinear for continuous values)
+            # gt_patch is complex, so we need to handle real and imag parts separately
+            gt_real = self.gt_patch.real
+            gt_imag = self.gt_patch.imag
+            
+            gt_real_resized = F.interpolate(gt_real, size=(target_size, target_size), mode='bilinear', align_corners=False)
+            gt_imag_resized = F.interpolate(gt_imag, size=(target_size, target_size), mode='bilinear', align_corners=False)
+            
+            current_gt_patch = torch.complex(gt_real_resized, gt_imag_resized)
+        else:
+            current_mask = self.watermarking_mask
+            current_gt_patch = self.gt_patch
+
         if detector_type == 'l1_distance':
-            target_patch = self.gt_patch #[self.watermarking_mask].flatten()
-            l1_distance = torch.abs(reversed_latents_fft[self.watermarking_mask] - target_patch[self.watermarking_mask]).mean().item()
+            target_patch = current_gt_patch
+            l1_distance = torch.abs(reversed_latents_fft[current_mask] - target_patch[current_mask]).mean().item()
             return {
                 'is_watermarked': bool(l1_distance < self.threshold), 
                 'l1_distance': l1_distance
             }
         elif detector_type == 'p_value':
-            reversed_latents_fft_wm_area = reversed_latents_fft[self.watermarking_mask].flatten()
-            target_patch = self.gt_patch[self.watermarking_mask].flatten()
+            reversed_latents_fft_wm_area = reversed_latents_fft[current_mask].flatten()
+            target_patch = current_gt_patch[current_mask].flatten()
             target_patch = torch.concatenate([target_patch.real, target_patch.imag])
             reversed_latents_fft_wm_area = torch.concatenate([reversed_latents_fft_wm_area.real, reversed_latents_fft_wm_area.imag])
             sigma_ = reversed_latents_fft_wm_area.std()
@@ -56,8 +78,8 @@ class ROBINDetector(BaseDetector):
                 'p_value': p
             }
         elif detector_type == 'cosine_similarity':
-            reversed_latents_fft_wm_area = reversed_latents_fft[self.watermarking_mask].flatten()
-            target_patch = self.gt_patch[self.watermarking_mask].flatten()
+            reversed_latents_fft_wm_area = reversed_latents_fft[current_mask].flatten()
+            target_patch = current_gt_patch[current_mask].flatten()
             cosine_similarity = F.cosine_similarity(reversed_latents_fft_wm_area.real, target_patch.real, dim=0)
             return {
                 'is_watermarked': cosine_similarity > self.threshold, 

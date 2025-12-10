@@ -107,7 +107,7 @@ class DDIMInversion(BaseInversion):
             alpha_prod_t_prev = (
                 self.scheduler.alphas_cumprod[prev_timestep]
                 if prev_timestep >= 0
-                else self.scheduler.final_alpha_cumprod
+                else getattr(self.scheduler, 'final_alpha_cumprod', 1.0)
             )
             if reverse_process:
                 alpha_prod_t, alpha_prod_t_prev = alpha_prod_t_prev, alpha_prod_t

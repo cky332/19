@@ -179,6 +179,7 @@ class ExactInversion(BaseInversion):
                         + self.scheduler.config.num_train_timesteps
                         // self.scheduler.num_inference_steps
                     )
+                    next_timestep = min(next_timestep, self.scheduler.config.num_train_timesteps - 1)
                 
 
                 # call the callback, if provided
@@ -198,6 +199,7 @@ class ExactInversion(BaseInversion):
                         - self.scheduler.config.num_train_timesteps
                         // self.scheduler.num_inference_steps
                     )
+                    t = max(t, 0) # Ensure t is not negative
                     
                     lambda_s, lambda_t = self.scheduler.lambda_t[s], self.scheduler.lambda_t[t]
                     sigma_s, sigma_t = self.scheduler.sigma_t[s], self.scheduler.sigma_t[t]
@@ -247,6 +249,7 @@ class ExactInversion(BaseInversion):
                                 r = timesteps_tensor[i + 2]
                             elif i+1 < len(timesteps_tensor): ## i == len(timesteps_tensor) - 2
                                 r = s + self.scheduler.config.num_train_timesteps // self.scheduler.num_inference_steps
+                                r = min(r, self.scheduler.config.num_train_timesteps - 1)
                             else: ## i == len(timesteps_tensor) - 1
                                 r = 0
                             
@@ -294,6 +297,7 @@ class ExactInversion(BaseInversion):
                                 r = timesteps_tensor[i + 2]
                             elif i+1 < len(timesteps_tensor): ## i == len(timesteps_tensor) - 2
                                 r = s + self.scheduler.config.num_train_timesteps // self.scheduler.num_inference_steps
+                                r = min(r, self.scheduler.config.num_train_timesteps - 1)
                             else: ## i == len(timesteps_tensor) - 1
                                 r = 0
                             

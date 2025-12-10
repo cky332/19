@@ -56,6 +56,20 @@ class VideoShieldConfig(BaseConfig):
         self.latents_height = self.image_size[0] // VAE_DOWNSAMPLE_FACTOR
         self.latents_width = self.image_size[1] // VAE_DOWNSAMPLE_FACTOR
         
+        # Adjust repetition factors if they exceed dimensions to avoid empty tensors
+        if hasattr(self, 'num_frames') and self.num_frames > 0:
+            if self.k_f > self.num_frames:
+                logger.warning(f"k_f ({self.k_f}) is larger than num_frames ({self.num_frames}). Adjusting k_f to {self.num_frames}.")
+                self.k_f = self.num_frames
+        
+        if self.k_h > self.latents_height:
+            logger.warning(f"k_h ({self.k_h}) is larger than latents_height ({self.latents_height}). Adjusting k_h to {self.latents_height}.")
+            self.k_h = self.latents_height
+            
+        if self.k_w > self.latents_width:
+            logger.warning(f"k_w ({self.k_w}) is larger than latents_width ({self.latents_width}). Adjusting k_w to {self.latents_width}.")
+            self.k_w = self.latents_width
+
         # Generate watermark pattern
         generator = torch.Generator(device=self.device)
         generator.manual_seed(self.wm_key)

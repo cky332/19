@@ -326,3 +326,4 @@ class TR(BaseWatermark):
             orig_watermarked_latents=self.orig_watermarked_latents,
             image=image,
         )
+# try tr

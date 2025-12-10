@@ -20,7 +20,7 @@ class GaussianShadingVisualizer(BaseVisualizer):
         sd_byte = cipher.decrypt(np.packbits(reversed_m).tobytes())
         sd_bit = np.unpackbits(np.frombuffer(sd_byte, dtype=np.uint8))
         sd_tensor = torch.from_numpy(sd_bit).reshape(1, 4, 64, 64).to(torch.uint8)
-        return sd_tensor.cuda()
+        return sd_tensor.to(self.data.device)
     
     def _diffusion_inverse(self, reversed_sd):
         """Inverse the diffusion process to extract the watermark."""

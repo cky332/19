@@ -97,24 +97,3 @@ class DiffusionConfig:
     def is_image_pipeline(self) -> bool:
         """Check if this is an image pipeline."""
         return self.pipeline_type == PIPELINE_TYPE_IMAGE
-    
-    @property
-    def pipeline_requirements(self) -> Dict[str, Any]:
-        """Get the requirements for this pipeline type."""
-        if self.pipeline_type == PIPELINE_TYPE_IMAGE:
-            return {
-                "required_params": [],
-                "optional_params": ["height", "width", "num_images_per_prompt"]
-            }
-        elif self.pipeline_type == PIPELINE_TYPE_TEXT_TO_VIDEO:
-            return {
-                "required_params": ["num_frames"],
-                "optional_params": ["height", "width", "fps"]
-            }
-        elif self.pipeline_type == PIPELINE_TYPE_IMAGE_TO_VIDEO:
-            return {
-                "required_params": ["input_image", "num_frames"],
-                "optional_params": ["height", "width", "fps"]
-            }
-        else:
-            return {"required_params": [], "optional_params": []}

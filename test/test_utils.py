@@ -968,3 +968,521 @@ class TestMediaConversionRoundTrip:
 
         # Shape should be preserved
         assert result.shape == original.shape
+
+
+# ============================================================================
+# Additional Tests for media_utils.py - Coverage Improvement
+# ============================================================================
+
+class TestSetInversion:
+    """Tests for set_inversion function."""
+
+    def test_set_inversion_ddim(self):
+        """Test set_inversion with ddim type."""
+        from utils.media_utils import set_inversion
+
+        mock_pipe = MagicMock()
+        mock_pipe.scheduler = MagicMock()
+        mock_pipe.unet = MagicMock()
+        mock_pipe.device = "cpu"
+
+        with patch("inversions.DDIMInversion") as mock_ddim:
+            mock_ddim.return_value = MagicMock()
+            result = set_inversion(mock_pipe, "ddim")
+            mock_ddim.assert_called_once_with(mock_pipe.scheduler, mock_pipe.unet, mock_pipe.device)
+            assert result is not None
+
+    def test_set_inversion_exact(self):
+        """Test set_inversion with exact type."""
+        from utils.media_utils import set_inversion
+
+        mock_pipe = MagicMock()
+        mock_pipe.scheduler = MagicMock()
+        mock_pipe.unet = MagicMock()
+        mock_pipe.device = "cpu"
+
+        with patch("inversions.ExactInversion") as mock_exact:
+            mock_exact.return_value = MagicMock()
+            result = set_inversion(mock_pipe, "exact")
+            mock_exact.assert_called_once_with(mock_pipe.scheduler, mock_pipe.unet, mock_pipe.device)
+            assert result is not None
+
+    def test_set_inversion_invalid_type(self):
+        """Test set_inversion with invalid type raises ValueError."""
+        from utils.media_utils import set_inversion
+
+        mock_pipe = MagicMock()
+        with pytest.raises(ValueError, match="Invalid inversion type"):
+            set_inversion(mock_pipe, "invalid")
+
+
+class TestTensor2Vid:
+    """Tests for tensor2vid function."""
+
+    def test_tensor2vid_np_output(self):
+        """Test tensor2vid with numpy output."""
+        from utils.media_utils import tensor2vid
+
+        # Create mock video tensor [B, C, F, H, W]
+        video = torch.rand(1, 3, 4, 64, 64)
+        
+        mock_processor = MagicMock()
+        mock_processor.postprocess.return_value = np.random.rand(4, 64, 64, 3)
+        
+        result = tensor2vid(video, mock_processor, output_type="np")
+        
+        assert isinstance(result, np.ndarray)
+        mock_processor.postprocess.assert_called()
+
+    def test_tensor2vid_pt_output(self):
+        """Test tensor2vid with pytorch output."""
+        from utils.media_utils import tensor2vid
+
+        video = torch.rand(1, 3, 4, 64, 64)
+        
+        mock_processor = MagicMock()
+        mock_processor.postprocess.return_value = torch.rand(4, 64, 64, 3)
+        
+        result = tensor2vid(video, mock_processor, output_type="pt")
+        
+        assert isinstance(result, torch.Tensor)
+
+    def test_tensor2vid_pil_output(self):
+        """Test tensor2vid with PIL output."""
+        from utils.media_utils import tensor2vid
+
+        video = torch.rand(1, 3, 4, 64, 64)
+        
+        mock_processor = MagicMock()
+        mock_processor.postprocess.return_value = [Image.new("RGB", (64, 64)) for _ in range(4)]
+        
+        result = tensor2vid(video, mock_processor, output_type="pil")
+        
+        assert isinstance(result, list)
+
+    def test_tensor2vid_invalid_output_type(self):
+        """Test tensor2vid with invalid output type raises ValueError."""
+        from utils.media_utils import tensor2vid
+
+        video = torch.rand(1, 3, 4, 64, 64)
+        mock_processor = MagicMock()
+        mock_processor.postprocess.return_value = "invalid"
+        
+        with pytest.raises(ValueError, match="does not exist"):
+            tensor2vid(video, mock_processor, output_type="invalid")
+
+
+class TestGetMediaLatents:
+    """Tests for get_media_latents function."""
+
+    def test_get_media_latents_image(self):
+        """Test get_media_latents for image pipeline."""
+        from utils.media_utils import get_media_latents
+
+        mock_pipe = MagicMock()
+        
+        image = torch.rand(1, 3, 512, 512)
+        
+        with patch("utils.media_utils.get_pipeline_type", return_value="image"):
+            with patch("utils.media_utils._get_image_latents") as mock_get:
+                mock_get.return_value = torch.rand(1, 4, 64, 64)
+                result = get_media_latents(mock_pipe, image)
+                mock_get.assert_called_once()
+                assert result is not None
+
+    def test_get_media_latents_t2v(self):
+        """Test get_media_latents for text-to-video pipeline."""
+        from utils.media_utils import get_media_latents
+        from diffusers import TextToVideoSDPipeline
+
+        mock_pipe = MagicMock(spec=TextToVideoSDPipeline)
+        
+        video = torch.rand(8, 3, 512, 512)
+        
+        with patch("utils.media_utils.get_pipeline_type", return_value="t2v"):
+            with patch("utils.media_utils._get_video_latents") as mock_get:
+                mock_get.return_value = torch.rand(1, 4, 8, 64, 64)
+                result = get_media_latents(mock_pipe, video)
+                mock_get.assert_called_once()
+                assert result is not None
+
+    def test_get_media_latents_unsupported_pipeline(self):
+        """Test get_media_latents with unsupported pipeline type."""
+        from utils.media_utils import get_media_latents
+
+        mock_pipe = MagicMock()
+        image = torch.rand(1, 3, 512, 512)
+        
+        with patch("utils.media_utils.get_pipeline_type", return_value=None):
+            with pytest.raises(ValueError, match="Unsupported pipeline type"):
+                get_media_latents(mock_pipe, image)
+
+
+class TestDecodeMediaLatents:
+    """Tests for decode_media_latents function."""
+
+    def test_decode_media_latents_image(self):
+        """Test decode_media_latents for image pipeline."""
+        from utils.media_utils import decode_media_latents
+        from diffusers import StableDiffusionPipeline
+
+        mock_pipe = MagicMock(spec=StableDiffusionPipeline)
+        
+        latents = torch.rand(1, 4, 64, 64)
+        
+        with patch("utils.media_utils.get_pipeline_type", return_value="image"):
+            with patch("utils.media_utils._decode_image_latents") as mock_decode:
+                mock_decode.return_value = torch.rand(1, 3, 512, 512)
+                result = decode_media_latents(mock_pipe, latents)
+                mock_decode.assert_called_once()
+                assert result is not None
+
+    def test_decode_media_latents_video(self):
+        """Test decode_media_latents for video pipeline."""
+        from utils.media_utils import decode_media_latents
+        from diffusers import TextToVideoSDPipeline
+
+        mock_pipe = MagicMock(spec=TextToVideoSDPipeline)
+        
+        latents = torch.rand(1, 4, 8, 64, 64)
+        
+        with patch("utils.media_utils.get_pipeline_type", return_value="t2v"):
+            with patch("utils.media_utils._decode_video_latents") as mock_decode:
+                mock_decode.return_value = np.random.rand(1, 8, 512, 512, 3)
+                result = decode_media_latents(mock_pipe, latents)
+                mock_decode.assert_called_once()
+                assert result is not None
+
+    def test_decode_media_latents_unsupported_pipeline(self):
+        """Test decode_media_latents with unsupported pipeline type."""
+        from utils.media_utils import decode_media_latents
+
+        mock_pipe = MagicMock()
+        latents = torch.rand(1, 4, 64, 64)
+        
+        with patch("utils.media_utils.get_pipeline_type", return_value=None):
+            with pytest.raises(ValueError, match="Unsupported pipeline type"):
+                decode_media_latents(mock_pipe, latents)
+
+
+class TestGetVideoLatents:
+    """Tests for _get_video_latents function."""
+
+    def test_get_video_latents_sample(self):
+        """Test _get_video_latents with sampling."""
+        from utils.media_utils import _get_video_latents
+
+        mock_pipe = MagicMock()
+        mock_dist = MagicMock()
+        mock_dist.sample.return_value = torch.rand(8, 4, 64, 64)
+        mock_pipe.vae.encode.return_value.latent_dist = mock_dist
+        
+        video_frames = torch.rand(8, 3, 512, 512)
+        
+        result = _get_video_latents(mock_pipe, video_frames, sample=True, permute=True)
+        
+        assert result is not None
+        mock_dist.sample.assert_called_once()
+
+    def test_get_video_latents_mode(self):
+        """Test _get_video_latents with mode (no sampling)."""
+        from utils.media_utils import _get_video_latents
+
+        mock_pipe = MagicMock()
+        mock_dist = MagicMock()
+        mock_dist.mode.return_value = torch.rand(8, 4, 64, 64)
+        mock_pipe.vae.encode.return_value.latent_dist = mock_dist
+        
+        video_frames = torch.rand(8, 3, 512, 512)
+        
+        result = _get_video_latents(mock_pipe, video_frames, sample=False, permute=False)
+        
+        assert result is not None
+        mock_dist.mode.assert_called_once()
+
+    def test_get_video_latents_decoder_inv_not_implemented(self):
+        """Test _get_video_latents raises NotImplementedError for decoder_inv."""
+        from utils.media_utils import _get_video_latents
+
+        mock_pipe = MagicMock()
+        mock_dist = MagicMock()
+        mock_dist.sample.return_value = torch.rand(8, 4, 64, 64)
+        mock_pipe.vae.encode.return_value.latent_dist = mock_dist
+        
+        video_frames = torch.rand(8, 3, 512, 512)
+        
+        with pytest.raises(NotImplementedError, match="Decoder inversion is not implemented"):
+            _get_video_latents(mock_pipe, video_frames, decoder_inv=True)
+
+
+class TestDecodeVideoLatents:
+    """Tests for _decode_video_latents function."""
+
+    def test_decode_video_latents_with_num_frames(self):
+        """Test _decode_video_latents with num_frames specified."""
+        from utils.media_utils import _decode_video_latents
+
+        mock_pipe = MagicMock()
+        mock_pipe.decode_latents.return_value = torch.rand(1, 3, 8, 64, 64)
+        mock_pipe.video_processor.postprocess.return_value = np.random.rand(8, 64, 64, 3)
+        
+        latents = torch.rand(1, 4, 8, 64, 64)
+        
+        with patch("utils.media_utils.tensor2vid") as mock_tensor2vid:
+            mock_tensor2vid.return_value = np.random.rand(1, 8, 64, 64, 3)
+            result = _decode_video_latents(mock_pipe, latents, num_frames=8)
+            mock_pipe.decode_latents.assert_called_once_with(latents, 8)
+
+    def test_decode_video_latents_without_num_frames(self):
+        """Test _decode_video_latents without num_frames."""
+        from utils.media_utils import _decode_video_latents
+
+        mock_pipe = MagicMock()
+        mock_pipe.decode_latents.return_value = torch.rand(1, 3, 8, 64, 64)
+        
+        latents = torch.rand(1, 4, 8, 64, 64)
+        
+        with patch("utils.media_utils.tensor2vid") as mock_tensor2vid:
+            mock_tensor2vid.return_value = np.random.rand(1, 8, 64, 64, 3)
+            result = _decode_video_latents(mock_pipe, latents)
+            mock_pipe.decode_latents.assert_called_once_with(latents)
+
+
+class TestGetImageLatents:
+    """Tests for _get_image_latents function."""
+
+    def test_get_image_latents_sample(self):
+        """Test _get_image_latents with sampling."""
+        from utils.media_utils import _get_image_latents
+
+        mock_pipe = MagicMock()
+        mock_dist = MagicMock()
+        mock_dist.sample.return_value = torch.rand(1, 4, 64, 64)
+        mock_pipe.vae.encode.return_value.latent_dist = mock_dist
+        
+        image = torch.rand(1, 3, 512, 512)
+        
+        result = _get_image_latents(mock_pipe, image, sample=True)
+        
+        assert result is not None
+        mock_dist.sample.assert_called_once()
+
+    def test_get_image_latents_mode(self):
+        """Test _get_image_latents with mode (no sampling)."""
+        from utils.media_utils import _get_image_latents
+
+        mock_pipe = MagicMock()
+        mock_dist = MagicMock()
+        mock_dist.mode.return_value = torch.rand(1, 4, 64, 64)
+        mock_pipe.vae.encode.return_value.latent_dist = mock_dist
+        
+        image = torch.rand(1, 3, 512, 512)
+        
+        result = _get_image_latents(mock_pipe, image, sample=False)
+        
+        assert result is not None
+        mock_dist.mode.assert_called_once()
+
+
+class TestDecodeImageLatents:
+    """Tests for _decode_image_latents function."""
+
+    def test_decode_image_latents(self):
+        """Test _decode_image_latents basic functionality."""
+        from utils.media_utils import _decode_image_latents
+
+        mock_pipe = MagicMock()
+        mock_pipe.vae.decode.return_value = [torch.rand(1, 3, 512, 512)]
+        
+        latents = torch.rand(1, 4, 64, 64)
+        
+        result = _decode_image_latents(mock_pipe, latents)
+        
+        assert result is not None
+        mock_pipe.vae.decode.assert_called_once()
+
+
+# ============================================================================
+# Additional Tests for diffusion_config.py - Coverage Improvement
+# ============================================================================
+
+class TestDiffusionConfigAdditional:
+    """Additional tests for DiffusionConfig class."""
+
+    def test_pipeline_requirements_image(self):
+        """Test pipeline_requirements property for image pipeline."""
+        from utils.diffusion_config import DiffusionConfig
+        from diffusers import StableDiffusionPipeline, DPMSolverMultistepScheduler
+
+        mock_pipe = MagicMock(spec=StableDiffusionPipeline)
+        mock_scheduler = MagicMock(spec=DPMSolverMultistepScheduler)
+
+        config = DiffusionConfig(
+            scheduler=mock_scheduler,
+            pipe=mock_pipe,
+            device="cpu",
+        )
+
+        requirements = config.pipeline_requirements
+        assert requirements["required_params"] == []
+        assert "height" in requirements["optional_params"]
+
+    def test_pipeline_requirements_t2v(self):
+        """Test pipeline_requirements property for t2v pipeline."""
+        from utils.diffusion_config import DiffusionConfig
+        from diffusers import TextToVideoSDPipeline, DPMSolverMultistepScheduler
+
+        mock_pipe = MagicMock(spec=TextToVideoSDPipeline)
+        mock_scheduler = MagicMock(spec=DPMSolverMultistepScheduler)
+
+        config = DiffusionConfig(
+            scheduler=mock_scheduler,
+            pipe=mock_pipe,
+            device="cpu",
+            num_frames=8,
+        )
+
+        requirements = config.pipeline_requirements
+        assert "num_frames" in requirements["required_params"]
+        assert "fps" in requirements["optional_params"]
+
+    def test_pipeline_requirements_i2v(self):
+        """Test pipeline_requirements property for i2v pipeline."""
+        from utils.diffusion_config import DiffusionConfig
+        from diffusers import StableVideoDiffusionPipeline, DPMSolverMultistepScheduler
+
+        mock_pipe = MagicMock(spec=StableVideoDiffusionPipeline)
+        mock_scheduler = MagicMock(spec=DPMSolverMultistepScheduler)
+
+        config = DiffusionConfig(
+            scheduler=mock_scheduler,
+            pipe=mock_pipe,
+            device="cpu",
+            num_frames=8,
+        )
+
+        requirements = config.pipeline_requirements
+        assert "input_image" in requirements["required_params"]
+        assert "num_frames" in requirements["required_params"]
+
+    def test_validate_pipeline_config_unsupported(self):
+        """Test _validate_pipeline_config raises ValueError for unsupported pipeline."""
+        from utils.diffusion_config import DiffusionConfig
+        from diffusers import DPMSolverMultistepScheduler
+
+        mock_pipe = MagicMock()  # Generic mock, not a specific pipeline type
+        mock_scheduler = MagicMock(spec=DPMSolverMultistepScheduler)
+
+        with pytest.raises(ValueError, match="Unsupported pipeline type"):
+            DiffusionConfig(
+                scheduler=mock_scheduler,
+                pipe=mock_pipe,
+                device="cpu",
+            )
+
+    def test_validate_pipeline_config_video_needs_frames(self):
+        """Test _validate_pipeline_config raises ValueError when video pipeline has no frames."""
+        from utils.diffusion_config import DiffusionConfig
+        from diffusers import TextToVideoSDPipeline, DPMSolverMultistepScheduler
+
+        mock_pipe = MagicMock(spec=TextToVideoSDPipeline)
+        mock_scheduler = MagicMock(spec=DPMSolverMultistepScheduler)
+
+        with pytest.raises(ValueError, match="num_frames must be >= 1"):
+            DiffusionConfig(
+                scheduler=mock_scheduler,
+                pipe=mock_pipe,
+                device="cpu",
+                num_frames=-1,  # Invalid for video
+            )
+
+    def test_validate_pipeline_config_image_auto_corrects_frames(self):
+        """Test _validate_pipeline_config auto-corrects num_frames for image pipeline."""
+        from utils.diffusion_config import DiffusionConfig
+        from diffusers import StableDiffusionPipeline, DPMSolverMultistepScheduler
+
+        mock_pipe = MagicMock(spec=StableDiffusionPipeline)
+        mock_scheduler = MagicMock(spec=DPMSolverMultistepScheduler)
+
+        config = DiffusionConfig(
+            scheduler=mock_scheduler,
+            pipe=mock_pipe,
+            device="cpu",
+            num_frames=10,  # Should be auto-corrected to -1 for image
+        )
+
+        assert config.num_frames == -1
+
+    def test_is_video_pipeline_for_t2v(self):
+        """Test is_video_pipeline returns True for t2v pipeline."""
+        from utils.diffusion_config import DiffusionConfig
+        from diffusers import TextToVideoSDPipeline, DPMSolverMultistepScheduler
+
+        mock_pipe = MagicMock(spec=TextToVideoSDPipeline)
+        mock_scheduler = MagicMock(spec=DPMSolverMultistepScheduler)
+
+        config = DiffusionConfig(
+            scheduler=mock_scheduler,
+            pipe=mock_pipe,
+            device="cpu",
+            num_frames=8,
+        )
+
+        assert config.is_video_pipeline is True
+        assert config.is_image_pipeline is False
+
+    def test_is_video_pipeline_for_i2v(self):
+        """Test is_video_pipeline returns True for i2v pipeline."""
+        from utils.diffusion_config import DiffusionConfig
+        from diffusers import StableVideoDiffusionPipeline, DPMSolverMultistepScheduler
+
+        mock_pipe = MagicMock(spec=StableVideoDiffusionPipeline)
+        mock_scheduler = MagicMock(spec=DPMSolverMultistepScheduler)
+
+        config = DiffusionConfig(
+            scheduler=mock_scheduler,
+            pipe=mock_pipe,
+            device="cpu",
+            num_frames=8,
+        )
+
+        assert config.is_video_pipeline is True
+
+
+# ============================================================================
+# Additional Tests for utils.py - Coverage Improvement  
+# ============================================================================
+
+class TestLoadConfigFileAdditional:
+    """Additional tests for load_config_file function."""
+
+    def test_load_config_file_unexpected_error(self, tmp_path, capsys):
+        """Test load_config_file handles unexpected errors."""
+        from utils.utils import load_config_file
+
+        # Create a file that will cause an unexpected error by making it a directory
+        config_path = tmp_path / "config"
+        config_path.mkdir()
+        
+        result = load_config_file(str(config_path))
+        assert result is None
+        
+        captured = capsys.readouterr()
+        assert "unexpected error" in captured.out.lower() or "error" in captured.out.lower()
+
+
+class TestCreateDirectoryForFileAdditional:
+    """Additional tests for create_directory_for_file function."""
+
+    def test_create_directory_for_file_with_relative_path(self, tmp_path):
+        """Test create_directory_for_file with relative path in tmp directory."""
+        from utils.utils import create_directory_for_file
+        import os
+        
+        # Create a file path with a subdirectory in tmp_path
+        file_path = str(tmp_path / "subdir" / "file.txt")
+        create_directory_for_file(file_path)
+        
+        # Verify the directory was created
+        assert (tmp_path / "subdir").exists()
+        assert (tmp_path / "subdir").is_dir()

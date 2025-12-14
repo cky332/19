@@ -35,69 +35,69 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
-class OptimizedDataset(Dataset):
-    def __init__(
-        self,
-        data_root,
-        custom_dataset: BaseDataset,
-        size=512,
-        repeats=10,
-        interpolation="bicubic",
-        set="train",
-        center_crop=False,
-    ):
+# class OptimizedDataset(Dataset):
+#     def __init__(
+#         self,
+#         data_root,
+#         custom_dataset: BaseDataset,
+#         size=512,
+#         repeats=10,
+#         interpolation="bicubic",
+#         set="train",
+#         center_crop=False,
+#     ):
 
-        self.data_root = data_root
-        self.size = size
-        self.center_crop = center_crop
+#         self.data_root = data_root
+#         self.size = size
+#         self.center_crop = center_crop
 
-        file_list = os.listdir(self.data_root)
-        file_list.sort(key=lambda x: int(x.split('-')[-1].split('.')[0]))  # ori-lg7.5-xx.jpg
-        self.image_paths = [os.path.join(self.data_root, file_path) for file_path in file_list]
-        self.dataset = custom_dataset
+#         file_list = os.listdir(self.data_root)
+#         file_list.sort(key=lambda x: int(x.split('-')[-1].split('.')[0]))  # ori-lg7.5-xx.jpg
+#         self.image_paths = [os.path.join(self.data_root, file_path) for file_path in file_list]
+#         self.dataset = custom_dataset
         
-        self.num_images = len(self.image_paths)
-        self._length = self.num_images
+#         self.num_images = len(self.image_paths)
+#         self._length = self.num_images
 
-        if set == "train":
-            self._length = self.num_images * repeats
+#         if set == "train":
+#             self._length = self.num_images * repeats
 
-        self.interpolation = {
-            "bilinear": Image.BILINEAR,
-            "bicubic": Image.BICUBIC,
-            "lanczos": Image.LANCZOS,
-        }[interpolation]
+#         self.interpolation = {
+#             "bilinear": Image.BILINEAR,
+#             "bicubic": Image.BICUBIC,
+#             "lanczos": Image.LANCZOS,
+#         }[interpolation]
 
-    def __len__(self):
-        return self._length
+#     def __len__(self):
+#         return self._length
 
-    def __getitem__(self, i):
-        example = {}
-        image = Image.open(self.image_paths[i % self.num_images])
+#     def __getitem__(self, i):
+#         example = {}
+#         image = Image.open(self.image_paths[i % self.num_images])
 
-        if not image.mode == "RGB":
-            image = image.convert("RGB")
+#         if not image.mode == "RGB":
+#             image = image.convert("RGB")
 
-        text = self.dataset[i % self.num_images] # __getitem__ of BaseDataset: return prompt[idx]
-        example["prompt"] = text
+#         text = self.dataset[i % self.num_images] # __getitem__ of BaseDataset: return prompt[idx]
+#         example["prompt"] = text
 
-        # default to score-sde preprocessing
-        img = np.array(image).astype(np.uint8)
+#         # default to score-sde preprocessing
+#         img = np.array(image).astype(np.uint8)
 
-        if self.center_crop:
-            crop = min(img.shape[0], img.shape[1])
-            h, w, = (
-                img.shape[0],
-                img.shape[1],
-            )
-            img = img[(h - crop) // 2 : (h + crop) // 2, (w - crop) // 2 : (w + crop) // 2]
+#         if self.center_crop:
+#             crop = min(img.shape[0], img.shape[1])
+#             h, w, = (
+#                 img.shape[0],
+#                 img.shape[1],
+#             )
+#             img = img[(h - crop) // 2 : (h + crop) // 2, (w - crop) // 2 : (w + crop) // 2]
 
-        image = Image.fromarray(img)
-        image = image.resize((self.size, self.size), resample=self.interpolation)
+#         image = Image.fromarray(img)
+#         image = image.resize((self.size, self.size), resample=self.interpolation)
 
-        example["pixel_values"] = pil_to_torch(image, normalize=False) # scale to [0, 1]
+#         example["pixel_values"] = pil_to_torch(image, normalize=False) # scale to [0, 1]
         
-        return example
+#         return example
     
 
 def circle_mask(size=64, r_max=10, r_min=0, x_offset=0, y_offset=0):
@@ -199,234 +199,234 @@ def inject_watermark(init_latents_w, watermarking_mask, gt_patch, args):
     return init_latents_w
     
 
-def freeze_params(params):
-    for param in params:
-        param.requires_grad = False
+# def freeze_params(params):
+#     for param in params:
+#         param.requires_grad = False
 
-def to_ring(latent_fft, args):
-    # Calculate mean value for each ring
-    num_rings = args.w_up_radius - args.w_low_radius
-    r_max = args.w_up_radius
-    for i in range(num_rings):
-        # ring_mask = mask[..., (radii[i * 2] <= distances) & (distances < radii[i * 2 + 1])]
-        ring_mask = circle_mask(latent_fft.shape[-1], r_max=r_max, r_min=r_max-1)
-        ring_mean = latent_fft[:, args.w_channel,ring_mask].real.mean().item()
-        # print(f'ring mean: {ring_mean}')
-        latent_fft[:, args.w_channel,ring_mask] = ring_mean
-        r_max = r_max - 1
+# def to_ring(latent_fft, args):
+#     # Calculate mean value for each ring
+#     num_rings = args.w_up_radius - args.w_low_radius
+#     r_max = args.w_up_radius
+#     for i in range(num_rings):
+#         # ring_mask = mask[..., (radii[i * 2] <= distances) & (distances < radii[i * 2 + 1])]
+#         ring_mask = circle_mask(latent_fft.shape[-1], r_max=r_max, r_min=r_max-1)
+#         ring_mean = latent_fft[:, args.w_channel,ring_mask].real.mean().item()
+#         # print(f'ring mean: {ring_mean}')
+#         latent_fft[:, args.w_channel,ring_mask] = ring_mean
+#         r_max = r_max - 1
 
-    return latent_fft
+#     return latent_fft
 
-def optimizer_wm_prompt(pipe: StableDiffusionPipeline,
-                        dataloader: OptimizedDataset,
-                        hyperparameters: dict, 
-                        mask: torch.Tensor,
-                        opt_wm: torch.Tensor,
-                        save_path: str,
-                        args: dict,
-                        generator: Optional[Union[torch.Generator, List[torch.Generator]]] = None,
-                        eta: float = 0.0,) -> tuple[torch.Tensor, torch.Tensor]:
-    train_batch_size = hyperparameters["train_batch_size"]
-    gradient_accumulation_steps = hyperparameters["gradient_accumulation_steps"]
-    learning_rate = hyperparameters["learning_rate"]
-    max_train_steps = hyperparameters["max_train_steps"]
-    output_dir = hyperparameters["output_dir"]
-    gradient_checkpointing = hyperparameters["gradient_checkpointing"]
-    original_guidance_scale = hyperparameters["guidance_scale"]
-    optimized_guidance_scale = hyperparameters["optimized_guidance_scale"]
+# def optimizer_wm_prompt(pipe: StableDiffusionPipeline,
+#                         dataloader: OptimizedDataset,
+#                         hyperparameters: dict, 
+#                         mask: torch.Tensor,
+#                         opt_wm: torch.Tensor,
+#                         save_path: str,
+#                         args: dict,
+#                         generator: Optional[Union[torch.Generator, List[torch.Generator]]] = None,
+#                         eta: float = 0.0,) -> tuple[torch.Tensor, torch.Tensor]:
+#     train_batch_size = hyperparameters["train_batch_size"]
+#     gradient_accumulation_steps = hyperparameters["gradient_accumulation_steps"]
+#     learning_rate = hyperparameters["learning_rate"]
+#     max_train_steps = hyperparameters["max_train_steps"]
+#     output_dir = hyperparameters["output_dir"]
+#     gradient_checkpointing = hyperparameters["gradient_checkpointing"]
+#     original_guidance_scale = hyperparameters["guidance_scale"]
+#     optimized_guidance_scale = hyperparameters["optimized_guidance_scale"]
 
-    # Check if checkpoint exists
-    checkpoint_path = os.path.join(save_path, f"optimized_wm5-30_embedding-step-{max_train_steps}.pt")
-    # checkpoint_path = "/workspace/panleyi/gs/ROBIN/ckpts/optimized_wm5-30_embedding-step-2000.pt"
-    if os.path.exists(checkpoint_path):
-        logger.info(f"Loading checkpoint from {checkpoint_path}")
-        checkpoint = torch.load(checkpoint_path)
-        opt_wm = checkpoint['opt_wm'].to(pipe.device)
-        opt_wm_embedding = checkpoint['opt_acond'].to(pipe.device)
-        return opt_wm, opt_wm_embedding
+#     # Check if checkpoint exists
+#     checkpoint_path = os.path.join(save_path, f"optimized_wm5-30_embedding-step-{max_train_steps}.pt")
+#     # checkpoint_path = "/workspace/panleyi/gs/ROBIN/ckpts/optimized_wm5-30_embedding-step-2000.pt"
+#     if os.path.exists(checkpoint_path):
+#         logger.info(f"Loading checkpoint from {checkpoint_path}")
+#         checkpoint = torch.load(checkpoint_path)
+#         opt_wm = checkpoint['opt_wm'].to(pipe.device)
+#         opt_wm_embedding = checkpoint['opt_acond'].to(pipe.device)
+#         return opt_wm, opt_wm_embedding
 
-    text_encoder: CLIPTextModel = pipe.text_encoder
-    unet: UNet2DConditionModel = pipe.unet
-    vae: AutoencoderKL = pipe.vae
-    scheduler: DPMSolverMultistepScheduler = pipe.scheduler
+#     text_encoder: CLIPTextModel = pipe.text_encoder
+#     unet: UNet2DConditionModel = pipe.unet
+#     vae: AutoencoderKL = pipe.vae
+#     scheduler: DPMSolverMultistepScheduler = pipe.scheduler
 
-    freeze_params(vae.parameters())
-    freeze_params(unet.parameters())
-    freeze_params(text_encoder.parameters())
+#     freeze_params(vae.parameters())
+#     freeze_params(unet.parameters())
+#     freeze_params(text_encoder.parameters())
 
-    accelerator = Accelerator(
-        gradient_accumulation_steps=gradient_accumulation_steps,
-        mixed_precision=hyperparameters["mixed_precision"]
-    )
+#     accelerator = Accelerator(
+#         gradient_accumulation_steps=gradient_accumulation_steps,
+#         mixed_precision=hyperparameters["mixed_precision"]
+#     )
 
-    if gradient_checkpointing:
-        text_encoder.gradient_checkpointing_enable()
-        unet.enable_gradient_checkpointing()
+#     if gradient_checkpointing:
+#         text_encoder.gradient_checkpointing_enable()
+#         unet.enable_gradient_checkpointing()
 
-    if hyperparameters["scale_lr"]:
-        learning_rate = (
-            learning_rate * gradient_accumulation_steps * train_batch_size * accelerator.num_processes
-        )
+#     if hyperparameters["scale_lr"]:
+#         learning_rate = (
+#             learning_rate * gradient_accumulation_steps * train_batch_size * accelerator.num_processes
+#         )
 
-    tester_prompt = '' # assume at the detection time, the original prompt is unknown
-    # null text, text_embedding.dtype = torch.float16
-    do_classifier_free_guidance = False  # guidance_scale = 1.0
-    prompt_embeds, negative_prompt_embeds = pipe.encode_prompt(
-        prompt=tester_prompt, 
-        device=pipe.device, 
-        do_classifier_free_guidance=do_classifier_free_guidance,
-        num_images_per_prompt=1,
-    )
+#     tester_prompt = '' # assume at the detection time, the original prompt is unknown
+#     # null text, text_embedding.dtype = torch.float16
+#     do_classifier_free_guidance = False  # guidance_scale = 1.0
+#     prompt_embeds, negative_prompt_embeds = pipe.encode_prompt(
+#         prompt=tester_prompt, 
+#         device=pipe.device, 
+#         do_classifier_free_guidance=do_classifier_free_guidance,
+#         num_images_per_prompt=1,
+#     )
     
-    text_embeddings = prompt_embeds
+#     text_embeddings = prompt_embeds
 
-    extra_step_kwargs = pipe.prepare_extra_step_kwargs(generator, eta)
+#     extra_step_kwargs = pipe.prepare_extra_step_kwargs(generator, eta)
 
-    unet, text_encoder, dataloader,text_embeddings = accelerator.prepare(
-        unet, text_encoder, dataloader, text_embeddings
-    ) 
+#     unet, text_encoder, dataloader,text_embeddings = accelerator.prepare(
+#         unet, text_encoder, dataloader, text_embeddings
+#     ) 
 
-    weight_dtype = torch.float32
-    if accelerator.mixed_precision == "fp16":
-        weight_dtype = torch.float16
-    elif accelerator.mixed_precision == "bf16":
-        weight_dtype = torch.bfloat16
+#     weight_dtype = torch.float32
+#     if accelerator.mixed_precision == "fp16":
+#         weight_dtype = torch.float16
+#     elif accelerator.mixed_precision == "bf16":
+#         weight_dtype = torch.bfloat16
 
-    # Move vae and unet to device
-    vae.to(accelerator.device, dtype=weight_dtype)
-    unet.to(accelerator.device, dtype=weight_dtype)
+#     # Move vae and unet to device
+#     vae.to(accelerator.device, dtype=weight_dtype)
+#     unet.to(accelerator.device, dtype=weight_dtype)
 
-    # Keep vae in eval mode as we don't train it
-    vae.eval()
-    # Keep unet in train mode to enable gradient checkpointing
-    unet.train()
+#     # Keep vae in eval mode as we don't train it
+#     vae.eval()
+#     # Keep unet in train mode to enable gradient checkpointing
+#     unet.train()
 
-    # We need to recalculate our total training steps as the size of the training dataloader may have changed.
-    num_update_steps_per_epoch = math.ceil(len(dataloader) / gradient_accumulation_steps)
-    num_train_epochs = math.ceil(max_train_steps / num_update_steps_per_epoch)
+#     # We need to recalculate our total training steps as the size of the training dataloader may have changed.
+#     num_update_steps_per_epoch = math.ceil(len(dataloader) / gradient_accumulation_steps)
+#     num_train_epochs = math.ceil(max_train_steps / num_update_steps_per_epoch)
 
-    # Train!
-    total_batch_size = train_batch_size * accelerator.num_processes * gradient_accumulation_steps
+#     # Train!
+#     total_batch_size = train_batch_size * accelerator.num_processes * gradient_accumulation_steps
 
-    logger.info("***** Running training *****")
-    logger.info(f"  Num examples = {len(dataloader)}")
-    logger.info(f"  Instantaneous batch size per device = {train_batch_size}")
-    logger.info(f"  Total train batch size (w. parallel, distributed & accumulation) = {total_batch_size}")
-    logger.info(f"  Gradient Accumulation steps = {gradient_accumulation_steps}")
-    logger.info(f"  Total optimization steps = {max_train_steps}")
-    # Only show the progress bar once on each machine.
-    progress_bar = tqdm(range(max_train_steps), disable=not accelerator.is_local_main_process)
-    progress_bar.set_description("Steps")
-    global_step = 0
+#     logger.info("***** Running training *****")
+#     logger.info(f"  Num examples = {len(dataloader)}")
+#     logger.info(f"  Instantaneous batch size per device = {train_batch_size}")
+#     logger.info(f"  Total train batch size (w. parallel, distributed & accumulation) = {total_batch_size}")
+#     logger.info(f"  Gradient Accumulation steps = {gradient_accumulation_steps}")
+#     logger.info(f"  Total optimization steps = {max_train_steps}")
+#     # Only show the progress bar once on each machine.
+#     progress_bar = tqdm(range(max_train_steps), disable=not accelerator.is_local_main_process)
+#     progress_bar.set_description("Steps")
+#     global_step = 0
 
-    scaler = GradScaler(device=accelerator.device)
-    # pipe.scheduler.set_timesteps(1000)  # need for compute the next state
+#     scaler = GradScaler(device=accelerator.device)
+#     # pipe.scheduler.set_timesteps(1000)  # need for compute the next state
     
-    do_classifier_free_guidance = False  # guidance_scale = 1.0
-    prompt_embeds, negative_prompt_embeds = pipe.encode_prompt(
-        prompt='', 
-        device=pipe.device, 
-        do_classifier_free_guidance=do_classifier_free_guidance,
-        num_images_per_prompt=1,
-    )
+#     do_classifier_free_guidance = False  # guidance_scale = 1.0
+#     prompt_embeds, negative_prompt_embeds = pipe.encode_prompt(
+#         prompt='', 
+#         device=pipe.device, 
+#         do_classifier_free_guidance=do_classifier_free_guidance,
+#         num_images_per_prompt=1,
+#     )
     
-    opt_wm_embedding = prompt_embeds
-    null_embedding = opt_wm_embedding.clone()
-    total_time = 0
-    with autocast(device_type=accelerator.device.type):
-        for epoch in range(num_train_epochs):
-            for step, batch in enumerate(dataloader):
-                with accelerator.accumulate(unet):
-                    # Convert images to latent space
-                    gt_tensor = batch["pixel_values"]
-                    image = 2.0 * gt_tensor - 1.0
-                    latents = vae.encode(image.to(dtype=weight_dtype)).latent_dist.sample().detach()
-                    latents = latents * 0.18215
-                    # Sample noise that we'll add to the latents
-                    noise = torch.randn_like(latents)
-                    bsz = latents.shape[0]
-                    # Sample a random timestep for each image
-                    ori_timesteps = torch.randint(200, 300, (bsz,), device=latents.device).long()  # 35～40steps
-                    timesteps = len(scheduler) - 1 - ori_timesteps
+#     opt_wm_embedding = prompt_embeds
+#     null_embedding = opt_wm_embedding.clone()
+#     total_time = 0
+#     with autocast(device_type=accelerator.device.type):
+#         for epoch in range(num_train_epochs):
+#             for step, batch in enumerate(dataloader):
+#                 with accelerator.accumulate(unet):
+#                     # Convert images to latent space
+#                     gt_tensor = batch["pixel_values"]
+#                     image = 2.0 * gt_tensor - 1.0
+#                     latents = vae.encode(image.to(dtype=weight_dtype)).latent_dist.sample().detach()
+#                     latents = latents * 0.18215
+#                     # Sample noise that we'll add to the latents
+#                     noise = torch.randn_like(latents)
+#                     bsz = latents.shape[0]
+#                     # Sample a random timestep for each image
+#                     ori_timesteps = torch.randint(200, 300, (bsz,), device=latents.device).long()  # 35～40steps
+#                     timesteps = len(scheduler) - 1 - ori_timesteps
 
-                    # Add noise to the latents according to the noise magnitude at each timestep
-                    noisy_latents = scheduler.add_noise(latents, noise, timesteps)
-                    opt_wm = opt_wm.to(noisy_latents.device).to(torch.complex64)  # add wm to latents
+#                     # Add noise to the latents according to the noise magnitude at each timestep
+#                     noisy_latents = scheduler.add_noise(latents, noise, timesteps)
+#                     opt_wm = opt_wm.to(noisy_latents.device).to(torch.complex64)  # add wm to latents
 
 
-                    ### detailed the inject_watermark function for fft.grad
-                    init_latents_w_fft = torch.fft.fftshift(torch.fft.fft2(noisy_latents), dim=(-1, -2))
-                    init_latents_w_fft[mask] = opt_wm[mask].clone()
-                    init_latents_w_fft.requires_grad = True
-                    noisy_latents = torch.fft.ifft2(torch.fft.ifftshift(init_latents_w_fft, dim=(-1, -2))).real
-                    ### Get the text embedding for conditioning CFG 
-                    prompt = batch["prompt"]
-                    do_classifier_free_guidance = False  # guidance_scale = 1.0
-                    prompt_embeds, negative_prompt_embeds = pipe.encode_prompt(
-                        prompt=prompt, 
-                        device=pipe.device, 
-                        do_classifier_free_guidance=do_classifier_free_guidance,
-                        num_images_per_prompt=1,
-                    )
+#                     ### detailed the inject_watermark function for fft.grad
+#                     init_latents_w_fft = torch.fft.fftshift(torch.fft.fft2(noisy_latents), dim=(-1, -2))
+#                     init_latents_w_fft[mask] = opt_wm[mask].clone()
+#                     init_latents_w_fft.requires_grad = True
+#                     noisy_latents = torch.fft.ifft2(torch.fft.ifftshift(init_latents_w_fft, dim=(-1, -2))).real
+#                     ### Get the text embedding for conditioning CFG 
+#                     prompt = batch["prompt"]
+#                     do_classifier_free_guidance = False  # guidance_scale = 1.0
+#                     prompt_embeds, negative_prompt_embeds = pipe.encode_prompt(
+#                         prompt=prompt, 
+#                         device=pipe.device, 
+#                         do_classifier_free_guidance=do_classifier_free_guidance,
+#                         num_images_per_prompt=1,
+#                     )
                     
-                    cond_embedding = prompt_embeds
-                    text_embeddings = torch.cat([opt_wm_embedding, cond_embedding, null_embedding]) 
-                    text_embeddings.requires_grad = True
+#                     cond_embedding = prompt_embeds
+#                     text_embeddings = torch.cat([opt_wm_embedding, cond_embedding, null_embedding]) 
+#                     text_embeddings.requires_grad = True
 
-                    ### Predict the noise residual with CFG 
-                    latent_model_input = torch.cat([noisy_latents] * 3)
-                    latent_model_input = scheduler.scale_model_input(latent_model_input, timesteps)
-                    noise_pred = unet(latent_model_input, ori_timesteps, encoder_hidden_states=text_embeddings).sample
-                    noise_pred_wm, noise_pred_text, noise_pred_null = noise_pred.chunk(3)
-                    noise_pred = noise_pred_null + original_guidance_scale * (noise_pred_text - noise_pred_null) + optimized_guidance_scale * (noise_pred_wm - noise_pred_null)   # different guidance scale
+#                     ### Predict the noise residual with CFG 
+#                     latent_model_input = torch.cat([noisy_latents] * 3)
+#                     latent_model_input = scheduler.scale_model_input(latent_model_input, timesteps)
+#                     noise_pred = unet(latent_model_input, ori_timesteps, encoder_hidden_states=text_embeddings).sample
+#                     noise_pred_wm, noise_pred_text, noise_pred_null = noise_pred.chunk(3)
+#                     noise_pred = noise_pred_null + original_guidance_scale * (noise_pred_text - noise_pred_null) + optimized_guidance_scale * (noise_pred_wm - noise_pred_null)   # different guidance scale
                     
                     
-                    ### get the predicted x0 tensor
-                    scheduler._init_step_index(timesteps)
-                    x0_latents = scheduler.convert_model_output(model_output=noise_pred, sample=noisy_latents)  #predict x0 in one-step
-                    x0_tensor = decode_media_latents(pipe=pipe, latents=x0_latents)
+#                     ### get the predicted x0 tensor
+#                     scheduler._init_step_index(timesteps)
+#                     x0_latents = scheduler.convert_model_output(model_output=noise_pred, sample=noisy_latents)  #predict x0 in one-step
+#                     x0_tensor = decode_media_latents(pipe=pipe, latents=x0_latents)
                     
-                    loss_noise = F.mse_loss(x0_tensor.float(), gt_tensor.float(), reduction="mean")  # pixel alignment
-                    loss_wm = torch.mean(torch.abs(opt_wm[mask].real))
-                    loss_constrain = F.mse_loss(noise_pred_wm.float(), noise_pred_null.float(), reduction="mean")  # prompt constraint
+#                     loss_noise = F.mse_loss(x0_tensor.float(), gt_tensor.float(), reduction="mean")  # pixel alignment
+#                     loss_wm = torch.mean(torch.abs(opt_wm[mask].real))
+#                     loss_constrain = F.mse_loss(noise_pred_wm.float(), noise_pred_null.float(), reduction="mean")  # prompt constraint
 
-                    ### optimize wm pattern and uncond prompt alternately
-                    if (global_step // 500) % 2 == 0:
-                        loss = 10 * loss_noise + loss_constrain - 0.00001 * loss_wm  # opt wm pattern
-                        accelerator.backward(loss)
-                        with torch.no_grad():  
-                            grads = init_latents_w_fft.grad
-                            init_latents_w_fft = init_latents_w_fft - 1.0 * grads  # update wm pattern
-                            init_latents_w_fft = to_ring(init_latents_w_fft, args)
-                            opt_wm = init_latents_w_fft.detach()
-                    else:
-                        loss = 10 * loss_noise + loss_constrain  # opt prompt
-                        accelerator.backward(loss)
-                        with torch.no_grad():  
-                            grads = text_embeddings.grad
-                            text_embeddings = text_embeddings - 5e-04 * grads  
-                            opt_wm_embedding = text_embeddings[0].unsqueeze(0).detach()  # update acond embedding
+#                     ### optimize wm pattern and uncond prompt alternately
+#                     if (global_step // 500) % 2 == 0:
+#                         loss = 10 * loss_noise + loss_constrain - 0.00001 * loss_wm  # opt wm pattern
+#                         accelerator.backward(loss)
+#                         with torch.no_grad():  
+#                             grads = init_latents_w_fft.grad
+#                             init_latents_w_fft = init_latents_w_fft - 1.0 * grads  # update wm pattern
+#                             init_latents_w_fft = to_ring(init_latents_w_fft, args)
+#                             opt_wm = init_latents_w_fft.detach()
+#                     else:
+#                         loss = 10 * loss_noise + loss_constrain  # opt prompt
+#                         accelerator.backward(loss)
+#                         with torch.no_grad():  
+#                             grads = text_embeddings.grad
+#                             text_embeddings = text_embeddings - 5e-04 * grads  
+#                             opt_wm_embedding = text_embeddings[0].unsqueeze(0).detach()  # update acond embedding
 
 
-                    print(f'global_step: {global_step}, loss_mse: {loss_noise}, loss_wm: {loss_wm}, loss_cons: {loss_constrain},loss: {loss}')
+#                     print(f'global_step: {global_step}, loss_mse: {loss_noise}, loss_wm: {loss_wm}, loss_cons: {loss_constrain},loss: {loss}')
 
-                # Checks if the accelerator has performed an optimization step behind the scenes
-                if accelerator.sync_gradients:
-                    progress_bar.update(1)
-                    global_step += 1
-                    if global_step % hyperparameters["save_steps"] == 0:
-                        path = os.path.join(save_path, f"optimized_wm5-30_embedding-step-{global_step}.pt")
-                        torch.save({'opt_acond': opt_wm_embedding, 'opt_wm': opt_wm.cpu()}, path)
+#                 # Checks if the accelerator has performed an optimization step behind the scenes
+#                 if accelerator.sync_gradients:
+#                     progress_bar.update(1)
+#                     global_step += 1
+#                     if global_step % hyperparameters["save_steps"] == 0:
+#                         path = os.path.join(save_path, f"optimized_wm5-30_embedding-step-{global_step}.pt")
+#                         torch.save({'opt_acond': opt_wm_embedding, 'opt_wm': opt_wm.cpu()}, path)
 
-                logs = {"loss": loss.detach().item()}
-                progress_bar.set_postfix(**logs)
+#                 logs = {"loss": loss.detach().item()}
+#                 progress_bar.set_postfix(**logs)
 
-                if global_step >= max_train_steps:
-                    break
+#                 if global_step >= max_train_steps:
+#                     break
 
-            accelerator.wait_for_everyone()
+#             accelerator.wait_for_everyone()
 
-    return opt_wm, opt_wm_embedding
+#     return opt_wm, opt_wm_embedding
 
 class ROBINStableDiffusionPipelineOutput(BaseOutput):
     images: Union[List[PIL.Image.Image], np.ndarray]

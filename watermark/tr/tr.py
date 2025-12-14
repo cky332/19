@@ -18,7 +18,7 @@ class TRConfig(BaseConfig):
         self.w_seed = self.config_dict['w_seed']
         self.w_channel = self.config_dict['w_channel']
         self.w_pattern = self.config_dict['w_pattern']
-        self.w_mask_shape = self.config_dict['w_mask_shape']
+        # self.w_mask_shape = self.config_dict['w_mask_shape']
         self.w_radius = self.config_dict['w_radius']
         self.w_pattern_const = self.config_dict['w_pattern_const']
         self.threshold = self.config_dict['threshold']
@@ -97,26 +97,26 @@ class TRUtils:
         """Get the watermarking mask."""
         watermarking_mask = torch.zeros(init_latents.shape, dtype=torch.bool).to(self.config.device)
 
-        if self.config.w_mask_shape == 'circle':
-            np_mask = self._circle_mask(init_latents.shape[-1], r=self.config.w_radius)
-            torch_mask = torch.tensor(np_mask).to(self.config.device)
+        # if self.config.w_mask_shape == 'circle':
+        np_mask = self._circle_mask(init_latents.shape[-1], r=self.config.w_radius)
+        torch_mask = torch.tensor(np_mask).to(self.config.device)
 
-            if self.config.w_channel == -1:
-                # all channels
-                watermarking_mask[:, :] = torch_mask
-            else:
-                watermarking_mask[:, self.config.w_channel] = torch_mask
-        elif self.config.w_mask_shape == 'square':
-            anchor_p = init_latents.shape[-1] // 2
-            if self.config.w_channel == -1:
-                # all channels
-                watermarking_mask[:, :, anchor_p-self.config.w_radius:anchor_p+self.config.w_radius, anchor_p-self.config.w_radius:anchor_p+self.config.w_radius] = True
-            else:
-                watermarking_mask[:, self.config.w_channel, anchor_p-self.config.w_radius:anchor_p+self.config.w_radius, anchor_p-self.config.w_radius:anchor_p+self.config.w_radius] = True
-        elif self.config.w_mask_shape == 'no':
-            pass
+        if self.config.w_channel == -1:
+            # all channels
+            watermarking_mask[:, :] = torch_mask
         else:
-            raise NotImplementedError(f'w_mask_shape: {self.config.w_mask_shape}')
+            watermarking_mask[:, self.config.w_channel] = torch_mask
+        # elif self.config.w_mask_shape == 'square':
+        #     anchor_p = init_latents.shape[-1] // 2
+        #     if self.config.w_channel == -1:
+        #         # all channels
+        #         watermarking_mask[:, :, anchor_p-self.config.w_radius:anchor_p+self.config.w_radius, anchor_p-self.config.w_radius:anchor_p+self.config.w_radius] = True
+        #     else:
+        #         watermarking_mask[:, self.config.w_channel, anchor_p-self.config.w_radius:anchor_p+self.config.w_radius, anchor_p-self.config.w_radius:anchor_p+self.config.w_radius] = True
+        # elif self.config.w_mask_shape == 'no':
+        #     pass
+        # else:
+        #     raise NotImplementedError(f'w_mask_shape: {self.config.w_mask_shape}')
 
         return watermarking_mask
     

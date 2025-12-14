@@ -16,7 +16,7 @@ dynamic = ["version"]
 description = "An Open-Source Toolkit for Generative Watermarking of Latent Diffusion Models"
 readme = {file = "README.md", content-type = "text/markdown"}
 license = {text = "Apache-2.0"}
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 
 authors = [
     {name = "Leyi Pan", email = "panly24@mails.tsinghua.edu.cn"},
@@ -35,7 +35,7 @@ authors = [
 
 maintainers = [
     {name = "Leyi Pan", email = "panly24@mails.tsinghua.edu.cn"},
-    {name = "Aiwei Liu", email = "liuaiwei20@gmail.com"},
+    {name = "Sheng Guan", email = "codelformat@gmail.com"},
 ]
 
 keywords = [
@@ -57,7 +57,6 @@ classifiers = [
     "License :: OSI Approved :: Apache Software License",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
@@ -66,17 +65,26 @@ classifiers = [
     "Topic :: Security",
 ]
 
-# Core dependencies - minimal set required for basic functionality
+
+
 dependencies = [
-    "torch>=1.10",
-    "torchvision",
     "numpy>=1.20",
     "Pillow>=8.0",
-    "opencv-python>=4.5",
+    "opencv-python>=4.10",
     "requests>=2.26",
     "tqdm>=4.60",
     "scipy>=1.7",
     "matplotlib>=3.4",
+    "diffusers>=0.25",
+    "transformers>=4.30",
+    "accelerate>=0.20",
+    "huggingface_hub>=0.16",
+    "ujson>=5.10.0",
+    "datasets>=2.0",
+    "sentence-transformers>=5.0.0",
+    "joblib>=1.5.1",
+    "pandas>=1.4",
+    "pycryptodome>=3.23",
 ]
 
 [project.urls]
@@ -91,44 +99,22 @@ Changelog = "https://github.com/THU-BPM/markdiffusion/releases"
 # ============================================================================
 
 [project.optional-dependencies]
-# Diffusion model support (required for most watermarking methods)
-diffusion = [
-    "diffusers>=0.25",
-    "transformers>=4.30",
-    "accelerate>=0.20",
-    "huggingface_hub>=0.16",
-]
-
-# Cryptographic watermarking algorithms (PRC, GS, etc.)
-crypto = [
-    "pycryptodome>=3.15",
-    "galois>=0.3",
-    "ldpc>=2.0",
-]
-
-# Quality evaluation metrics
-evaluation = [
+# Optional dependencies that cannot be installed via conda
+optional = [
+    "ldpc>=2.3.8",
     "lpips>=0.1.4",
     "piq>=0.7",
     "pyiqa>=0.1.7",
     "timm>=0.9",
     "easydict>=1.9",
-    # clip needs to be installed independently: pip install git+https://github.com/openai/CLIP.git
+    "galois>=0.4.7",
+    "Levenshtein>=0.27.1",
 ]
 
-# Data processing and analysis
-data = [
-    "datasets>=2.0",
-    "sentence-transformers>=2.2",
-    "ujson>=5.0",
-    "joblib>=1.2",
-    "pandas>=1.4",
-]
-
-# Visualization enhancements
-viz = [
-    "qrcode>=7.3",
-    "python-Levenshtein>=0.20",
+# Testing dependencies
+test = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
 ]
 
 # Development tools
@@ -149,16 +135,6 @@ docs = [
     "myst-parser>=1.0",
 ]
 
-# All optional dependencies (excluding dev and docs)
-all = [
-    "markdiffusion[diffusion,crypto,evaluation,data,viz]",
-]
-
-# Full installation including dev tools
-full = [
-    "markdiffusion[all,dev,docs]",
-]
-
 # ============================================================================
 # Entry Points (CLI commands)
 # ============================================================================
@@ -177,29 +153,21 @@ include-package-data = true
 [tool.setuptools.packages.find]
 where = ["."]
 include = [
-    "watermark*",
-    "detection*",
-    "visualize*",
-    "evaluation*",
-    "inversions*",
-    "utils*",
-    "exceptions*",
+    "markdiffusion",
+    "markdiffusion.*",
 ]
 exclude = [
-    "test*",
     "tests*",
     "examples*",
     "backup*",
     "VBench*",
-    "dataset*",
     "dino*",
-    "config*",
     "img*",
     "output*",
 ]
 
 [tool.setuptools.package-data]
-"*" = ["*.yaml", "*.json", "*.txt"]
+"*" = ["*.yaml", "*.json", "*.txt", "*.parquet", "*.arrow"]
 
 # ============================================================================
 # Tool Configurations
@@ -229,7 +197,7 @@ exclude = '''
 profile = "black"
 line_length = 120
 skip = [".git", "VBench", "backup", ".venv"]
-known_first_party = ["watermark", "detection", "visualize", "evaluation", "inversions", "utils", "exceptions"]
+known_first_party = ["markdiffusion"]
 
 [tool.mypy]
 python_version = "3.9"
@@ -239,7 +207,7 @@ ignore_missing_imports = true
 exclude = ["VBench", "backup", "test"]
 
 [tool.pytest.ini_options]
-testpaths = ["test"]
+testpaths = ["markdiffusion/test"]
 python_files = ["test_*.py", "*_test.py"]
 python_functions = ["test_*"]
 addopts = "-v --tb=short"
@@ -249,7 +217,7 @@ filterwarnings = [
 ]
 
 [tool.coverage.run]
-source = ["watermark", "detection", "visualize", "evaluation", "inversions", "utils"]
+source = ["markdiffusion"]
 omit = ["*/test/*", "*/tests/*", "*/__pycache__/*"]
 
 [tool.coverage.report]
@@ -265,5 +233,5 @@ exclude_lines = [
 # Dynamic Version Configuration
 # ============================================================================
 
-[tool.setuptools.dynamic]
-version = {attr = "watermark.__version__"}
+# [tool.setuptools.dynamic]
+# version = {attr = "markdiffusion.__version__"}

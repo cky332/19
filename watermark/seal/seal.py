@@ -108,6 +108,10 @@ class SEALUtils:
             Noise tensor with shape [1, 4, 64, 64]
         """
         
+        # Get latent dimensions from config
+        latent_height = self.config.image_size[0] // 8
+        latent_width = self.config.image_size[1] // 8
+        
         # Calculate patch grid dimensions
         patch_per_side = int(math.ceil(math.sqrt(k)))
         
@@ -115,11 +119,11 @@ class SEALUtils:
         keys = self._simhash(embedding, k, b, seed)
         
         # Create empty noise tensor
-        initial_noise = torch.zeros(1, 4, 64, 64, device=self.config.device)
+        initial_noise = torch.zeros(1, 4, latent_height, latent_width, device=self.config.device)
         
         # Calculate patch dimensions
-        patch_height = 64 // patch_per_side
-        patch_width = 64 // patch_per_side
+        patch_height = max(1, latent_height // patch_per_side)
+        patch_width = max(1, latent_width // patch_per_side)
         
         # Fill noise tensor with random patches based on hash keys
         patch_count = 0
@@ -140,9 +144,13 @@ class SEALUtils:
                 # Calculate patch coordinates
                 y_start = i * patch_height
                 x_start = j * patch_width
-                y_end = min(y_start + patch_height, 64)
-                x_end = min(x_start + patch_width, 64)
+                y_end = min(y_start + patch_height, latent_height)
+                x_end = min(x_start + patch_width, latent_width)
                 
+                # Skip if patch is empty (can happen if grid is larger than latent dims)
+                if y_end <= y_start or x_end <= x_start:
+                    continue
+
                 # Generate random noise for this patch
                 initial_noise[:, :, y_start:y_end, x_start:x_end] = torch.randn(
                     (1, 4, y_end - y_start, x_end - x_start), 
@@ -173,7 +181,7 @@ class SEAL(BaseWatermark):
         """Generate watermarked image."""
         
         ## Step 1: Generate original image
-        image = self.config.pipe(prompt).images[0]
+        image = self.config.pipe(prompt, height=self.config.image_size[0], width=self.config.image_size[1]).images[0]
         
         ## Step 2: Caption the original image
         image_caption = self.utils.generate_caption(image)

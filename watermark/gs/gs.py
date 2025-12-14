@@ -53,7 +53,7 @@ class GSUtils:
         self.config = config
         self.chacha_key = self._get_bytes_with_seed(self.config.chacha_key_seed, 32)
         self.chacha_nonce = self._get_bytes_with_seed(self.config.chacha_nonce_seed, 12)
-        self.latentlength = 4 * 64 * 64
+        self.latentlength = 4 * self.config.latents_height * self.config.latents_width
         self.marklength = self.latentlength//(self.config.channel_copy * self.config.hw_copy * self.config.hw_copy)
     
     def _get_bytes_with_seed(self, seed: int, n: int) -> bytes:
@@ -76,8 +76,8 @@ class GSUtils:
             dec_mes = reduce(lambda a, b: 2 * a + b, message[i : i + 1])
             dec_mes = int(dec_mes)
             z[i] = truncnorm.rvs(ppf[dec_mes], ppf[dec_mes + 1])
-        z = torch.from_numpy(z).reshape(1, 4, 64, 64).float()
-        return z.cuda()
+        z = torch.from_numpy(z).reshape(1, 4, self.config.latents_height, self.config.latents_width).float()
+        return z.to(self.config.device)
     
     def _create_watermark(self) -> torch.Tensor:
         """Create watermark pattern without encryption."""

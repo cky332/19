@@ -84,10 +84,15 @@ class RIUtils:
         assert mode == 'full', f"mode '{mode}' not implemented"
 
         # Step 1: Initialize the frequency domain image and ring vector
-        num_rings = r_out
-        zero_bg_freq = torch.zeros(size, size)
         center = size // 2
         center_x, center_y = center + x_offset, center - y_offset
+
+        # Adjust r_out to fit within the image boundaries
+        if center_y + r_out > size:
+            r_out = max(0, size - center_y)
+
+        num_rings = r_out
+        zero_bg_freq = torch.zeros(size, size)
 
         ring_vector = torch.tensor([(200 - i * 4) * (-1) ** i for i in range(num_rings)])
         zero_bg_freq[center_x, center_y:center_y + num_rings] = ring_vector

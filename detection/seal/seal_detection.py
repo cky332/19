@@ -53,8 +53,12 @@ class SEALDetector(BaseDetector):
         l2_list = []
         patch_per_side_h = int(math.ceil(math.sqrt(k)))
         patch_per_side_w = int(math.ceil(k / patch_per_side_h))
-        patch_height = 64 // patch_per_side_h
-        patch_width = 64 // patch_per_side_w
+        
+        # Dynamically calculate patch size based on input tensor dimensions
+        _, _, H, W = noise1.shape
+        patch_height = H // patch_per_side_h
+        patch_width = W // patch_per_side_w
+        
         patch_count = 0
         for i in range(patch_per_side_h):
             for j in range(patch_per_side_w):
@@ -62,8 +66,8 @@ class SEALDetector(BaseDetector):
                     break
                 y_start = i * patch_height
                 x_start = j * patch_width
-                y_end = min(y_start + patch_height, 64)
-                x_end = min(x_start + patch_width, 64)
+                y_end = min(y_start + patch_height, H)
+                x_end = min(x_start + patch_width, W)
                 patch1 = noise1[:, :, y_start:y_end, x_start:x_end]
                 patch2 = noise2[:, :, y_start:y_end, x_start:x_end]
                 l2_val = torch.norm(patch1 - patch2).item()

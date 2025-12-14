@@ -102,16 +102,7 @@ def pytest_configure(config):
     config.addinivalue_line("markers", "integration: mark test as integration test")
 
 
-def pytest_collection_modifyitems(config, items):
-    """Modify test collection based on command line options."""
-    algorithm = config.getoption("--algorithm")
-    if algorithm:
-        # Filter tests to only run for specified algorithm
-        selected = []
-        for item in items:
-            if algorithm in item.nodeid:
-                selected.append(item)
-        items[:] = selected
+
 
 
 def pytest_terminal_summary(terminalreporter, exitstatus, config):
@@ -128,26 +119,43 @@ def pytest_terminal_summary(terminalreporter, exitstatus, config):
     terminalreporter.write_line(f"Skipped: {len(skipped)}")
 
 def pytest_collection_modifyitems(config, items):
+    """
+    Filter tests based on the --algorithm command line option.
+    Handles case-insensitive matching against supported algorithms.
+    """
     algo_str = config.getoption("--algorithm")
     if not algo_str:
         return
-    whitelist = {a.strip() for a in algo_str.split(",") if a.strip()}
+
+    user_whitelist = {a.strip().lower() for a in algo_str.split(",") if a.strip()}
+    supported_algos = set()
+    for algo_list in PIPELINE_SUPPORTED_WATERMARKS.values():
+        supported_algos.update(algo_list)
+    name_mapping = {name.lower(): name for name in supported_algos}
+    final_whitelist = {name_mapping.get(u, u) for u in user_whitelist}
+    
+    import sys
+    sys.stderr.write(f"\n[Filter] User input: {user_whitelist}\n")
+    sys.stderr.write(f"[Filter] Mapped to: {final_whitelist}\n")
 
     selected, deselected = [], []
     for item in items:
         callspec = getattr(item, "callspec", None)
         if callspec and "algorithm_name" in callspec.params:
-            algo = callspec.params["algorithm_name"]
-            if algo in whitelist:
+            current_algo = callspec.params["algorithm_name"]
+            if current_algo in final_whitelist:
                 selected.append(item)
             else:
                 deselected.append(item)
+        elif any(target.lower() in item.nodeid.lower() for target in final_whitelist):
+             selected.append(item)
+        
         else:
-            # 其它测试不受影响，默认保留
             selected.append(item)
 
     if deselected:
         config.hook.pytest_deselected(items=deselected)
+        items[:] = selected
         items[:] = selected
 
 # ============================================================================

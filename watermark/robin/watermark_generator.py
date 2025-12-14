@@ -112,9 +112,12 @@ def circle_mask(size=64, r_max=10, r_min=0, x_offset=0, y_offset=0):
     
 def get_watermarking_mask(init_latents_w, args, device):
     watermarking_mask = torch.zeros(init_latents_w.shape, dtype=torch.bool).to(device)
+    
+    # Use dynamic size from input latents
+    latent_size = init_latents_w.shape[-1]
 
     if args.w_mask_shape == 'circle':
-        np_mask = circle_mask(init_latents_w.shape[-1], r_max=args.w_up_radius, r_min=args.w_low_radius)
+        np_mask = circle_mask(latent_size, r_max=args.w_up_radius, r_min=args.w_low_radius)
 
         torch_mask = torch.tensor(np_mask).to(device)
 
@@ -124,7 +127,7 @@ def get_watermarking_mask(init_latents_w, args, device):
         else:
             watermarking_mask[:, args.w_channel] = torch_mask
     elif args.w_mask_shape == 'square':
-        anchor_p = init_latents_w.shape[-1] // 2
+        anchor_p = latent_size // 2
         if args.w_channel == -1:
             # all channels
             watermarking_mask[:, :, anchor_p-args.w_radius:anchor_p+args.w_radius, anchor_p-args.w_radius:anchor_p+args.w_radius] = True
@@ -530,9 +533,16 @@ def ROBINWatermarkedImageGeneration(
     do_classifier_free_guidance = guidance_scale > 1.0
 
     # 3. Encode input prompt
-    text_embeddings = pipe._encode_prompt(
+    # Use encode_prompt instead of _encode_prompt for compatibility with newer diffusers versions
+    prompt_embeds, negative_prompt_embeds = pipe.encode_prompt(
         prompt, device, num_images_per_prompt, do_classifier_free_guidance, negative_prompt
     )
+    
+    # Concatenate for classifier free guidance
+    if do_classifier_free_guidance:
+        text_embeddings = torch.cat([negative_prompt_embeds, prompt_embeds])
+    else:
+        text_embeddings = prompt_embeds
 
     # 4. Prepare timesteps
     pipe.scheduler.set_timesteps(num_inference_steps, device=device)

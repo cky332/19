@@ -61,7 +61,9 @@ class WINDConfig(BaseConfig):
     def _generate_noise(self, seed: bytes) -> torch.Tensor:
         """Generate noises from seeds"""
         rng = np.random.RandomState(int.from_bytes(seed[:4], 'big'))
-        return torch.from_numpy(rng.randn(4, 64, 64)).float().to(self.device)
+        latent_height = self.image_size[0] // 8
+        latent_width = self.image_size[1] // 8
+        return torch.from_numpy(rng.randn(4, latent_height, latent_width)).float().to(self.device)
     
     @property
     def algorithm_name(self) -> str:
@@ -77,12 +79,17 @@ class WINDUtils:
     def _generate_group_patterns(self) -> Dict[int, torch.Tensor]:
         set_random_seed(self.config.w_seed)
         patterns = {}
+        latent_height = self.config.image_size[0] // 8
+        latent_width = self.config.image_size[1] // 8
+        # Assuming square latents for mask generation as per current implementation
+        size = latent_height
+        
         for g in range(self.config.M):
             pattern = torch.fft.fftshift(
-                torch.fft.fft2(torch.randn(4, 64, 64).to(self.config.device)),
+                torch.fft.fft2(torch.randn(4, latent_height, latent_width).to(self.config.device)),
                 dim=(-1, -2)
             )
-            mask = self._circle_mask(64, self.config.group_radius)
+            mask = self._circle_mask(size, self.config.group_radius)
             pattern *= mask
             patterns[g] = pattern
         return patterns
@@ -100,7 +107,11 @@ class WINDUtils:
         g = index % self.config.M
         z_fft = torch.fft.fftshift(torch.fft.fft2(z_i), dim=(-1, -2))
     
-        mask = self._circle_mask(64, self.config.group_radius)
+        latent_height = self.config.image_size[0] // 8
+        # Assuming square latents for mask generation
+        size = latent_height
+        
+        mask = self._circle_mask(size, self.config.group_radius)
         z_fft = z_fft + self.group_patterns[g] * mask  
     
         z_combined = torch.fft.ifft2(torch.fft.ifftshift(z_fft)).real

@@ -10,6 +10,7 @@ from visualize.data_for_visualization import DataForVisualization
 from detection.sfw.sfw_detection import SFWDetector
 import torchvision.transforms as tforms
 import qrcode
+import logging
 import os
 
 class SFWConfig(BaseConfig):
@@ -110,8 +111,17 @@ class SFWUtils:
         gt_init = pipe.prepare_latents(1, pipe.unet.in_channels, resolution, resolution, pipe.unet.dtype, torch.device(self.config.device), g) # (1,4,64,64)
         # [HSTR] center-aware design
         watermarked_latents_fft = SFWUtils.fft(torch.zeros(shape, device=self.config.device)) # (1,4,64,64) complex64
-        start = 10
-        end = 54 # 64-10 = hw_latent-start
+        
+        h = shape[-2]
+        # Use a relative size or default to 44 if possible
+        if h >= 64:
+            patch_size = 44
+        else:
+            patch_size = h - 2 if h > 2 else h # Use almost full size for small latents
+            
+        start = (h - patch_size) // 2
+        end = start + patch_size
+        
         center_slice = (slice(None), slice(None), slice(start, end), slice(start, end))
         gt_patch_tmp = SFWUtils.fft(gt_init[center_slice]).clone().detach() # (1,4,44,44) complex64
         center_len = gt_patch_tmp.shape[-1] // 2 # 22
@@ -155,7 +165,9 @@ class SFWUtils:
     def _get_watermarking_pattern(self) -> torch.Tensor:
         """Get the ground truth watermarking pattern."""
         set_random_seed(self.config.w_seed)
-        shape = (1, 4, 64, 64)
+        latent_h = self.config.image_size[0] // 8
+        latent_w = self.config.image_size[1] // 8
+        shape = (1, 4, latent_h, latent_w)
         if self.config.wm_type == "HSQR":
             Fourier_watermark_pattern_list = [self.make_hsqr_pattern(idx=self.config.w_seed)]
         else:
@@ -244,8 +256,15 @@ class SFWUtils:
         self.watermarking_mask = self.watermarking_mask.to(self.config.device)
 
         # inject watermarks in fourier space
-        start = 10
-        end = 54 # 64-10 = hw_latent-start
+        h = init_latents.shape[-2]
+        if h >= 64:
+            patch_size = 44
+        else:
+            patch_size = h - 2 if h > 2 else h
+            
+        start = (h - patch_size) // 2
+        end = start + patch_size
+        
         center_slice = (slice(None), slice(None), slice(start, end), slice(start, end))
         assert len(init_latents[center_slice].shape) == 4
         center_latent_fft=torch.fft.fftshift(torch.fft.fft2(init_latents[center_slice]), dim=(-1, -2))# (N,4,44,44) complex64
@@ -274,9 +293,21 @@ class SFWUtils:
         qr_left = self.gt_patch[:, :, :, :qr_pix_half]    # (N,c_wm,42,21) boolean
         qr_right = self.gt_patch[:, :, :, qr_pix_half:]   # (N,c_wm,42,21) boolean
         # rfft
-        start = 10
-        end = 54 # 64-10 = hw_latent-start
-        center_slice = (slice(None), slice(None), slice(start, end), slice(start, end))
+        h, w = inverted_latent.shape[-2:]
+        # The original code used a 44x44 slice for a 42x42 patch (padding of 1 on each side?)
+        # 54 - 10 = 44. 
+        patch_size = qr_pix_len + 2 # 44
+        
+        if h < patch_size or w < patch_size:
+            logging.warning(f"Latent size ({h}x{w}) too small for SFW HSQR injection (required {patch_size}x{patch_size}). Skipping injection.")
+            return inverted_latent
+
+        start_h = (h - patch_size) // 2
+        start_w = (w - patch_size) // 2
+        end_h = start_h + patch_size
+        end_w = start_w + patch_size
+        
+        center_slice = (slice(None), slice(None), slice(start_h, end_h), slice(start_w, end_w))
         center_latent_rfft = SFWUtils.rfft(inverted_latent[center_slice]) # (N,4,44,44) -> # (N,4,44,23) complex64
         center_real_batch = center_latent_rfft.real # (N,4,44,23) f32
         center_imag_batch = center_latent_rfft.imag # (N,4,44,23) f32

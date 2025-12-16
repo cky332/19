@@ -13,7 +13,7 @@ from huggingface_hub import hf_hub_download
 from visualize.data_for_visualization import DataForVisualization
 from evaluation.dataset import StableDiffusionPromptsDataset
 from utils.media_utils import get_random_latents
-from .watermark_generator import OptimizedDataset, get_watermarking_mask, get_watermarking_pattern, inject_watermark, optimizer_wm_prompt, ROBINWatermarkedImageGeneration
+from .watermark_generator import get_watermarking_mask, get_watermarking_pattern, inject_watermark, ROBINWatermarkedImageGeneration # OptimizedDataset, optimizer_wm_prompt
 from detection.robin.robin_detection import ROBINDetector
 
 class ROBINConfig(BaseConfig):
@@ -94,26 +94,26 @@ class ROBINUtils:
             
         return generation_params
     
-    def generate_clean_images(self, dataset: StableDiffusionPromptsDataset, **kwargs) -> List[Image.Image]:
-        """Generate clean images for optimization."""
-        generation_params = self.build_generation_params(**kwargs, guidance_scale=self.config.data_guidance_scale)
+    # def generate_clean_images(self, dataset: StableDiffusionPromptsDataset, **kwargs) -> List[Image.Image]:
+    #     """Generate clean images for optimization."""
+    #     generation_params = self.build_generation_params(**kwargs, guidance_scale=self.config.data_guidance_scale)
         
-        clean_images = []
-        for i, prompt in enumerate(dataset):
-            formatted_img_filename = f"ori-lg{generation_params['guidance_scale']}-{i}.jpg"
-            if os.path.exists(os.path.join(self.config.output_img_dir, formatted_img_filename)):
-                clean_images.append(Image.open(os.path.join(self.config.output_img_dir, formatted_img_filename)))
-            else:            
-                no_watermarked_image = self.config.pipe(
-                    prompt,
-                    **generation_params,
-                ).images[0]
-                clean_images.append(no_watermarked_image)
+    #     clean_images = []
+    #     for i, prompt in enumerate(dataset):
+    #         formatted_img_filename = f"ori-lg{generation_params['guidance_scale']}-{i}.jpg"
+    #         if os.path.exists(os.path.join(self.config.output_img_dir, formatted_img_filename)):
+    #             clean_images.append(Image.open(os.path.join(self.config.output_img_dir, formatted_img_filename)))
+    #         else:            
+    #             no_watermarked_image = self.config.pipe(
+    #                 prompt,
+    #                 **generation_params,
+    #             ).images[0]
+    #             clean_images.append(no_watermarked_image)
                 
-                os.makedirs(self.config.output_img_dir, exist_ok=True)
-                no_watermarked_image.save(os.path.join(self.config.output_img_dir, f"ori-lg{generation_params['guidance_scale']}-{i}.jpg"))
+    #             os.makedirs(self.config.output_img_dir, exist_ok=True)
+    #             no_watermarked_image.save(os.path.join(self.config.output_img_dir, f"ori-lg{generation_params['guidance_scale']}-{i}.jpg"))
                 
-        return clean_images
+    #     return clean_images
     
     def build_watermarking_args(self) -> types.SimpleNamespace:
         """Build watermarking arguments from config."""
@@ -153,55 +153,81 @@ class ROBINUtils:
         
         # Build hyperparameters
         hyperparameters = self.build_hyperparameters()
-        checkpoint_path=hf_hub_download(repo_id="Generative-Watermark-Toolkits/MarkDiffusion-robin", filename=f"optimized_wm5-30_embedding-step-{hyperparameters['max_train_steps']}.pt", cache_dir=self.config.hf_dir)
+        filename = f"optimized_wm5-30_embedding-step-{hyperparameters['max_train_steps']}.pt"
+
+        # Check if file already exists locally before downloading
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        checkpoint_path = None
+
+        # Check multiple potential local paths
+        potential_paths = [
+            os.path.join(base_dir, self.config.hf_dir, filename) if self.config.hf_dir else None,
+            os.path.join(self.config.hf_dir, filename) if self.config.hf_dir else None,
+            os.path.join(self.config.ckpt_dir, filename),
+        ]
+
+        for path in potential_paths:
+            if path and os.path.exists(path):
+                checkpoint_path = path
+                print(f"Using existing ROBIN checkpoint: {checkpoint_path}")
+                break
+
+        # If not found locally, download from HuggingFace
+        if checkpoint_path is None:
+            checkpoint_path = hf_hub_download(
+                repo_id="Generative-Watermark-Toolkits/MarkDiffusion-robin",
+                filename=filename,
+                cache_dir=self.config.hf_dir
+            )
+            print(f"Downloaded ROBIN checkpoint from Huggingface Hub: {checkpoint_path}")
 
         # if os.path.exists(checkpoint_path):
-        if (not self.config.is_training_from_scratch):
-            if not os.path.exists(checkpoint_path):
-                os.makedirs(self.config.ckpt_dir, exist_ok=True)
-                from huggingface_hub import snapshot_download
-                snapshot_download(
-                    repo_id="Generative-Watermark-Toolkits/MarkDiffusion-robin",
-                    local_dir=self.config.ckpt_dir,
-                    repo_type="model",   
-                    local_dir_use_symlinks=False,
-                    endpoint=os.getenv("HF_ENDPOINT", "https://huggingface.co"),
-                )
-            
-            print(f"Loading checkpoint from {checkpoint_path}")
-            checkpoint = torch.load(checkpoint_path, map_location=self.config.device)
-            optimized_watermark = checkpoint['opt_wm'].to(self.config.device)
-            optimized_watermarking_signal = checkpoint['opt_acond'].to(self.config.device)
+        # if (not self.config.is_training_from_scratch):
+        if not os.path.exists(checkpoint_path):
+            os.makedirs(self.config.ckpt_dir, exist_ok=True)
+            from huggingface_hub import snapshot_download
+            snapshot_download(
+                repo_id="Generative-Watermark-Toolkits/MarkDiffusion-robin",
+                local_dir=self.config.ckpt_dir,
+                repo_type="model",
+                local_dir_use_symlinks=False,
+                endpoint=os.getenv("HF_ENDPOINT", "https://huggingface.co"),
+            )
+        
+        print(f"Loading checkpoint from {checkpoint_path}")
+        checkpoint = torch.load(checkpoint_path, map_location=self.config.device)
+        optimized_watermark = checkpoint['opt_wm'].to(self.config.device)
+        optimized_watermarking_signal = checkpoint['opt_acond'].to(self.config.device)
 
-            return watermarking_mask, optimized_watermark, optimized_watermarking_signal
-        else:
-            print(f"Start training from scratch")
-            # Generate clean images
-            clean_images = self.generate_clean_images(dataset)
-            # Create training dataset
-            train_dataset = OptimizedDataset(
-                data_root=self.config.output_img_dir,
-                custom_dataset=dataset,
-                size=512,
-                repeats=10,
-                interpolation="bicubic",
-            )
+        return watermarking_mask, optimized_watermark, optimized_watermarking_signal
+        # else:
+        #     print(f"Start training from scratch")
+        #     # Generate clean images
+        #     clean_images = self.generate_clean_images(dataset)
+        #     # Create training dataset
+        #     train_dataset = OptimizedDataset(
+        #         data_root=self.config.output_img_dir,
+        #         custom_dataset=dataset,
+        #         size=512,
+        #         repeats=10,
+        #         interpolation="bicubic",
+        #     )
             
-            train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=self.config.train_batch_size, shuffle=True)
+        #     train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=self.config.train_batch_size, shuffle=True)
             
-            opt_watermark = get_watermarking_pattern(pipe=self.config.pipe, args=watermarking_args, device=self.config.device)
+        #     opt_watermark = get_watermarking_pattern(pipe=self.config.pipe, args=watermarking_args, device=self.config.device)
             
-            optimized_watermark, optimized_watermarking_signal = optimizer_wm_prompt(
-                pipe=self.config.pipe, 
-                dataloader=train_dataloader,
-                hyperparameters=hyperparameters,
-                mask=watermarking_mask,
-                opt_wm=opt_watermark,
-                save_path=self.config.ckpt_dir,
-                args=watermarking_args,
-            )
+        #     optimized_watermark, optimized_watermarking_signal = optimizer_wm_prompt(
+        #         pipe=self.config.pipe, 
+        #         dataloader=train_dataloader,
+        #         hyperparameters=hyperparameters,
+        #         mask=watermarking_mask,
+        #         opt_wm=opt_watermark,
+        #         save_path=self.config.ckpt_dir,
+        #         args=watermarking_args,
+        #     )
             
-            return watermarking_mask, optimized_watermark, optimized_watermarking_signal
+        #     return watermarking_mask, optimized_watermark, optimized_watermarking_signal
     
     def initialize_detector(self, watermarking_mask, optimized_watermark) -> ROBINDetector:
         """Initialize the ROBIN detector."""

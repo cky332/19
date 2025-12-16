@@ -31,10 +31,9 @@ from utils.pipeline_utils import (
 # ============================================================================
 
 # Default model paths (can be overridden via pytest options)
-# DEFAULT_IMAGE_MODEL_PATH = "huanzi05/stable-diffusion-2-1-base"
-# DEFAULT_VIDEO_MODEL_PATH = "ali-vilab/text-to-video-ms-1.7b"
-DEFAULT_VIDEO_MODEL_PATH = "/mnt/ckpt/text-to-video-ms-1.7b"
-DEFAULT_IMAGE_MODEL_PATH = "/mnt/ckpt/stable-diffusion-2-1-base"
+DEFAULT_IMAGE_MODEL_PATH = "/home/harry/models/stable-diffusion-2-1-base"
+DEFAULT_VIDEO_MODEL_PATH = "/home/harry/models/text-to-video-ms-1.7b"
+
 # Test prompts
 TEST_PROMPT_IMAGE = "A beautiful sunset over the ocean"
 TEST_PROMPT_VIDEO = "A cinematic timelapse of city lights at night"
@@ -232,22 +231,8 @@ def video_pipeline(device, video_model_path):
 def image_diffusion_config(device, image_pipeline):
     """Create diffusion config for image generation."""
     pipe, scheduler = image_pipeline
-    return DiffusionConfig(
-        scheduler=scheduler,
-        pipe=pipe,
-        device=device,
-        image_size=IMAGE_SIZE,
-        num_inference_steps=NUM_INFERENCE_STEPS,
-        guidance_scale=GUIDANCE_SCALE,
-        gen_seed=GEN_SEED,
-        inversion_type="ddim"
-    )
-
-
-@pytest.fixture
-def video_diffusion_config(device, video_pipeline):
-    """Create diffusion config for video generation."""
-    pipe, scheduler = video_pipeline
+    # Use the pipeline's dtype to ensure consistency
+    pipe_dtype = getattr(pipe, 'dtype', torch.float32)
     return DiffusionConfig(
         scheduler=scheduler,
         pipe=pipe,
@@ -257,7 +242,27 @@ def video_diffusion_config(device, video_pipeline):
         guidance_scale=GUIDANCE_SCALE,
         gen_seed=GEN_SEED,
         inversion_type="ddim",
-        num_frames=NUM_FRAMES
+        dtype=pipe_dtype
+    )
+
+
+@pytest.fixture
+def video_diffusion_config(device, video_pipeline):
+    """Create diffusion config for video generation."""
+    pipe, scheduler = video_pipeline
+    # Explicitly set dtype to match the pipeline's dtype to avoid Half/Float mismatch
+    pipe_dtype = torch.float16 if device == 'cuda' else torch.float32
+    return DiffusionConfig(
+        scheduler=scheduler,
+        pipe=pipe,
+        device=device,
+        image_size=IMAGE_SIZE,
+        num_inference_steps=NUM_INFERENCE_STEPS,
+        guidance_scale=GUIDANCE_SCALE,
+        gen_seed=GEN_SEED,
+        inversion_type="ddim",
+        num_frames=NUM_FRAMES,
+        dtype=pipe_dtype
     )
 
 
@@ -310,7 +315,7 @@ def all_image_editors():
         Brightness(),
         Mask(),
         Overlay(),
-        # AdaptiveNoiseInjection()
+        AdaptiveNoiseInjection()
     ]
 
 

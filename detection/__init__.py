@@ -12,24 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""
-Detection module for MarkDiffusion.
+"""Detection module for watermark verification and extraction."""
 
-This module provides detection functionality for various watermarking algorithms.
-"""
+from .base import BaseDetector
 
-__all__ = [
-    'base',
-    'gm',
-    'gs',
-    'prc',
-    'ri',
-    'robin',
-    'seal',
-    'sfw',
-    'tr',
-    'videomark',
-    'videoshield',
-    'wind',
-]
-
+__all__ = ["BaseDetector"]

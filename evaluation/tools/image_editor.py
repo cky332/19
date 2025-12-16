@@ -212,8 +212,8 @@ class AdaptiveNoiseInjection(ImageEditor):
         pepper_coords_y = np.random.randint(0, h, num_pepper)
         pepper_coords_x = np.random.randint(0, w, num_pepper)
         noisy[pepper_coords_y, pepper_coords_x] = 0
-        
-        return noisy
+
+        return np.clip(noisy, 0, 255).astype(np.uint8)
     
     def _add_poisson_noise(self, img_array):
         vals = len(np.unique(img_array))

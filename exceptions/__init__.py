@@ -12,13 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""
-Custom exceptions for MarkDiffusion.
-
-This module defines custom exception classes used throughout the MarkDiffusion library.
-"""
+"""Custom exceptions for MarkDiffusion."""
 
 from .exceptions import *
-
-__all__ = ['exceptions']
-

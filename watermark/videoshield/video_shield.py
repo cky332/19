@@ -436,6 +436,8 @@ class VideoShieldWatermark(BaseWatermark):
         inverse_scheduler = DDIMInverseScheduler.from_config(original_scheduler.config)
         self.config.pipe.scheduler = inverse_scheduler
         
+        video_latents = video_latents.to(self.config.pipe.unet.dtype)
+        
         final_reversed_latents = self.config.pipe(
             prompt=prompt,
             latents=video_latents,
@@ -494,6 +496,8 @@ class VideoShieldWatermark(BaseWatermark):
         inverse_scheduler = DDIMInverseScheduler.from_config(original_scheduler.config)
         self.config.pipe.scheduler = inverse_scheduler
         collector = DenoisingLatentsCollector(save_every_n_steps=1, to_cpu=True)
+        
+        video_latents = video_latents.to(self.config.pipe.unet.dtype)
         
         final_reversed_latents = self.config.pipe(
             prompt=prompt,

@@ -13,26 +13,34 @@
 # limitations under the License.
 
 """
-Watermark module for MarkDiffusion.
+MarkDiffusion - An Open-Source Toolkit for Generative Watermarking of Latent Diffusion Models.
 
-This module provides watermarking functionality for different algorithms
-including GM, GS, PRC, RI, ROBIN, SEAL, SFW, TR, VideoMark, VideoShield, and WIND.
+This package provides watermarking algorithms for diffusion models including:
+- Tree-Ring (TR)
+- Gaussian Shading (GS)
+- RingID (RI)
+- PRC
+- ROBIN
+- Gaussian Marking (GM)
+- SFW (Stable Few Watermarks)
+- SEAL
+- WIND
+- VideoMark
+- VideoShield
 """
 
-__all__ = [
-    'auto_config',
-    'auto_watermark',
-    'base',
-    'gm',
-    'gs',
-    'prc',
-    'ri',
-    'robin',
-    'seal',
-    'sfw',
-    'tr',
-    'videomark',
-    'videoshield',
-    'wind',
-]
+__version__ = "0.1.6.post1"
+__author__ = "THU-BPM MarkDiffusion Team"
+__license__ = "Apache-2.0"
 
+from .base import BaseWatermark, BaseConfig
+from .auto_watermark import AutoWatermark
+from .auto_config import AutoConfig
+
+__all__ = [
+    "__version__",
+    "BaseWatermark",
+    "BaseConfig",
+    "AutoWatermark",
+    "AutoConfig",
+]

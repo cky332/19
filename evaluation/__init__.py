@@ -12,15 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""
-Evaluation module for MarkDiffusion.
+"""Evaluation module for watermark quality and robustness assessment."""
 
-This module provides tools for evaluating watermarking algorithms,
-including quality analysis and detection rate calculations.
-"""
+from .dataset import BaseDataset
 
-__all__ = [
-    'dataset',
-    'pipelines',
-    'tools',
-]
+__all__ = ["BaseDataset"]

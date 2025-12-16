@@ -355,22 +355,22 @@ class GMUtils:
 				mask[:, :, base_mask] = True
 			else:
 				mask[:, self.config.w_channel, base_mask] = True
-		elif shape == "square":
-			anchor = self.latent_shape[-1] // 2
-			sl = slice(anchor - self.config.w_radius, anchor + self.config.w_radius)
-			if self.config.w_channel == -1:
-				mask[:, :, sl, sl] = True
-			else:
-				mask[:, self.config.w_channel, sl, sl] = True
-		elif shape == "signal_circle":
-			mask = torch.zeros(self.latent_shape, dtype=torch.long, device=self.device)
-			label = 1
-			for radius in self.radius_list:
-				base_mask = torch.tensor(circle_mask(self.latent_shape[-1], radius), device=self.device)
-				mask[:, :, base_mask] = label
-				label += 1
-		elif shape == "no":
-			return mask
+		# elif shape == "square":
+		# 	anchor = self.latent_shape[-1] // 2
+		# 	sl = slice(anchor - self.config.w_radius, anchor + self.config.w_radius)
+		# 	if self.config.w_channel == -1:
+		# 		mask[:, :, sl, sl] = True
+		# 	else:
+		# 		mask[:, self.config.w_channel, sl, sl] = True
+		# elif shape == "signal_circle":
+		# 	mask = torch.zeros(self.latent_shape, dtype=torch.long, device=self.device)
+		# 	label = 1
+		# 	for radius in self.radius_list:
+		# 		base_mask = torch.tensor(circle_mask(self.latent_shape[-1], radius), device=self.device)
+		# 		mask[:, :, base_mask] = label
+		# 		label += 1
+		# elif shape == "no":
+		# 	return mask
 		else:
 			raise NotImplementedError(f"Unsupported watermark mask shape: {shape}")
 
@@ -382,14 +382,24 @@ class GMUtils:
 			return None
 		checkpoint_path = Path(checkpoint)
 		repo = getattr(self.config, "huggingface_repo", None)
-		hf_dir=getattr(self.config, "hf_dir", None)
+		hf_dir = getattr(self.config, "hf_dir", None)
 		if repo:
-			try:
-				hf_path = hf_hub_download(repo_id=repo, filename=Path(checkpoint).name,cache_dir=hf_dir)
-				print(f"Downloaded GNR checkpoint from Huggingface Hub: {hf_path}")
-				checkpoint_path = Path(hf_path)
-			except Exception as e:
-				raise FileNotFoundError(f"GNR checkpoint not found on ({repo}). error: {e}")
+			# Check if file already exists locally before downloading
+			local_path = checkpoint_path if checkpoint_path.is_file() else None
+			if hf_dir:
+				potential_local = Path(hf_dir) / Path(checkpoint).name
+				if potential_local.is_file():
+					local_path = potential_local
+			if local_path and local_path.is_file():
+				print(f"Using existing GNR checkpoint: {local_path}")
+				checkpoint_path = local_path
+			else:
+				try:
+					hf_path = hf_hub_download(repo_id=repo, filename=Path(checkpoint).name, cache_dir=hf_dir)
+					print(f"Downloaded GNR checkpoint from Huggingface Hub: {hf_path}")
+					checkpoint_path = Path(hf_path)
+				except Exception as e:
+					raise FileNotFoundError(f"GNR checkpoint not found on ({repo}). error: {e}")
 		in_channels = self.config.latent_channels * (2 if self.config.gnr_classifier_type == 1 else 1)
 		return GNRRestorer(
 			checkpoint_path=checkpoint_path,
@@ -410,13 +420,25 @@ class GMUtils:
 				"joblib is required to load the GaussMarker fuser. Install joblib or disable the fuser."
 			)
 		repo = getattr(self.config, "huggingface_repo", None)
-		hf_dir=getattr(self.config, "hf_dir", None)
+		hf_dir = getattr(self.config, "hf_dir", None)
+		candidates = []
 		if repo:
-			try:
-				hf_path = hf_hub_download(repo_id=repo, filename=Path(checkpoint).name,cache_dir=hf_dir)
-				candidates = [Path(hf_path)]
-			except Exception as e:
-				raise FileNotFoundError(f"Fuser checkpoint not found on ({repo}). error: {e}")
+			# Check if file already exists locally before downloading
+			local_path = Path(checkpoint) if Path(checkpoint).is_file() else None
+			if hf_dir:
+				potential_local = Path(hf_dir) / Path(checkpoint).name
+				if potential_local.is_file():
+					local_path = potential_local
+			if local_path and local_path.is_file():
+				print(f"Using existing fuser checkpoint: {local_path}")
+				candidates = [local_path]
+			else:
+				try:
+					hf_path = hf_hub_download(repo_id=repo, filename=Path(checkpoint).name, cache_dir=hf_dir)
+					print(f"Downloaded fuser checkpoint from Huggingface Hub: {hf_path}")
+					candidates = [Path(hf_path)]
+				except Exception as e:
+					raise FileNotFoundError(f"Fuser checkpoint not found on ({repo}). error: {e}")
 		base_dir = Path(__file__).resolve().parent
 		candidates.append(base_dir / checkpoint)
 		candidates.append(base_dir.parent.parent / checkpoint)
@@ -448,30 +470,30 @@ class GMUtils:
 		injected = torch.fft.ifft2(torch.fft.ifftshift(fft_latents, dim=(-1, -2))).real
 		return injected
 
-	def _inject_seed(self, latents: torch.Tensor) -> torch.Tensor:
-		mask = self.watermarking_mask
-		injected = latents.clone()
-		injected[mask] = self.gt_patch[mask].clone()
-		return injected
+	# def _inject_seed(self, latents: torch.Tensor) -> torch.Tensor:
+	# 	mask = self.watermarking_mask
+	# 	injected = latents.clone()
+	# 	injected[mask] = self.gt_patch[mask].clone()
+	# 	return injected
 
-	def _inject_signal(self, latents: torch.Tensor) -> torch.Tensor:
-		fft_latents = torch.fft.fftshift(torch.fft.fft2(latents), dim=(-1, -2))
-		mask = self.watermarking_mask
-		signals = extract_complex_sign(self.gt_patch)
-		fft_latents_signal = set_complex_sign(fft_latents, signals)
-		fft_latents[mask != 0] = fft_latents_signal[mask != 0]
-		injected = torch.fft.ifft2(torch.fft.ifftshift(fft_latents, dim=(-1, -2))).real
-		return injected
+	# def _inject_signal(self, latents: torch.Tensor) -> torch.Tensor:
+	# 	fft_latents = torch.fft.fftshift(torch.fft.fft2(latents), dim=(-1, -2))
+	# 	mask = self.watermarking_mask
+	# 	signals = extract_complex_sign(self.gt_patch)
+	# 	fft_latents_signal = set_complex_sign(fft_latents, signals)
+	# 	fft_latents[mask != 0] = fft_latents_signal[mask != 0]
+	# 	injected = torch.fft.ifft2(torch.fft.ifftshift(fft_latents, dim=(-1, -2))).real
+	# 	return injected
 
 	def inject_watermark(self, base_latents: torch.Tensor) -> torch.Tensor:
 		base_latents = base_latents.to(self.device, dtype=torch.float32)
 		injection = self.config.w_injection.lower()
 		if "complex" in injection:
 			watermarked = self._inject_complex(base_latents)
-		elif "seed" in injection:
-			watermarked = self._inject_seed(base_latents)
-		elif "signal" in injection:
-			watermarked = self._inject_signal(base_latents)
+		# elif "seed" in injection:
+		# 	watermarked = self._inject_seed(base_latents)
+		# elif "signal" in injection:
+		# 	watermarked = self._inject_signal(base_latents)
 		else:
 			raise NotImplementedError(f"Unsupported injection mode: {self.config.w_injection}")
 		return watermarked.to(self.config.dtype)

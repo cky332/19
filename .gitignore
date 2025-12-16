@@ -22,3 +22,6 @@ VBench
 video_detection
 watermark/gm/ckpts/model_final.pth
 model_from_hf/
+assets
+report.html
+.coverage

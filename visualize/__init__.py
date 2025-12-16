@@ -12,26 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""
-Visualization module for MarkDiffusion.
+"""Visualization module for watermarking analysis and results display."""
 
-This module provides visualization tools for different watermarking algorithms.
-"""
+from .base import BaseVisualizer
+from .data_for_visualization import DataForVisualization
+from .auto_visualization import AutoVisualizer
 
-__all__ = [
-    'auto_visualization',
-    'base',
-    'data_for_visualization',
-    'gm',
-    'gs',
-    'prc',
-    'ri',
-    'robin',
-    'seal',
-    'sfw',
-    'tr',
-    'videomark',
-    'videoshield',
-    'wind',
-]
-
+__all__ = ["BaseVisualizer", "DataForVisualization", "AutoVisualizer"]

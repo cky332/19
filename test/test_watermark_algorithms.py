@@ -67,19 +67,79 @@ def test_image_watermark_generation(algorithm_name, image_diffusion_config, skip
         pytest.skip("Generation tests skipped by --skip-generation flag")
 
     try:
+        # smaller test params for generation tests
+        image_diffusion_config.num_inference_steps = 10
+        image_diffusion_config.image_size = (128, 128)
+        
         watermark = AutoWatermark.load(
             algorithm_name,
             algorithm_config=f'config/{algorithm_name}.json',
             diffusion_config=image_diffusion_config
         )
+        
+        
 
         # Generate watermarked image
+        
+        # more tests for specific algorithms if applicable
+        if algorithm_name == "TR":
+            tr_w_patterns = ["seed_ring", "seed_zeros", "seed_rand", "rand", "zeros", "const", "ring"]
+            for w_pattern in tr_w_patterns:
+                watermark.config.w_pattern = w_pattern
+                watermarked_image = watermark.generate_watermarked_media(TEST_PROMPT_IMAGE)
+                assert watermarked_image is not None
+                assert isinstance(watermarked_image, Image.Image)
+                assert watermarked_image.size == (128, 128)
+                print(f"✓ {algorithm_name} generated watermarked image with {w_pattern} pattern successfully")
+        elif algorithm_name == "GM":
+            gm_w_patterns = ["seed_ring", "seed_zeros", "seed_rand", "rand", "zeros", "const", "signal_ring"]
+            for w_pattern in gm_w_patterns:
+                watermark.config.w_pattern = w_pattern
+                watermarked_image = watermark.generate_watermarked_media(TEST_PROMPT_IMAGE)
+                assert watermarked_image is not None
+                assert isinstance(watermarked_image, Image.Image)
+                assert watermarked_image.size == (128, 128)
+                print(f"✓ {algorithm_name} generated watermarked image with {w_pattern} pattern successfully")
+        elif algorithm_name == "SFW":
+            # Test SFW with wm_type="wm" (non-HSQR mode uses Fourier treering pattern)
+            # Create a temporary config file with wm_type="wm"
+            import json
+            import tempfile
+            sfw_config_wm = {
+                "algorithm_name": "SFW",
+                "w_seed": 42,
+                "wm_type": "wm",  # Test with non-HSQR mode
+                "delta": 1,
+                "w_channel": 3,
+                "threshold": 50
+            }
+            with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+                json.dump(sfw_config_wm, f)
+                temp_config_path = f.name
+            
+            try:
+                watermark_wm = AutoWatermark.load(
+                    "SFW",
+                    algorithm_config=temp_config_path,
+                    diffusion_config=image_diffusion_config
+                )
+                # Generate with wm_type="wm"
+                watermarked_image_wm = watermark_wm.generate_watermarked_media(TEST_PROMPT_IMAGE)
+                assert watermarked_image_wm is not None
+                assert isinstance(watermarked_image_wm, Image.Image)
+                assert watermarked_image_wm.size == (128, 128)
+                print(f"  ✓ SFW wm_type='wm' generation passed")
+            finally:
+                import os
+                os.unlink(temp_config_path)
+
+        
         watermarked_image = watermark.generate_watermarked_media(TEST_PROMPT_IMAGE)
 
         # Validate output
         assert watermarked_image is not None
         assert isinstance(watermarked_image, Image.Image)
-        assert watermarked_image.size == (IMAGE_SIZE[1], IMAGE_SIZE[0])
+        assert watermarked_image.size == (128, 128)
 
         print(f"✓ {algorithm_name} generated watermarked image successfully")
 
@@ -142,6 +202,53 @@ def test_image_watermark_detection(algorithm_name, image_diffusion_config, skip_
         assert detection_result_wm is not None
         assert isinstance(detection_result_wm, dict)
         assert detection_result_wm['is_watermarked'] is True
+        
+        # Test other detector_type for specific algorithms if applicable
+        detector_types = []
+        if algorithm_name == "RI":
+            modes = ['real', 'imag']
+            for mode in modes:
+                watermark.config.mode = mode
+                detection_result_mode = watermark.detect_watermark_in_media(watermarked_image)
+        elif algorithm_name == "TR":
+            detection_result_mode = watermark.detect_watermark_in_media(watermarked_image, detector_type='p_value')
+            assert detection_result_mode is not None
+            assert isinstance(detection_result_mode, dict)
+        elif algorithm_name == "GS":
+            # Test GS with chacha=False (non-ChaCha mode uses simple XOR key)
+            # Create a temporary config file with chacha=False
+            import json
+            import tempfile
+            gs_config_no_chacha = {
+                "algorithm_name": "GS",
+                "channel_copy": 1,
+                "wm_key": 42,
+                "hw_copy": 8,
+                "chacha": False,  # Test with chacha disabled
+                "chacha_key_seed": 123456,
+                "chacha_nonce_seed": 789012,
+                "threshold": 0.7
+            }
+            with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+                json.dump(gs_config_no_chacha, f)
+                temp_config_path = f.name
+            
+            try:
+                watermark_no_chacha = AutoWatermark.load(
+                    "GS",
+                    algorithm_config=temp_config_path,
+                    diffusion_config=image_diffusion_config
+                )
+                # Generate and detect with chacha=False
+                watermarked_image_no_chacha = watermark_no_chacha.generate_watermarked_media(TEST_PROMPT_IMAGE)
+                detection_result_no_chacha = watermark_no_chacha.detect_watermark_in_media(watermarked_image_no_chacha)
+                assert detection_result_no_chacha is not None
+                assert isinstance(detection_result_no_chacha, dict)
+                assert detection_result_no_chacha['is_watermarked'] is True
+                print(f"  ✓ GS chacha=False detection passed: {detection_result_no_chacha}")
+            finally:
+                import os
+                os.unlink(temp_config_path)
 
         # Detect watermark in unwatermarked image
         detection_result_unwm = watermark.detect_watermark_in_media(unwatermarked_image)
@@ -190,6 +297,11 @@ def test_video_watermark_generation(algorithm_name, video_diffusion_config, skip
         pytest.skip("Generation tests skipped by --skip-generation flag")
 
     try:
+        # smaller test params for generation tests
+        video_diffusion_config.num_inference_steps = 10
+        video_diffusion_config.num_frames = 8
+        video_diffusion_config.image_size = (128, 128)
+        
         watermark = AutoWatermark.load(
             algorithm_name,
             algorithm_config=f'config/{algorithm_name}.json',
@@ -697,6 +809,12 @@ def test_watermark_visualization(algorithm_name, image_diffusion_config, video_d
 
                 # Call the method
                 method(**params)
+                
+                # add `channel` parameter if needed
+                if 'channel' in sig.parameters:
+                    params['channel'] = 0
+                    method(**params)
+                
                 subclass_tested.append(method_name)
                 plt.close(fig)
             except Exception as e:
@@ -717,3 +835,537 @@ def test_watermark_visualization(algorithm_name, image_diffusion_config, video_d
         pytest.skip(f"{algorithm_name} visualization not fully implemented: {e}")
     except Exception as e:
         pytest.fail(f"Failed to test visualization for {algorithm_name}: {e}")
+
+
+# ============================================================================
+# Test Cases - BaseVisualizer Unit Tests
+# ============================================================================
+
+class TestBaseVisualizerMethods:
+    """Unit tests for BaseVisualizer's visualize(), _draw_single_image, and _draw_video_frames methods."""
+
+    @pytest.fixture
+    def mock_data_for_image(self):
+        """Create mock DataForVisualization for image tests."""
+        import torch
+        from unittest.mock import MagicMock
+        
+        mock_data = MagicMock()
+        mock_data.algorithm_name = "TestAlgorithm"
+        
+        # Create a test image (PIL Image)
+        test_image = Image.new("RGB", (64, 64), color=(128, 64, 192))
+        mock_data.image = test_image
+        
+        # Create test latents for image: [B, C, H, W]
+        mock_data.orig_watermarked_latents = torch.randn(1, 4, 8, 8)
+        mock_data.reversed_latents = [torch.randn(1, 4, 8, 8) for _ in range(5)]
+        
+        return mock_data
+
+    @pytest.fixture
+    def mock_data_for_video(self):
+        """Create mock DataForVisualization for video tests."""
+        import torch
+        from unittest.mock import MagicMock
+        import numpy as np
+        
+        mock_data = MagicMock()
+        mock_data.algorithm_name = "TestVideoAlgorithm"
+        
+        # Create test video frames (list of PIL Images)
+        video_frames = [Image.new("RGB", (64, 64), color=(i * 30, 100, 200)) for i in range(8)]
+        mock_data.video_frames = video_frames
+        mock_data.image = None
+        
+        # Create test latents for video: [B, C, F, H, W]
+        mock_data.orig_watermarked_latents = torch.randn(1, 4, 8, 8, 8)
+        mock_data.reversed_latents = [torch.randn(1, 4, 8, 8, 8) for _ in range(5)]
+        
+        return mock_data
+
+    @pytest.fixture
+    def image_visualizer(self, mock_data_for_image):
+        """Create a concrete visualizer for image tests."""
+        from visualize.base import BaseVisualizer
+        
+        class ConcreteImageVisualizer(BaseVisualizer):
+            """Concrete implementation for testing."""
+            pass
+        
+        return ConcreteImageVisualizer(
+            data_for_visualization=mock_data_for_image,
+            dpi=100,
+            is_video=False
+        )
+
+    @pytest.fixture
+    def video_visualizer(self, mock_data_for_video):
+        """Create a concrete visualizer for video tests."""
+        from visualize.base import BaseVisualizer
+        
+        class ConcreteVideoVisualizer(BaseVisualizer):
+            """Concrete implementation for testing."""
+            pass
+        
+        return ConcreteVideoVisualizer(
+            data_for_visualization=mock_data_for_video,
+            dpi=100,
+            is_video=True
+        )
+
+    # -------------------------------------------------------------------------
+    # Tests for _draw_single_image
+    # -------------------------------------------------------------------------
+
+    @pytest.mark.visualization
+    def test_draw_single_image_with_pil_image(self, image_visualizer):
+        """Test _draw_single_image with PIL Image input."""
+        import matplotlib.pyplot as plt
+        
+        fig, ax = plt.subplots(1, 1, figsize=(5, 5))
+        
+        result = image_visualizer._draw_single_image(
+            title="Test Single Image",
+            ax=ax
+        )
+        
+        assert result is not None
+        assert result == ax
+        plt.close(fig)
+
+    @pytest.mark.visualization
+    def test_draw_single_image_with_tensor(self, mock_data_for_image):
+        """Test _draw_single_image with tensor input."""
+        import torch
+        import matplotlib.pyplot as plt
+        from visualize.base import BaseVisualizer
+        
+        class ConcreteVisualizer(BaseVisualizer):
+            pass
+        
+        # Replace image with tensor
+        mock_data_for_image.image = torch.rand(1, 3, 64, 64)  # [B, C, H, W]
+        
+        visualizer = ConcreteVisualizer(
+            data_for_visualization=mock_data_for_image,
+            dpi=100,
+            is_video=False
+        )
+        
+        fig, ax = plt.subplots(1, 1, figsize=(5, 5))
+        result = visualizer._draw_single_image(title="Tensor Image", ax=ax)
+        
+        assert result is not None
+        plt.close(fig)
+
+    @pytest.mark.visualization
+    def test_draw_single_image_with_3d_tensor(self, mock_data_for_image):
+        """Test _draw_single_image with 3D tensor input [C, H, W]."""
+        import torch
+        import matplotlib.pyplot as plt
+        from visualize.base import BaseVisualizer
+        
+        class ConcreteVisualizer(BaseVisualizer):
+            pass
+        
+        # Replace image with 3D tensor
+        mock_data_for_image.image = torch.rand(3, 64, 64)  # [C, H, W]
+        
+        visualizer = ConcreteVisualizer(
+            data_for_visualization=mock_data_for_image,
+            dpi=100,
+            is_video=False
+        )
+        
+        fig, ax = plt.subplots(1, 1, figsize=(5, 5))
+        result = visualizer._draw_single_image(title="3D Tensor Image", ax=ax)
+        
+        assert result is not None
+        plt.close(fig)
+
+    @pytest.mark.visualization
+    def test_draw_single_image_with_normalized_tensor(self, mock_data_for_image):
+        """Test _draw_single_image with tensor in [-1, 1] range."""
+        import torch
+        import matplotlib.pyplot as plt
+        from visualize.base import BaseVisualizer
+        
+        class ConcreteVisualizer(BaseVisualizer):
+            pass
+        
+        # Replace image with tensor in [-1, 1] range
+        mock_data_for_image.image = torch.rand(1, 3, 64, 64) * 2 - 1  # [-1, 1]
+        
+        visualizer = ConcreteVisualizer(
+            data_for_visualization=mock_data_for_image,
+            dpi=100,
+            is_video=False
+        )
+        
+        fig, ax = plt.subplots(1, 1, figsize=(5, 5))
+        result = visualizer._draw_single_image(title="Normalized Tensor", ax=ax)
+        
+        assert result is not None
+        plt.close(fig)
+
+    @pytest.mark.visualization
+    def test_draw_single_image_empty_title(self, image_visualizer):
+        """Test _draw_single_image with empty title."""
+        import matplotlib.pyplot as plt
+        
+        fig, ax = plt.subplots(1, 1, figsize=(5, 5))
+        
+        result = image_visualizer._draw_single_image(title="", ax=ax)
+        
+        assert result is not None
+        plt.close(fig)
+
+    # -------------------------------------------------------------------------
+    # Tests for _draw_video_frames
+    # -------------------------------------------------------------------------
+
+    @pytest.mark.visualization
+    def test_draw_video_frames_basic(self, video_visualizer):
+        """Test _draw_video_frames with basic parameters."""
+        import matplotlib.pyplot as plt
+        
+        fig, ax = plt.subplots(1, 1, figsize=(10, 10))
+        
+        result = video_visualizer._draw_video_frames(
+            title="Test Video Frames",
+            num_frames=4,
+            ax=ax
+        )
+        
+        assert result is not None
+        assert result == ax
+        plt.close(fig)
+
+    @pytest.mark.visualization
+    def test_draw_video_frames_single_frame(self, video_visualizer):
+        """Test _draw_video_frames with single frame."""
+        import matplotlib.pyplot as plt
+        
+        fig, ax = plt.subplots(1, 1, figsize=(5, 5))
+        
+        result = video_visualizer._draw_video_frames(
+            title="Single Frame",
+            num_frames=1,
+            ax=ax
+        )
+        
+        assert result is not None
+        plt.close(fig)
+
+    @pytest.mark.visualization
+    def test_draw_video_frames_all_frames(self, video_visualizer):
+        """Test _draw_video_frames requesting more frames than available."""
+        import matplotlib.pyplot as plt
+        
+        fig, ax = plt.subplots(1, 1, figsize=(10, 10))
+        
+        # Request 16 frames but only 8 are available
+        result = video_visualizer._draw_video_frames(
+            title="All Frames",
+            num_frames=16,
+            ax=ax
+        )
+        
+        assert result is not None
+        plt.close(fig)
+
+    @pytest.mark.visualization
+    def test_draw_video_frames_with_numpy_frames(self, mock_data_for_video):
+        """Test _draw_video_frames with numpy array frames."""
+        import numpy as np
+        import matplotlib.pyplot as plt
+        from visualize.base import BaseVisualizer
+        
+        class ConcreteVisualizer(BaseVisualizer):
+            pass
+        
+        # Replace frames with numpy arrays
+        mock_data_for_video.video_frames = [
+            np.random.rand(64, 64, 3).astype(np.float32) for _ in range(8)
+        ]
+        
+        visualizer = ConcreteVisualizer(
+            data_for_visualization=mock_data_for_video,
+            dpi=100,
+            is_video=True
+        )
+        
+        fig, ax = plt.subplots(1, 1, figsize=(10, 10))
+        result = visualizer._draw_video_frames(title="Numpy Frames", num_frames=4, ax=ax)
+        
+        assert result is not None
+        plt.close(fig)
+
+    @pytest.mark.visualization
+    def test_draw_video_frames_with_tensor_frames(self, mock_data_for_video):
+        """Test _draw_video_frames with tensor frames."""
+        import torch
+        import matplotlib.pyplot as plt
+        from visualize.base import BaseVisualizer
+        
+        class ConcreteVisualizer(BaseVisualizer):
+            pass
+        
+        # Replace frames with tensors [C, H, W]
+        mock_data_for_video.video_frames = [
+            torch.rand(3, 64, 64) for _ in range(8)
+        ]
+        
+        visualizer = ConcreteVisualizer(
+            data_for_visualization=mock_data_for_video,
+            dpi=100,
+            is_video=True
+        )
+        
+        fig, ax = plt.subplots(1, 1, figsize=(10, 10))
+        result = visualizer._draw_video_frames(title="Tensor Frames", num_frames=4, ax=ax)
+        
+        assert result is not None
+        plt.close(fig)
+
+    @pytest.mark.visualization
+    def test_draw_video_frames_no_frames_raises_error(self, mock_data_for_video):
+        """Test _draw_video_frames raises error when no frames available."""
+        import matplotlib.pyplot as plt
+        from visualize.base import BaseVisualizer
+        
+        class ConcreteVisualizer(BaseVisualizer):
+            pass
+        
+        # Remove video_frames
+        mock_data_for_video.video_frames = None
+        
+        visualizer = ConcreteVisualizer(
+            data_for_visualization=mock_data_for_video,
+            dpi=100,
+            is_video=True
+        )
+        
+        fig, ax = plt.subplots(1, 1, figsize=(10, 10))
+        
+        with pytest.raises(ValueError, match="No video frames available"):
+            visualizer._draw_video_frames(title="No Frames", num_frames=4, ax=ax)
+        
+        plt.close(fig)
+
+    @pytest.mark.visualization
+    def test_draw_video_frames_empty_title(self, video_visualizer):
+        """Test _draw_video_frames with empty title."""
+        import matplotlib.pyplot as plt
+        
+        fig, ax = plt.subplots(1, 1, figsize=(10, 10))
+        
+        result = video_visualizer._draw_video_frames(title="", num_frames=4, ax=ax)
+        
+        assert result is not None
+        plt.close(fig)
+
+    # -------------------------------------------------------------------------
+    # Tests for draw_watermarked_image (dispatches to _draw_single_image or _draw_video_frames)
+    # -------------------------------------------------------------------------
+
+    @pytest.mark.visualization
+    def test_draw_watermarked_image_dispatches_to_single_image(self, image_visualizer):
+        """Test draw_watermarked_image dispatches to _draw_single_image for images."""
+        import matplotlib.pyplot as plt
+        
+        fig, ax = plt.subplots(1, 1, figsize=(5, 5))
+        
+        result = image_visualizer.draw_watermarked_image(
+            title="Watermarked Image",
+            ax=ax
+        )
+        
+        assert result is not None
+        plt.close(fig)
+
+    @pytest.mark.visualization
+    def test_draw_watermarked_image_dispatches_to_video_frames(self, video_visualizer):
+        """Test draw_watermarked_image dispatches to _draw_video_frames for videos."""
+        import matplotlib.pyplot as plt
+        
+        fig, ax = plt.subplots(1, 1, figsize=(10, 10))
+        
+        result = video_visualizer.draw_watermarked_image(
+            title="Watermarked Video",
+            num_frames=4,
+            ax=ax
+        )
+        
+        assert result is not None
+        plt.close(fig)
+
+    # -------------------------------------------------------------------------
+    # Tests for visualize() method
+    # -------------------------------------------------------------------------
+
+    @pytest.mark.visualization
+    def test_visualize_single_method(self, image_visualizer, tmp_path):
+        """Test visualize() with single method."""
+        result = image_visualizer.visualize(
+            rows=1,
+            cols=1,
+            methods=["draw_watermarked_image"],
+            figsize=(5, 5)
+        )
+        
+        assert result is not None
+        import matplotlib.pyplot as plt
+        plt.close(result)
+
+    @pytest.mark.visualization
+    def test_visualize_multiple_methods(self, image_visualizer, tmp_path):
+        """Test visualize() with multiple methods in grid layout."""
+        result = image_visualizer.visualize(
+            rows=2,
+            cols=2,
+            methods=[
+                "draw_watermarked_image",
+                "draw_orig_latents",
+                "draw_orig_latents_fft",
+                "draw_inverted_latents"
+            ],
+            figsize=(10, 10),
+            method_kwargs=[
+                {"title": "Image"},
+                {"channel": 0, "title": "Original Latents Ch0"},
+                {"channel": 0, "title": "FFT Ch0"},
+                {"channel": 0, "title": "Inverted Latents Ch0"}
+            ]
+        )
+        
+        assert result is not None
+        import matplotlib.pyplot as plt
+        plt.close(result)
+
+    @pytest.mark.visualization
+    def test_visualize_saves_to_file(self, image_visualizer, tmp_path):
+        """Test visualize() saves figure to file."""
+        save_path = str(tmp_path / "test_visualization.png")
+        
+        result = image_visualizer.visualize(
+            rows=1,
+            cols=1,
+            methods=["draw_watermarked_image"],
+            save_path=save_path
+        )
+        
+        assert result is not None
+        assert (tmp_path / "test_visualization.png").exists()
+        
+        import matplotlib.pyplot as plt
+        plt.close(result)
+
+    @pytest.mark.visualization
+    def test_visualize_with_default_figsize(self, image_visualizer):
+        """Test visualize() with default figsize calculation."""
+        result = image_visualizer.visualize(
+            rows=2,
+            cols=2,
+            methods=[
+                "draw_watermarked_image",
+                "draw_orig_latents",
+                "draw_orig_latents_fft",
+                "draw_inverted_latents"
+            ],
+            method_kwargs=[
+                {},
+                {"channel": 0},
+                {"channel": 0},
+                {"channel": 0}
+            ]
+        )
+        
+        assert result is not None
+        import matplotlib.pyplot as plt
+        plt.close(result)
+
+    @pytest.mark.visualization
+    def test_visualize_mismatched_layout_raises_error(self, image_visualizer):
+        """Test visualize() raises error when methods don't match layout."""
+        with pytest.raises(ValueError, match="not compatible with the layout"):
+            image_visualizer.visualize(
+                rows=2,
+                cols=2,
+                methods=["draw_watermarked_image"]  # Only 1 method for 2x2 layout
+            )
+
+    @pytest.mark.visualization
+    def test_visualize_invalid_method_raises_error(self, image_visualizer):
+        """Test visualize() raises error for invalid method name."""
+        with pytest.raises(ValueError, match="Method .* not found"):
+            image_visualizer.visualize(
+                rows=1,
+                cols=1,
+                methods=["nonexistent_method"]
+            )
+
+    @pytest.mark.visualization
+    def test_visualize_video_with_frame_selection(self, video_visualizer, tmp_path):
+        """Test visualize() for video with frame parameter."""
+        result = video_visualizer.visualize(
+            rows=1,
+            cols=2,
+            methods=[
+                "draw_watermarked_image",
+                "draw_orig_latents"
+            ],
+            method_kwargs=[
+                {"num_frames": 4},
+                {"channel": 0, "frame": 0}
+            ]
+        )
+        
+        assert result is not None
+        import matplotlib.pyplot as plt
+        plt.close(result)
+
+    @pytest.mark.visualization
+    def test_visualize_single_row(self, image_visualizer):
+        """Test visualize() with single row layout."""
+        result = image_visualizer.visualize(
+            rows=1,
+            cols=3,
+            methods=[
+                "draw_watermarked_image",
+                "draw_orig_latents",
+                "draw_orig_latents_fft"
+            ],
+            method_kwargs=[
+                {},
+                {"channel": 0},
+                {"channel": 0}
+            ]
+        )
+        
+        assert result is not None
+        import matplotlib.pyplot as plt
+        plt.close(result)
+
+    @pytest.mark.visualization
+    def test_visualize_single_column(self, image_visualizer):
+        """Test visualize() with single column layout."""
+        result = image_visualizer.visualize(
+            rows=3,
+            cols=1,
+            methods=[
+                "draw_watermarked_image",
+                "draw_orig_latents",
+                "draw_orig_latents_fft"
+            ],
+            method_kwargs=[
+                {},
+                {"channel": 0},
+                {"channel": 0}
+            ]
+        )
+        
+        assert result is not None
+        import matplotlib.pyplot as plt
+        plt.close(result)

@@ -21,7 +21,6 @@
 > 🔥 **As a new released project, We welcome PRs!** If you have implemented a LDM watermarking algorithm or are interested in contributing one, we'd love to include it in MarkDiffusion. Join our community and help make generative watermarking more accessible to everyone!
 
 ## Contents
-- [Notes](#-notes)
 - [Updates](#-updates)
 - [Introduction to MarkDiffusion](#-introduction-to-markdiffusion)
   - [Overview](#-overview)

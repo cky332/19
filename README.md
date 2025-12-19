@@ -22,18 +22,17 @@
 
 ## Contents
 - [Notes](#-notes)
-- [Updates](#updates)
-- [Introduction to MarkDiffusion](#introduction-to-markdiffusion)
-  - [Overview](#overview)
-  - [Key Features](#key-features)
-  - [Implemented Algorithms](#implemented-algorithms)
-  - [Evaluation Module](#evaluation-module)
-- [Installation](#installation)
-- [Quick Start](#quick-start)
+- [Updates](#-updates)
+- [Introduction to MarkDiffusion](#-introduction-to-markdiffusion)
+  - [Overview](#-overview)
+  - [Key Features](#-key-features)
+  - [Implemented Algorithms](#-implemented-algorithms)
+  - [Evaluation Module](#-evaluation-module)
+- [Quick Start](#-quick-start)
     - [Google Colab Demo](#google-colab-demo)
     - [Installation](#installation)
     - [How to Use the Toolkit](#how-to-use-the-toolkit)
-- [Test Modules](#test-modules)
+- [Test Modules](#-test-modules)
 - [Citation](#citation)
 
 

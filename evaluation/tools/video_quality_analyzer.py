@@ -836,20 +836,37 @@ class ImagingQualityAnalyzer(VideoQualityAnalyzer):
     
     The score represents the quality of the video (higher is better).
     """
-    def __init__(self, model_path: str = "model/musiq/musiq_spaq_ckpt-358bb6af.pth", device: str = "cuda"):
+    def __init__(self, model_path: str = "musiq_spaq_ckpt-358bb6af.pth", device: str = "cuda"):
         self.device = torch.device(device if torch.cuda.is_available() else "cpu")
         self.model = self._load_musiq(model_path)
         self.model.to(self.device)
         self.model.eval()
-
-    def _load_musiq(self, model_path: "model/musiq/musiq_spaq_ckpt-358bb6af.pth"):
+        
+    def _load_musiq(self, model_path: str):
+        """Load MUSIQ model.
+        
+        Args:
+            model_path: Path to the MUSIQ model checkpoint
+            
+        Returns:
+            MUSIQ model
+        """
+        from pathlib import Path
+        CACHE_DIR = Path("/tmp/musiq_cache")
+        model_path = CACHE_DIR / model_path
+        
+        # if the model_path not exists
+        # then makedir and wget
         if not os.path.exists(model_path):
-            raise FileNotFoundError(f"Model not found at {model_path}...")
-        
-        print(f"✓ Loading MUSIQ model from {model_path}")
-        
-        from pyiqa.archs.musiq_arch import MUSIQ
+            os.makedirs(os.path.dirname(model_path), exist_ok=True)
+            wget_command = ['wget', 'https://github.com/chaofengc/IQA-PyTorch/releases/download/v0.1-weights/musiq_spaq_ckpt-358bb6af.pth', '-P', os.path.dirname(model_path)]
+            subprocess.run(wget_command, check=True)
+        try:
+            from pyiqa.archs.musiq_arch import MUSIQ
+        except ImportError:
+            raise ImportError("Please install pyiqa to use ImagingQualityAnalyzer: pip install pyiqa")
         model = MUSIQ(pretrained_model_path=str(model_path))
+        
         return model
     
     def _preprocess_frames(self, frames: List[Image.Image]) -> torch.Tensor:

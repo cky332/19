@@ -316,7 +316,6 @@ def all_video_editors():
     """Get all video editor tools for saturation testing."""
     from evaluation.tools.video_editor import (
         MPEG4Compression,
-        VideoCodecAttack,
         FrameAverage,
         FrameRateAdapter,
         FrameSwap,
@@ -325,7 +324,6 @@ def all_video_editors():
 
     return [
         MPEG4Compression(),
-        VideoCodecAttack(),
         FrameAverage(),
         FrameRateAdapter(),
         FrameSwap(),

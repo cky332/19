@@ -14,109 +14,6 @@ class ExactInversion(BaseInversion):
                  ):
         scheduler = DPMSolverMultistepInverseScheduler.from_config(scheduler.config)
         super(ExactInversion, self).__init__(scheduler, unet, device)
-        
-    @torch.inference_mode()
-    def _fixedpoint_correction(self, x, s, t, x_t, r=None, order=1, n_iter=500, step_size=0.1, th=1e-3, 
-                                model_s_output=None, model_r_output=None, text_embeddings=None, guidance_scale=3.0, 
-                                scheduler=False, factor=0.5, patience=20, anchor=False, warmup=True, warmup_time=20):
-        do_classifier_free_guidance = guidance_scale > 1.0
-        if order==1:
-            input = x.clone()
-            original_step_size = step_size
-            
-            # step size scheduler, reduce when not improved
-            if scheduler:
-                step_scheduler = StepScheduler(current_lr=step_size, factor=factor, patience=patience)
-
-            lambda_s, lambda_t = self.scheduler.lambda_t[s], self.scheduler.lambda_t[t]
-            alpha_s, alpha_t = self.scheduler.alpha_t[s], self.scheduler.alpha_t[t]
-            sigma_s, sigma_t = self.scheduler.sigma_t[s], self.scheduler.sigma_t[t]
-            h = lambda_t - lambda_s
-            phi_1 = torch.expm1(-h)
-
-            for i in range(n_iter):
-                # step size warmup
-                if warmup:
-                    if i < warmup_time:
-                        step_size = original_step_size * (i+1)/(warmup_time)
-                
-                latent_model_input, info = self._prepare_latent_for_unet(input, do_classifier_free_guidance, self.unet)
-                latent_model_input = self.scheduler.scale_model_input(latent_model_input, t)
-                
-                noise_pred_raw = self.unet(latent_model_input , s, encoder_hidden_states=text_embeddings).sample
-                noise_pred = self._restore_latent_from_unet(noise_pred_raw, info, guidance_scale)    
-
-                model_output = self.scheduler.convert_model_output(model_output=noise_pred, sample=input)
-
-                x_t_pred = (sigma_t / sigma_s) * input - (alpha_t * phi_1 ) * model_output
-
-                loss = torch.nn.functional.mse_loss(x_t_pred, x_t, reduction='sum')
-                
-                if loss.item() < th:
-                    break                
-                
-                # forward step method
-                input = input - step_size * (x_t_pred- x_t)
-
-                if scheduler:
-                    step_size = step_scheduler.step(loss)
-
-            return input        
-        
-        elif order==2:
-            assert r is not None
-            input = x.clone()
-            original_step_size = step_size
-            
-            # step size scheduler, reduce when not improved
-            if scheduler:
-                step_scheduler = StepScheduler(current_lr=step_size, factor=factor, patience=patience)
-            
-            lambda_r, lambda_s, lambda_t = self.scheduler.lambda_t[r], self.scheduler.lambda_t[s], self.scheduler.lambda_t[t]
-            sigma_r, sigma_s, sigma_t = self.scheduler.sigma_t[r], self.scheduler.sigma_t[s], self.scheduler.sigma_t[t]
-            alpha_s, alpha_t = self.scheduler.alpha_t[s], self.scheduler.alpha_t[t]
-            h_0 = lambda_s - lambda_r
-            h = lambda_t - lambda_s
-            r0 = h_0 / h
-            phi_1 = torch.expm1(-h)
-            
-            for i in range(n_iter):
-                # step size warmup
-                if warmup:
-                    if i < warmup_time:
-                        step_size = original_step_size * (i+1)/(warmup_time)
-
-                latent_model_input, info = self._prepare_latent_for_unet(input, do_classifier_free_guidance, self.unet)
-                latent_model_input = self.scheduler.scale_model_input(latent_model_input, t)
-
-                noise_pred_raw = self.unet(latent_model_input, s, encoder_hidden_states=text_embeddings).sample
-                noise_pred = self._restore_latent_from_unet(noise_pred_raw, info, guidance_scale)
-                model_output = self.scheduler.convert_model_output(model_output=noise_pred, sample=input)
-                
-                x_t_pred = (sigma_t / sigma_s) * input - (alpha_t * phi_1) * model_output
-                
-                # high-order term approximation
-                if i==0:
-                    d = (1./ r0) * (model_s_output - model_r_output)
-                    diff_term = 0.5 * alpha_t * phi_1 * d
-
-                x_t_pred = x_t_pred - diff_term
-                
-                loss = torch.nn.functional.mse_loss(x_t_pred, x_t, reduction='sum')
-
-                if loss.item() < th:
-                    break                
-
-                # forward step method
-                input = input - step_size * (x_t_pred- x_t)
-
-                if scheduler:
-                    step_size = step_scheduler.step(loss)
-                if anchor:
-                    input = (1 - 1/(i+2)) * input + (1/(i+2))*x
-            return input
-        else:
-            raise NotImplementedError
     
     @torch.inference_mode()
     def forward_diffusion(
@@ -220,155 +117,11 @@ class ExactInversion(BaseInversion):
                     # Line 5
                     latents = (sigma_s / sigma_t) * (latents + alpha_t * phi_1 * model_s)      
 
-                    # Line 7 : Update
-                    if (inverse_opt):
-                        # Alg.2 Line 11
-                        if (inv_order == 2 and i == 0):
-                            latents = self._fixedpoint_correction(latents, s, t, x_t, order=1, text_embeddings=text_embeddings, guidance_scale=guidance_scale,
-                                                                 step_size=1, scheduler=True)
-                        else:
-                            latents = self._fixedpoint_correction(latents, s, t, x_t, order=1, text_embeddings=text_embeddings, guidance_scale=guidance_scale,
-                                                                 step_size=0.5, scheduler=True)
-
                     # Save intermediate latents
                     intermediate_latents.append(latents.clone())
                     
                     self.scheduler._step_index += 1
 
-                # Algorithm 2
-                elif inv_order == 2:
-                    with torch.no_grad():
-                        # Line 3 ~ 13
-                        if (i + 1 < len(timesteps_tensor)):                          
-                            y = latents.clone()
-
-                            # s = t
-                            # t = prev_timestep
-                            s = next_timestep
-                            if i+2 < len(timesteps_tensor):
-                                r = timesteps_tensor[i + 2]
-                            elif i+1 < len(timesteps_tensor): ## i == len(timesteps_tensor) - 2
-                                r = s + self.scheduler.config.num_train_timesteps // self.scheduler.num_inference_steps
-                                r = min(r, self.scheduler.config.num_train_timesteps - 1)
-                            else: ## i == len(timesteps_tensor) - 1
-                                r = 0
-                            
-                            # r = timesteps_tensor[i + 1] if i+1 < len(timesteps_tensor) else 0
-                            
-                            # Line 3 ~ 6 : fine-grained naive DDIM inversion
-                            for tt in range(t,s,10):
-                                ss = tt + 10
-                                lambda_s, lambda_t = self.scheduler.lambda_t[ss], self.scheduler.lambda_t[tt]
-                                sigma_s, sigma_t = self.scheduler.sigma_t[ss], self.scheduler.sigma_t[tt]
-                                h = lambda_t - lambda_s
-                                alpha_s, alpha_t = self.scheduler.alpha_t[ss], self.scheduler.alpha_t[tt]
-                                phi_1 = torch.expm1(-h)
-
-                                y_input, info = self._prepare_latent_for_unet(y, do_classifier_free_guidance, self.unet)
-                                y_input = self.scheduler.scale_model_input(y_input, tt)
-
-                                noise_pred_raw = self.unet(y_input, ss, encoder_hidden_states=text_embeddings).sample
-                                noise_pred = self._restore_latent_from_unet(noise_pred_raw, info, guidance_scale)
-                                model_s = self.scheduler.convert_model_output(model_output=noise_pred, sample=y)
-                                y = (sigma_s / sigma_t) * (y + alpha_t * phi_1 * model_s) # Line 5
-                            y_t = y.clone()
-                            for tt in range(s, r,10):
-                                ss = tt + 10
-                                lambda_s, lambda_t = self.scheduler.lambda_t[ss], self.scheduler.lambda_t[tt]
-                                sigma_s, sigma_t = self.scheduler.sigma_t[ss], self.scheduler.sigma_t[tt]
-                                h = lambda_t - lambda_s
-                                alpha_s, alpha_t = self.scheduler.alpha_t[ss], self.scheduler.alpha_t[tt]
-                                phi_1 = torch.expm1(-h)
-
-                                y_input, info = self._prepare_latent_for_unet(y, do_classifier_free_guidance, self.unet)
-                                y_input = self.scheduler.scale_model_input(y_input, tt)
-
-                                model_s = self.unet(y_input, ss, encoder_hidden_states=text_embeddings).sample
-                                noise_pred_raw = self._apply_guidance_scale(model_s, guidance_scale)   
-                                noise_pred = self._restore_latent_from_unet(noise_pred_raw, info, guidance_scale) 
-                                model_s = self.scheduler.convert_model_output(model_output=noise_pred, sample=y)
-                                y = (sigma_s / sigma_t) * (y + alpha_t * phi_1 * model_s) # Line 5
-
-
-                            # Line 8 ~ 12 : backward Euler
-                            # t = prev_timestep
-                            s = next_timestep
-                            if i+2 < len(timesteps_tensor):
-                                r = timesteps_tensor[i + 2]
-                            elif i+1 < len(timesteps_tensor): ## i == len(timesteps_tensor) - 2
-                                r = s + self.scheduler.config.num_train_timesteps // self.scheduler.num_inference_steps
-                                r = min(r, self.scheduler.config.num_train_timesteps - 1)
-                            else: ## i == len(timesteps_tensor) - 1
-                                r = 0
-                            
-                            lambda_s, lambda_t = self.scheduler.lambda_t[s], self.scheduler.lambda_t[t]
-                            sigma_s, sigma_t = self.scheduler.sigma_t[s], self.scheduler.sigma_t[t]
-                            h = lambda_t - lambda_s
-                            alpha_s, alpha_t = self.scheduler.alpha_t[s], self.scheduler.alpha_t[t]
-                            phi_1 = torch.expm1(-h)
-                            
-                            x_t = latents
-                            
-                            # y_t_model_input = torch.cat([y_t] * 2) if do_classifier_free_guidance else y_t
-                            y_t_model_input, info = self._prepare_latent_for_unet(y_t, do_classifier_free_guidance, self.unet)
-                            y_t_model_input = self.scheduler.scale_model_input(y_t_model_input, s)
-                            
-                            noise_pred_raw = self.unet(y_t_model_input, s, encoder_hidden_states=text_embeddings).sample 
-                            noise_pred = self._restore_latent_from_unet(noise_pred_raw, info, guidance_scale)
-                            model_s_output = self.scheduler.convert_model_output(model_output=noise_pred, sample=y_t)
-                            
-                            # y_model_input = torch.cat([y] * 2) if do_classifier_free_guidance else y
-                            y_model_input, info = self._prepare_latent_for_unet(y, do_classifier_free_guidance, self.unet)
-                            y_model_input = self.scheduler.scale_model_input(y_model_input, r)
-                            
-                            noise_pred_raw = self.unet(y_model_input, r, encoder_hidden_states=text_embeddings).sample
-                            noise_pred = self._restore_latent_from_unet(noise_pred_raw, info, guidance_scale)
-                            model_r_output = self.scheduler.convert_model_output(model_output=noise_pred, sample=y)
-                            
-                            latents = y_t.clone() # Line 7
-                            
-                            # Line 11 : Update
-                            if inverse_opt:
-                                latents = self._fixedpoint_correction(latents, s, t, x_t, order=2, r=r,
-                                                                    model_s_output=model_s_output, model_r_output=model_r_output, text_embeddings=text_embeddings, guidance_scale=guidance_scale,
-                                                                    step_size=10/t, scheduler=False) 
-                            
-                            
-                        # Line 14 ~ 17
-                        elif (i + 1 == len(timesteps_tensor)):
-                            # s = t
-                            # t = prev_timestep
-                            s = next_timestep
-                            
-                            lambda_s, lambda_t = self.scheduler.lambda_t[s], self.scheduler.lambda_t[t]
-                            sigma_s, sigma_t = self.scheduler.sigma_t[s], self.scheduler.sigma_t[t]
-                            h = lambda_t - lambda_s
-                            alpha_s, alpha_t = self.scheduler.alpha_t[s], self.scheduler.alpha_t[t]
-                            phi_1 = torch.expm1(-h)
-
-                            # latent_model_input = torch.cat([latents] * 2) if do_classifier_free_guidance else latents                          
-                            latent_model_input, info = self._prepare_latent_for_unet(latents, do_classifier_free_guidance, self.unet)
-                            latent_model_input = self.scheduler.scale_model_input(latent_model_input, t)
-                            
-                            noise_pred_raw = self.unet(latent_model_input, s, encoder_hidden_states=text_embeddings).sample
-                            noise_pred = self._restore_latent_from_unet(noise_pred_raw, info, guidance_scale)     
-                            model_s = self.scheduler.convert_model_output(model_output=noise_pred, sample=latents)
-
-                            x_t = latents
-                            
-                            # Line 16
-                            latents = (sigma_s / sigma_t) * (latents + alpha_t * phi_1 * model_s)
-                            
-                            # Line 17 : Update
-                            if (inverse_opt):
-                                latents = self._fixedpoint_correction(latents, s, t, x_t, order=1, text_embeddings=text_embeddings, guidance_scale=guidance_scale,
-                                                                     step_size=10/t, scheduler=True)   
-                        else:
-                            raise Exception("Index Error!")
-                        
-                        self.scheduler._step_index += 1
-                        # Save intermediate latents
-                        intermediate_latents.append(latents.clone())
                 else:
                     pass
 
@@ -387,10 +140,6 @@ class ExactInversion(BaseInversion):
     ):
         """
         Reconstruct z_0 from z_T via the forward diffusion process
-
-        Sampling (Explicit Method):
-        Order 1: Forward Euler (DDIM) - Eq. (5)
-        Order 2: DPM-Solver++(2M) - Eq. (6)
         """
         with torch.no_grad():
             # 1. Setup
@@ -447,20 +196,8 @@ class ExactInversion(BaseInversion):
                     # x_{t_i} = (sigma_{t_i} / sigma_{t_{i-1}}) * x_{t_{i-1}} - alpha_{t_i} * (e^{-h} - 1) * x_theta
                     #  x_s = (sigma_s/sigma_t) * latents - alpha_s * phi_1 * model_output
                     latents = (sigma_s / sigma_t) * latents - (alpha_s * phi_1) * model_output
-                
-                # Case 2: Second Order (DPM-Solver++ 2M)
-                elif inv_order == 2:
-                    # t_prev (old t) -> t (current) -> s (next)
-                    t_prev = timesteps_tensor[i - 1]
-                    lambda_prev = self.scheduler.lambda_t[t_prev]
-                    h_0 = lambda_t - lambda_prev
-                    r = h_0 / h
-                    
-                    # Eq. (6)
-                    # D = (1 + 1/(2r)) * x_theta(t) - (1/(2r)) * x_theta(t_prev)
-                    D = (1 + 1 / (2 * r)) * model_output - (1 / (2 * r)) * old_model_output
-                    
-                    latents = (sigma_s / sigma_t) * latents - (alpha_s * phi_1) * D
+                else:
+                    pass
 
                 # Update history
                 old_model_output = model_output
@@ -470,70 +207,3 @@ class ExactInversion(BaseInversion):
                     callback(i, t, latents)
 
             return latents
-
-        
-class StepScheduler(ReduceLROnPlateau):
-    def __init__(self, mode='min', current_lr=0, factor=0.1, patience=10,
-                 threshold=1e-4, threshold_mode='rel', cooldown=0,
-                 min_lr=0, eps=1e-8, verbose=False):
-        if factor >= 1.0:
-            raise ValueError('Factor should be < 1.0.')
-        self.factor = factor
-        if current_lr == 0:
-            raise ValueError('Step size cannot be 0')
-
-        self.min_lr = min_lr
-        self.current_lr = current_lr
-        self.patience = patience
-        self.verbose = verbose
-        self.cooldown = cooldown
-        self.cooldown_counter = 0
-        self.mode = mode
-        self.threshold = threshold
-        self.threshold_mode = threshold_mode
-        self.best = None
-        self.num_bad_epochs = None
-        self.mode_worse = None  # the worse value for the chosen mode
-        self.eps = eps
-        self.last_epoch = 0
-        self._init_is_better(mode=mode, threshold=threshold,
-                             threshold_mode=threshold_mode)
-        self._reset()
-
-    def step(self, metrics, epoch=None):
-        # convert `metrics` to float, in case it's a zero-dim Tensor
-        current = float(metrics)
-        if epoch is None:
-            epoch = self.last_epoch + 1
-        else:
-            import warnings
-            warnings.warn("EPOCH_DEPRECATION_WARNING", UserWarning)
-        self.last_epoch = epoch
-
-        if self.is_better(current, self.best):
-            self.best = current
-            self.num_bad_epochs = 0
-        else:
-            self.num_bad_epochs += 1
-
-        if self.in_cooldown:
-            self.cooldown_counter -= 1
-            self.num_bad_epochs = 0  # ignore any bad epochs in cooldown
-
-        if self.num_bad_epochs > self.patience:
-            self._reduce_lr(epoch)
-            self.cooldown_counter = self.cooldown
-            self.num_bad_epochs = 0
-
-        return self.current_lr
-
-    def _reduce_lr(self, epoch):
-        old_lr = self.current_lr
-        new_lr = max(self.current_lr * self.factor, self.min_lr)
-        if old_lr - new_lr > self.eps:
-            self.current_lr = new_lr
-            if self.verbose:
-                epoch_str = ("%.2f" if isinstance(epoch, float) else
-                            "%.5d") % epoch
-                print('Epoch {}: reducing learning rate'
-                        ' to {:.4e}.'.format(epoch_str,new_lr))

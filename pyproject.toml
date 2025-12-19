@@ -210,7 +210,7 @@ exclude = ["VBench", "backup", "test"]
 testpaths = ["markdiffusion/test"]
 python_files = ["test_*.py", "*_test.py"]
 python_functions = ["test_*"]
-addopts = "-v --tb=short"
+addopts = "-v --tb=short --ignore=tests_ci"
 filterwarnings = [
     "ignore::DeprecationWarning",
     "ignore::UserWarning",

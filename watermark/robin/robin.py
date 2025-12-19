@@ -13,7 +13,7 @@ from huggingface_hub import hf_hub_download
 from visualize.data_for_visualization import DataForVisualization
 from evaluation.dataset import StableDiffusionPromptsDataset
 from utils.media_utils import get_random_latents
-from .watermark_generator import get_watermarking_mask, get_watermarking_pattern, inject_watermark, ROBINWatermarkedImageGeneration # OptimizedDataset, optimizer_wm_prompt
+from .watermark_generator import get_watermarking_mask, inject_watermark, ROBINWatermarkedImageGeneration # OptimizedDataset, optimizer_wm_prompt
 from detection.robin.robin_detection import ROBINDetector
 
 class ROBINConfig(BaseConfig):
@@ -93,27 +93,6 @@ class ROBINUtils:
             generation_params[key] = value
             
         return generation_params
-    
-    # def generate_clean_images(self, dataset: StableDiffusionPromptsDataset, **kwargs) -> List[Image.Image]:
-    #     """Generate clean images for optimization."""
-    #     generation_params = self.build_generation_params(**kwargs, guidance_scale=self.config.data_guidance_scale)
-        
-    #     clean_images = []
-    #     for i, prompt in enumerate(dataset):
-    #         formatted_img_filename = f"ori-lg{generation_params['guidance_scale']}-{i}.jpg"
-    #         if os.path.exists(os.path.join(self.config.output_img_dir, formatted_img_filename)):
-    #             clean_images.append(Image.open(os.path.join(self.config.output_img_dir, formatted_img_filename)))
-    #         else:            
-    #             no_watermarked_image = self.config.pipe(
-    #                 prompt,
-    #                 **generation_params,
-    #             ).images[0]
-    #             clean_images.append(no_watermarked_image)
-                
-    #             os.makedirs(self.config.output_img_dir, exist_ok=True)
-    #             no_watermarked_image.save(os.path.join(self.config.output_img_dir, f"ori-lg{generation_params['guidance_scale']}-{i}.jpg"))
-                
-    #     return clean_images
     
     def build_watermarking_args(self) -> types.SimpleNamespace:
         """Build watermarking arguments from config."""
@@ -200,34 +179,6 @@ class ROBINUtils:
         optimized_watermarking_signal = checkpoint['opt_acond'].to(self.config.device)
 
         return watermarking_mask, optimized_watermark, optimized_watermarking_signal
-        # else:
-        #     print(f"Start training from scratch")
-        #     # Generate clean images
-        #     clean_images = self.generate_clean_images(dataset)
-        #     # Create training dataset
-        #     train_dataset = OptimizedDataset(
-        #         data_root=self.config.output_img_dir,
-        #         custom_dataset=dataset,
-        #         size=512,
-        #         repeats=10,
-        #         interpolation="bicubic",
-        #     )
-            
-        #     train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=self.config.train_batch_size, shuffle=True)
-            
-        #     opt_watermark = get_watermarking_pattern(pipe=self.config.pipe, args=watermarking_args, device=self.config.device)
-            
-        #     optimized_watermark, optimized_watermarking_signal = optimizer_wm_prompt(
-        #         pipe=self.config.pipe, 
-        #         dataloader=train_dataloader,
-        #         hyperparameters=hyperparameters,
-        #         mask=watermarking_mask,
-        #         opt_wm=opt_watermark,
-        #         save_path=self.config.ckpt_dir,
-        #         args=watermarking_args,
-        #     )
-            
-        #     return watermarking_mask, optimized_watermark, optimized_watermarking_signal
     
     def initialize_detector(self, watermarking_mask, optimized_watermark) -> ROBINDetector:
         """Initialize the ROBIN detector."""
@@ -238,61 +189,61 @@ class ROBINUtils:
             device=self.config.device
         )
     
-    def preprocess_image_for_detection(self, image: Image.Image, prompt: str, guidance_scale: float) -> tuple:
-        """Preprocess image and get text embeddings for detection."""
-        # Get Text Embeddings
-        do_classifier_free_guidance = (guidance_scale > 1.0)
-        prompt_embeds, negative_prompt_embeds = self.config.pipe.encode_prompt(
-            prompt=prompt, 
-            device=self.config.device, 
-            do_classifier_free_guidance=do_classifier_free_guidance,
-            num_images_per_prompt=1,
-        )
+    # def preprocess_image_for_detection(self, image: Image.Image, prompt: str, guidance_scale: float) -> tuple:
+    #     """Preprocess image and get text embeddings for detection."""
+    #     # Get Text Embeddings
+    #     do_classifier_free_guidance = (guidance_scale > 1.0)
+    #     prompt_embeds, negative_prompt_embeds = self.config.pipe.encode_prompt(
+    #         prompt=prompt, 
+    #         device=self.config.device, 
+    #         do_classifier_free_guidance=do_classifier_free_guidance,
+    #         num_images_per_prompt=1,
+    #     )
         
-        if do_classifier_free_guidance:
-            text_embeddings = torch.cat([negative_prompt_embeds, prompt_embeds])
-        else:
-            text_embeddings = prompt_embeds
+    #     if do_classifier_free_guidance:
+    #         text_embeddings = torch.cat([negative_prompt_embeds, prompt_embeds])
+    #     else:
+    #         text_embeddings = prompt_embeds
         
-        # Preprocess Image
-        processed_image = transform_to_model_format(
-            image, 
-            target_size=self.config.image_size[0]
-        ).unsqueeze(0).to(text_embeddings.dtype).to(self.config.device)
+    #     # Preprocess Image
+    #     processed_image = transform_to_model_format(
+    #         image, 
+    #         target_size=self.config.image_size[0]
+    #     ).unsqueeze(0).to(text_embeddings.dtype).to(self.config.device)
         
-        return text_embeddings, processed_image
+    #     return text_embeddings, processed_image
     
-    def extract_latents_for_detection(self, 
-                                    image: Image.Image, 
-                                    prompt: str, 
-                                    guidance_scale: float, 
-                                    num_inference_steps: int,
-                                    extract_latents_step: int,
-                                    **kwargs) -> torch.Tensor:
-        """Extract and reverse latents for watermark detection."""
-        # Preprocess image and get text embeddings
-        text_embeddings, processed_image = self.preprocess_image_for_detection(image, prompt, guidance_scale)
+    # def extract_latents_for_detection(self, 
+    #                                 image: Image.Image, 
+    #                                 prompt: str, 
+    #                                 guidance_scale: float, 
+    #                                 num_inference_steps: int,
+    #                                 extract_latents_step: int,
+    #                                 **kwargs) -> torch.Tensor:
+    #     """Extract and reverse latents for watermark detection."""
+    #     # Preprocess image and get text embeddings
+    #     text_embeddings, processed_image = self.preprocess_image_for_detection(image, prompt, guidance_scale)
         
-        # Get Image Latents
-        image_latents = get_media_latents(
-            pipe=self.config.pipe, 
-            media=processed_image, 
-            sample=False, 
-            decoder_inv=kwargs.get('decoder_inv', False)
-        )
+    #     # Get Image Latents
+    #     image_latents = get_media_latents(
+    #         pipe=self.config.pipe, 
+    #         media=processed_image, 
+    #         sample=False, 
+    #         decoder_inv=kwargs.get('decoder_inv', False)
+    #     )
         
-        # Reverse Image Latents
-        inversion_kwargs = {k: v for k, v in kwargs.items() if k not in ['decoder_inv', 'guidance_scale', 'num_inference_steps']}
+    #     # Reverse Image Latents
+    #     inversion_kwargs = {k: v for k, v in kwargs.items() if k not in ['decoder_inv', 'guidance_scale', 'num_inference_steps']}
         
-        reversed_latents = self.config.inversion.forward_diffusion(
-            latents=image_latents,
-            text_embeddings=text_embeddings,
-            guidance_scale=guidance_scale,
-            num_inference_steps=num_inference_steps,
-            **inversion_kwargs
-        )[extract_latents_step]
+    #     reversed_latents = self.config.inversion.forward_diffusion(
+    #         latents=image_latents,
+    #         text_embeddings=text_embeddings,
+    #         guidance_scale=guidance_scale,
+    #         num_inference_steps=num_inference_steps,
+    #         **inversion_kwargs
+    #     )[extract_latents_step]
         
-        return reversed_latents
+    #     return reversed_latents
 
 @inherit_docstring
 class ROBIN(BaseWatermark):

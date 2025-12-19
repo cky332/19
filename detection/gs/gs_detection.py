@@ -44,28 +44,6 @@ class GSDetector(BaseDetector):
         else:
             self.key = wm_key
     
-    def _stream_key_encrypt(self, sd):
-        """Encrypt the watermark using ChaCha20 cipher."""
-        cipher = ChaCha20.new(key=self.chacha_key, nonce=self.chacha_nonce)
-        m_byte = cipher.encrypt(np.packbits(sd).tobytes())
-        m_bit = np.unpackbits(np.frombuffer(m_byte, dtype=np.uint8))
-        return m_bit  
-    
-    def _truncSampling(self, message):
-        """Truncated Gaussian sampling for watermarking."""
-        z = np.zeros(self.latentlength)
-        denominator = 2.0
-        ppf = [norm.ppf(j / denominator) for j in range(int(denominator) + 1)]
-        for i in range(self.latentlength):
-            dec_mes = reduce(lambda a, b: 2 * a + b, message[i : i + 1])
-            dec_mes = int(dec_mes)
-            z[i] = truncnorm.rvs(ppf[dec_mes], ppf[dec_mes + 1])
-        
-        # Calculate dimensions dynamically assuming square latents
-        spatial_size = int(np.sqrt(self.latentlength / 4))
-        z = torch.from_numpy(z).reshape(1, 4, spatial_size, spatial_size).half()
-        return z.to(self.device)
-    
     def _stream_key_decrypt(self, reversed_m):
         """Decrypt the watermark using ChaCha20 cipher."""
         cipher = ChaCha20.new(key=self.chacha_key, nonce=self.chacha_nonce)

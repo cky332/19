@@ -22,13 +22,9 @@ from utils.utils import set_random_seed
 from visualize.data_for_visualization import DataForVisualization
 from .gnr import GNRRestorer
 
-import joblib
-
-
 # -----------------------------------------------------------------------------
 # Helper utilities adapted from the official GaussMarker implementation
 # -----------------------------------------------------------------------------
-
 
 def _bytes_from_seed(seed: Optional[int], length: int) -> bytes:
 	"""Generate deterministic bytes using a Python PRNG seed."""
@@ -36,7 +32,6 @@ def _bytes_from_seed(seed: Optional[int], length: int) -> bytes:
 		return get_random_bytes(length)
 	rng = random.Random(seed)
 	return bytes(rng.getrandbits(8) for _ in range(length))
-
 
 def circle_mask(size: int, radius: int, x_offset: int = 0, y_offset: int = 0) -> np.ndarray:
 	"""Create a binary circle mask with optional offset."""
@@ -47,21 +42,6 @@ def circle_mask(size: int, radius: int, x_offset: int = 0, y_offset: int = 0) ->
 	grid_y = grid_y[::-1]
 	return ((grid_x - x0) ** 2 + (grid_y - y0) ** 2) <= radius ** 2
 
-
-def set_complex_sign(original: torch.Tensor, sign_tensor: torch.Tensor) -> torch.Tensor:
-	"""Apply complex-valued sign encoding (4-way) to a complex tensor."""
-	real = original.real.abs()
-	imag = original.imag.abs()
-
-	sign_map_real = 1 - 2 * (sign_tensor >= 2).float()
-	sign_map_imag = 1 - 2 * ((sign_tensor % 2) == 1).float()
-
-	signed_real = real * sign_map_real
-	signed_imag = imag * sign_map_imag
-
-	return torch.complex(signed_real, signed_imag).to(original.dtype)
-
-
 def extract_complex_sign(complex_tensor: torch.Tensor) -> torch.Tensor:
 	"""Extract complex-valued sign encoding (4-way) from a complex tensor."""
 	real = complex_tensor.real
@@ -71,12 +51,9 @@ def extract_complex_sign(complex_tensor: torch.Tensor) -> torch.Tensor:
 	sign_map_imag = (imag <= 0).long()
 	return 2 * sign_map_real + sign_map_imag
 
-
 # -----------------------------------------------------------------------------
 # Gaussian Shading watermark with ChaCha20 encryption (generalised dimensions)
 # -----------------------------------------------------------------------------
-
-
 @dataclass
 class GaussianShadingChaCha:
 	channel_copy: int
@@ -126,6 +103,7 @@ class GaussianShadingChaCha:
 	# ------------------------------------------------------------------
 	# Key/nonce helpers
 	# ------------------------------------------------------------------
+
 	def _ensure_key_nonce(self) -> None:
 		if self.key is None:
 			self.key = _bytes_from_seed(self.key_seed, 32)
@@ -135,6 +113,7 @@ class GaussianShadingChaCha:
 	# ------------------------------------------------------------------
 	# Sampling helpers
 	# ------------------------------------------------------------------
+
 	def _truncated_sampling(self, message_bits: np.ndarray) -> torch.Tensor:
 		z = np.zeros(self.latentlength, dtype=np.float32)
 		denominator = 2.0
@@ -167,14 +146,15 @@ class GaussianShadingChaCha:
 
 		tiled = self.watermark.repeat(1, self.channel_copy, self.width_copy, self.height_copy)
 		self.message_bits = self._stream_key_encrypt(tiled.flatten().cpu().numpy())
-
+	
 	# ------------------------------------------------------------------
 	# Encryption helpers
 	# ------------------------------------------------------------------
-	def _stream_key_encrypt(self, spread_bits: np.ndarray) -> np.ndarray:
+	def _stream_key_encrypt(self, plaintext_bits: np.ndarray) -> np.ndarray:
+		"""Encrypt plaintext bits using ChaCha20 stream cipher."""
 		self._ensure_key_nonce()
-		cipher = ChaCha20.new(key=self.key, nonce=self.nonce)
-		packed = np.packbits(spread_bits).tobytes()
+		cipher = ChaCha20.new(key=self.key, nonce=self.nonce)  # 初始化 cipher
+		packed = np.packbits(plaintext_bits).tobytes()
 		encrypted = cipher.encrypt(packed)
 		unpacked = np.unpackbits(np.frombuffer(encrypted, dtype=np.uint8))
 		return unpacked[: self.latentlength]
@@ -194,6 +174,7 @@ class GaussianShadingChaCha:
 	# ------------------------------------------------------------------
 	# Public API
 	# ------------------------------------------------------------------
+
 	def create_watermark_and_return_w_m(self) -> Tuple[torch.Tensor, torch.Tensor]:
 		if self.watermark is None or self.message_bits is None:
 			self._generate_watermark()
@@ -242,11 +223,9 @@ class GaussianShadingChaCha:
 		device = device or self.device
 		return self.watermark.to(device)
 
-
 # -----------------------------------------------------------------------------
 # Utility helpers for GaussMarker
 # -----------------------------------------------------------------------------
-
 
 class GMUtils:
 	def __init__(self, config: "GMConfig") -> None:
@@ -262,7 +241,7 @@ class GMUtils:
 			self.pipeline_dtype = next(config.pipe.unet.parameters()).dtype
 		except StopIteration:
 			self.pipeline_dtype = config.dtype
-
+		
 		watermark_cls = GaussianShadingChaCha
 		self.watermark_generator = watermark_cls(
 			channel_copy=config.channel_copy,
@@ -288,10 +267,33 @@ class GMUtils:
 		self.radius_list = list(range(config.w_radius, 0, -1))
 		self.gt_patch = self._build_watermarking_pattern()
 		self.watermarking_mask = self._build_watermarking_mask()
-		self.gnr_restorer = self._build_gnr_restorer()
-		self.fuser = self._build_fuser()
-		self.fuser_threshold = float(self.config.fuser_threshold) if self.config.fuser_threshold is not None else 0.5
-		self.fuser_frequency_scale = float(self.config.fuser_frequency_scale)
+
+		# 延迟导入 GMDetector，避免循环导入
+		from detection.gm.gm_detection import GMDetector
+		
+		# Build detector (delegates all detection work)
+		self.detector = GMDetector(
+			watermark_generator=self.watermark_generator,
+			watermarking_mask=self.watermarking_mask,
+			gt_patch=self.gt_patch,
+			w_measurement=self.config.w_measurement,
+			device=self.device,
+			bit_threshold=self.watermark_generator.tau_bits,
+			message_threshold=self.watermark_generator.tau_onebit,
+			l1_threshold=None,
+			gnr_checkpoint=self.config.gnr_checkpoint,
+			gnr_classifier_type=self.config.gnr_classifier_type,
+			gnr_model_nf=self.config.gnr_model_nf,
+			gnr_binary_threshold=self.config.gnr_binary_threshold,
+			gnr_use_for_decision=self.config.gnr_use_for_decision,
+			gnr_threshold=self.config.gnr_threshold,
+			fuser_checkpoint=self.config.fuser_checkpoint,
+			fuser_threshold=self.config.fuser_threshold,
+			fuser_frequency_scale=self.config.fuser_frequency_scale,
+			huggingface_repo=self.config.huggingface_repo,
+			hf_dir=self.config.hf_dir,
+		)
+
 
 	# ------------------------------------------------------------------
 	# Pattern / mask construction
@@ -355,106 +357,10 @@ class GMUtils:
 				mask[:, :, base_mask] = True
 			else:
 				mask[:, self.config.w_channel, base_mask] = True
-		# elif shape == "square":
-		# 	anchor = self.latent_shape[-1] // 2
-		# 	sl = slice(anchor - self.config.w_radius, anchor + self.config.w_radius)
-		# 	if self.config.w_channel == -1:
-		# 		mask[:, :, sl, sl] = True
-		# 	else:
-		# 		mask[:, self.config.w_channel, sl, sl] = True
-		# elif shape == "signal_circle":
-		# 	mask = torch.zeros(self.latent_shape, dtype=torch.long, device=self.device)
-		# 	label = 1
-		# 	for radius in self.radius_list:
-		# 		base_mask = torch.tensor(circle_mask(self.latent_shape[-1], radius), device=self.device)
-		# 		mask[:, :, base_mask] = label
-		# 		label += 1
-		# elif shape == "no":
-		# 	return mask
 		else:
 			raise NotImplementedError(f"Unsupported watermark mask shape: {shape}")
 
 		return mask
-
-	def _build_gnr_restorer(self) -> Optional[GNRRestorer]:
-		checkpoint = self.config.gnr_checkpoint
-		if not checkpoint:
-			return None
-		checkpoint_path = Path(checkpoint)
-		repo = getattr(self.config, "huggingface_repo", None)
-		hf_dir = getattr(self.config, "hf_dir", None)
-		if repo:
-			# Check if file already exists locally before downloading
-			local_path = checkpoint_path if checkpoint_path.is_file() else None
-			if hf_dir:
-				potential_local = Path(hf_dir) / Path(checkpoint).name
-				if potential_local.is_file():
-					local_path = potential_local
-			if local_path and local_path.is_file():
-				print(f"Using existing GNR checkpoint: {local_path}")
-				checkpoint_path = local_path
-			else:
-				try:
-					hf_path = hf_hub_download(repo_id=repo, filename=Path(checkpoint).name, cache_dir=hf_dir)
-					print(f"Downloaded GNR checkpoint from Huggingface Hub: {hf_path}")
-					checkpoint_path = Path(hf_path)
-				except Exception as e:
-					raise FileNotFoundError(f"GNR checkpoint not found on ({repo}). error: {e}")
-		in_channels = self.config.latent_channels * (2 if self.config.gnr_classifier_type == 1 else 1)
-		return GNRRestorer(
-			checkpoint_path=checkpoint_path,
-			in_channels=in_channels,
-			out_channels=self.config.latent_channels,
-			nf=self.config.gnr_model_nf,
-			device=torch.device(self.config.device),
-			classifier_type=self.config.gnr_classifier_type,
-			base_message=self.base_message if self.config.gnr_classifier_type == 1 else None,
-		)
-
-	def _build_fuser(self):
-		checkpoint = self.config.fuser_checkpoint
-		if not checkpoint:
-			return None
-		if joblib is None:
-			raise ImportError(
-				"joblib is required to load the GaussMarker fuser. Install joblib or disable the fuser."
-			)
-		repo = getattr(self.config, "huggingface_repo", None)
-		hf_dir = getattr(self.config, "hf_dir", None)
-		candidates = []
-		if repo:
-			# Check if file already exists locally before downloading
-			local_path = Path(checkpoint) if Path(checkpoint).is_file() else None
-			if hf_dir:
-				potential_local = Path(hf_dir) / Path(checkpoint).name
-				if potential_local.is_file():
-					local_path = potential_local
-			if local_path and local_path.is_file():
-				print(f"Using existing fuser checkpoint: {local_path}")
-				candidates = [local_path]
-			else:
-				try:
-					hf_path = hf_hub_download(repo_id=repo, filename=Path(checkpoint).name, cache_dir=hf_dir)
-					print(f"Downloaded fuser checkpoint from Huggingface Hub: {hf_path}")
-					candidates = [Path(hf_path)]
-				except Exception as e:
-					raise FileNotFoundError(f"Fuser checkpoint not found on ({repo}). error: {e}")
-		base_dir = Path(__file__).resolve().parent
-		candidates.append(base_dir / checkpoint)
-		candidates.append(base_dir.parent.parent / checkpoint)
-		for candidate in candidates:
-			if not candidate.is_file():
-				from huggingface_hub import snapshot_download
-				import os
-				snapshot_download(
-					repo_id="Generative-Watermark-Toolkits/MarkDiffusion-gm",
-					local_dir=checkpoint.split("/")[0],
-					repo_type="model",
-					local_dir_use_symlinks=False,
-					endpoint=os.getenv("HF_ENDPOINT", "https://huggingface.co"),
-				)
-			return joblib.load(candidate)
-		raise FileNotFoundError(f"Fuser checkpoint not found at '{checkpoint}'")
 
 	# ------------------------------------------------------------------
 	# Watermark injection / detection helpers
@@ -462,6 +368,12 @@ class GMUtils:
 	def _inject_complex(self, latents: torch.Tensor) -> torch.Tensor:
 		fft_latents = torch.fft.fftshift(torch.fft.fft2(latents), dim=(-1, -2))
 		target_patch = self.gt_patch
+		if not torch.is_complex(target_patch):
+			real = target_patch.to(torch.float32)
+			imag = torch.zeros_like(real)
+			target_patch = torch.complex(real, imag)
+		target_patch = target_patch.to(fft_latents.dtype)
+		
 		mask = self.watermarking_mask
 		if mask.dtype != torch.bool:
 			fft_latents[mask != 0] = target_patch[mask != 0].clone()
@@ -470,30 +382,11 @@ class GMUtils:
 		injected = torch.fft.ifft2(torch.fft.ifftshift(fft_latents, dim=(-1, -2))).real
 		return injected
 
-	# def _inject_seed(self, latents: torch.Tensor) -> torch.Tensor:
-	# 	mask = self.watermarking_mask
-	# 	injected = latents.clone()
-	# 	injected[mask] = self.gt_patch[mask].clone()
-	# 	return injected
-
-	# def _inject_signal(self, latents: torch.Tensor) -> torch.Tensor:
-	# 	fft_latents = torch.fft.fftshift(torch.fft.fft2(latents), dim=(-1, -2))
-	# 	mask = self.watermarking_mask
-	# 	signals = extract_complex_sign(self.gt_patch)
-	# 	fft_latents_signal = set_complex_sign(fft_latents, signals)
-	# 	fft_latents[mask != 0] = fft_latents_signal[mask != 0]
-	# 	injected = torch.fft.ifft2(torch.fft.ifftshift(fft_latents, dim=(-1, -2))).real
-	# 	return injected
-
 	def inject_watermark(self, base_latents: torch.Tensor) -> torch.Tensor:
 		base_latents = base_latents.to(self.device, dtype=torch.float32)
 		injection = self.config.w_injection.lower()
 		if "complex" in injection:
 			watermarked = self._inject_complex(base_latents)
-		# elif "seed" in injection:
-		# 	watermarked = self._inject_seed(base_latents)
-		# elif "signal" in injection:
-		# 	watermarked = self._inject_signal(base_latents)
 		else:
 			raise NotImplementedError(f"Unsupported injection mode: {self.config.w_injection}")
 		return watermarked.to(self.config.dtype)
@@ -508,102 +401,9 @@ class GMUtils:
 		target_dtype = self.pipeline_dtype or self.config.dtype
 		return watermarked.to(target_dtype)
 
-	def _compute_complex_l1(self, reversed_latents: torch.Tensor) -> float:
-		fft_latents = torch.fft.fftshift(torch.fft.fft2(reversed_latents), dim=(-1, -2))
-		target_patch = self.gt_patch
-		mask = self.watermarking_mask
-		if mask.dtype != torch.bool:
-			selection = mask != 0
-		else:
-			selection = mask
-		if selection.sum() == 0:
-			return 0.0
-		diff = torch.abs(fft_latents[selection] - target_patch[selection])
-		return float(diff.mean().item())
-
-	def detect_from_latents(self, reversed_latents: torch.Tensor, detector_type: Optional[str] = None) -> Dict[str, Union[float, bool]]:
-		reversed_latents = reversed_latents.to(self.device, dtype=torch.float32)
-		metrics: Dict[str, Union[float, bool]] = {}
-
-		bit_watermark = self.watermark_generator.pred_w_from_latent(reversed_latents)
-		reference_bits = self.watermark_generator.watermark_tensor(bit_watermark.device)
-		bit_accuracy = (bit_watermark == reference_bits).float().mean().item()
-		metrics["bit_accuracy"] = float(bit_accuracy)
-		metrics["tau_bits"] = float(self.watermark_generator.tau_bits or 0.0)
-		metrics["tau_onebit"] = float(self.watermark_generator.tau_onebit or 0.0)
-
-		reversed_m = self.watermark_generator.pred_m_from_latent(reversed_latents)
-		message_bits = torch.from_numpy(self.watermark_generator.message_bits.astype(np.float32)).to(reversed_m.device)
-		m_accuracy = (reversed_m.flatten() == message_bits).float().mean().item()
-		metrics["message_accuracy"] = float(m_accuracy)
-
-		gnr_bit_accuracy = None
-		gnr_message_accuracy = None
-		if self.gnr_restorer is not None:
-			restored_probs = self.gnr_restorer.restore(reversed_m)
-			restored_binary = (restored_probs > self.config.gnr_binary_threshold).float()
-			restored_w = self.watermark_generator.pred_w_from_m(restored_binary)
-			gnr_bit_accuracy = (restored_w == reference_bits).float().mean().item()
-			restored_message = restored_binary.flatten()
-			gnr_message_accuracy = (restored_message == message_bits).float().mean().item()
-			metrics["gnr_bit_accuracy"] = float(gnr_bit_accuracy)
-			metrics["gnr_message_accuracy"] = float(gnr_message_accuracy)
-
-		metrics["complex_l1"] = self._compute_complex_l1(reversed_latents)
-		frequency_score = -metrics["complex_l1"] * self.fuser_frequency_scale
-		metrics["frequency_score"] = float(frequency_score)
-
-		threshold = self.watermark_generator.tau_bits or 0.5
-		decision_threshold = threshold
-		decision_bit_accuracy = bit_accuracy
-		if self.gnr_restorer is not None and self.config.gnr_use_for_decision and gnr_bit_accuracy is not None:
-			decision_bit_accuracy = max(decision_bit_accuracy, gnr_bit_accuracy)
-			if self.config.gnr_threshold is not None:
-				decision_threshold = float(self.config.gnr_threshold)
-		metrics["decision_bit_accuracy"] = float(decision_bit_accuracy)
-		metrics["decision_threshold"] = float(decision_threshold)
-
-		fused_score = None
-		if self.fuser is not None:
-			spatial_score = gnr_bit_accuracy if (gnr_bit_accuracy is not None and self.config.gnr_use_for_decision) else bit_accuracy
-			frequency_score = metrics["frequency_score"]
-			features = np.array([[spatial_score, frequency_score]], dtype=np.float32)
-			if hasattr(self.fuser, "predict_proba"):
-				fused_score = float(self.fuser.predict_proba(features)[0, 1])
-			elif hasattr(self.fuser, "decision_function"):
-				fused_score = float(self.fuser.decision_function(features)[0])
-			else:
-				raise AttributeError("Unsupported fuser model: missing predict_proba/decision_function")
-			metrics["fused_score"] = fused_score
-			metrics["fused_threshold"] = float(self.fuser_threshold)
-			metrics["is_watermarked"] = bool(fused_score >= self.fuser_threshold)
-		else:
-			metrics["is_watermarked"] = bool(decision_bit_accuracy >= decision_threshold)
-		if gnr_bit_accuracy is not None:
-			metrics["gnr_threshold"] = float(decision_threshold if self.config.gnr_use_for_decision and self.config.gnr_threshold is not None else threshold)
-
-		if detector_type == "is_watermarked":
-			return {"is_watermarked": metrics["is_watermarked"]}
-		if detector_type == "gnr_bit_acc" and gnr_bit_accuracy is not None:
-			selected_threshold = decision_threshold if self.config.gnr_use_for_decision and self.config.gnr_threshold is not None else threshold
-			return {
-				"gnr_bit_accuracy": float(gnr_bit_accuracy),
-				"threshold": float(selected_threshold),
-				"is_watermarked": bool(gnr_bit_accuracy >= selected_threshold),
-			}
-		if detector_type == "fused" and fused_score is not None:
-			return {
-				"fused_score": float(fused_score),
-				"threshold": float(self.fuser_threshold),
-				"is_watermarked": bool(fused_score >= self.fuser_threshold),
-			}
-		return metrics
-
-
 # -----------------------------------------------------------------------------
 # Configuration for GaussMarker
 # -----------------------------------------------------------------------------
-
 
 class GMConfig(BaseConfig):
 	def initialize_parameters(self) -> None:
@@ -616,7 +416,6 @@ class GMConfig(BaseConfig):
 		self.chacha_key_seed = cfg.get("chacha_key_seed")
 		self.chacha_nonce_seed = cfg.get("chacha_nonce_seed")
 		self.watermark_seed = cfg.get("watermark_seed", self.gen_seed)
-
 		self.w_seed = cfg.get("w_seed", 999_999)
 		self.w_channel = cfg.get("w_channel", -1)
 		self.w_pattern = cfg.get("w_pattern", "ring")
@@ -652,18 +451,16 @@ class GMConfig(BaseConfig):
 	def algorithm_name(self) -> str:
 		return "GM"
 
-
+	
 # -----------------------------------------------------------------------------
 # Main GaussMarker watermark class
 # -----------------------------------------------------------------------------
-
-
 class GM(BaseWatermark):
 	def __init__(self, watermark_config: GMConfig, *args, **kwargs) -> None:
 		self.config = watermark_config
 		self.utils = GMUtils(self.config)
 		super().__init__(self.config)
-
+	
 	def _generate_watermarked_image(self, prompt: str, *args, **kwargs) -> Image.Image:
 		seed = kwargs.pop("seed", self.config.gen_seed)
 		watermarked_latents = self.utils.generate_watermarked_latents(seed=seed)
@@ -733,7 +530,11 @@ class GM(BaseWatermark):
 		)
 		reversed_latents = reversed_series[-1]
 
-		return self.utils.detect_from_latents(reversed_latents, detector_type=kwargs.get("detector_type"))
+		# Delegate detection to GMDetector
+		return self.utils.detector.eval_watermark(
+			reversed_latents=reversed_latents,
+			detector_type=kwargs.get("detector_type", "bit_acc"),
+		)
 
 	def get_data_for_visualize(
 		self,

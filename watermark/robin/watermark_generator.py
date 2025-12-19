@@ -140,48 +140,48 @@ def get_watermarking_mask(init_latents_w, args, device):
 
     return watermarking_mask
     
-def get_watermarking_pattern(pipe, args, device, shape=None):
-    set_random_seed(args.w_seed)
-    # set_random_seed(10)  # test weak high freq watermark
-    if shape is not None:
-        gt_init = torch.randn(*shape, device=device)#.type(torch.complex32)
-    else:
-        gt_init = get_random_latents(pipe=pipe)
+# def get_watermarking_pattern(pipe, args, device, shape=None):
+#     set_random_seed(args.w_seed)
+#     # set_random_seed(10)  # test weak high freq watermark
+#     if shape is not None:
+#         gt_init = torch.randn(*shape, device=device)#.type(torch.complex32)
+#     else:
+#         gt_init = get_random_latents(pipe=pipe)
 
-    if 'seed_ring' in args.w_pattern:  # spacial
-        gt_patch = gt_init
+#     if 'seed_ring' in args.w_pattern:  # spacial
+#         gt_patch = gt_init
 
-        gt_patch_tmp = copy.deepcopy(gt_patch)
-        for i in range(args.w_up_radius, args.w_low_radius, -1):
-            tmp_mask = circle_mask(gt_init.shape[-1], r_max=args.w_up_radius, r_min=args.w_low_radius)
-            tmp_mask = torch.tensor(tmp_mask).to(device)
+#         gt_patch_tmp = copy.deepcopy(gt_patch)
+#         for i in range(args.w_up_radius, args.w_low_radius, -1):
+#             tmp_mask = circle_mask(gt_init.shape[-1], r_max=args.w_up_radius, r_min=args.w_low_radius)
+#             tmp_mask = torch.tensor(tmp_mask).to(device)
             
-            for j in range(gt_patch.shape[1]):
-                gt_patch[:, j, tmp_mask] = gt_patch_tmp[0, j, 0, i].item()
-    elif 'seed_zeros' in args.w_pattern:
-        gt_patch = gt_init * 0
-    elif 'seed_rand' in args.w_pattern:
-        gt_patch = gt_init
-    elif 'rand' in args.w_pattern:
-        gt_patch = torch.fft.fftshift(torch.fft.fft2(gt_init), dim=(-1, -2))
-        gt_patch[:] = gt_patch[0]
-    elif 'zeros' in args.w_pattern:
-        gt_patch = torch.fft.fftshift(torch.fft.fft2(gt_init), dim=(-1, -2)) * 0
-    elif 'const' in args.w_pattern:
-        gt_patch = torch.fft.fftshift(torch.fft.fft2(gt_init), dim=(-1, -2)) * 0
-        gt_patch += args.w_pattern_const
-    elif 'ring' in args.w_pattern:
-        gt_patch = torch.fft.fftshift(torch.fft.fft2(gt_init), dim=(-1, -2))
+#             for j in range(gt_patch.shape[1]):
+#                 gt_patch[:, j, tmp_mask] = gt_patch_tmp[0, j, 0, i].item()
+#     elif 'seed_zeros' in args.w_pattern:
+#         gt_patch = gt_init * 0
+#     elif 'seed_rand' in args.w_pattern:
+#         gt_patch = gt_init
+#     elif 'rand' in args.w_pattern:
+#         gt_patch = torch.fft.fftshift(torch.fft.fft2(gt_init), dim=(-1, -2))
+#         gt_patch[:] = gt_patch[0]
+#     elif 'zeros' in args.w_pattern:
+#         gt_patch = torch.fft.fftshift(torch.fft.fft2(gt_init), dim=(-1, -2)) * 0
+#     elif 'const' in args.w_pattern:
+#         gt_patch = torch.fft.fftshift(torch.fft.fft2(gt_init), dim=(-1, -2)) * 0
+#         gt_patch += args.w_pattern_const
+#     elif 'ring' in args.w_pattern:
+#         gt_patch = torch.fft.fftshift(torch.fft.fft2(gt_init), dim=(-1, -2))
 
-        gt_patch_tmp = copy.deepcopy(gt_patch)
-        for i in range(args.w_up_radius, args.w_low_radius, -1):  
-            tmp_mask = circle_mask(gt_init.shape[-1],r_max=i,r_min=args.w_low_radius)
-            tmp_mask = torch.tensor(tmp_mask).to(device)
+#         gt_patch_tmp = copy.deepcopy(gt_patch)
+#         for i in range(args.w_up_radius, args.w_low_radius, -1):  
+#             tmp_mask = circle_mask(gt_init.shape[-1],r_max=i,r_min=args.w_low_radius)
+#             tmp_mask = torch.tensor(tmp_mask).to(device)
             
-            for j in range(gt_patch.shape[1]):
-                gt_patch[:, j, tmp_mask] = gt_patch_tmp[0, j, 0, i].item()
+#             for j in range(gt_patch.shape[1]):
+#                 gt_patch[:, j, tmp_mask] = gt_patch_tmp[0, j, 0, i].item()
         
-    return gt_patch    
+#     return gt_patch    
 
 def inject_watermark(init_latents_w, watermarking_mask, gt_patch, args):
     init_latents_w_fft = torch.fft.fftshift(torch.fft.fft2(init_latents_w), dim=(-1, -2))

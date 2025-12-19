@@ -16,6 +16,9 @@ Usage:
     pytest test/test_watermark_algorithms.py -v --algorithm TR --image-model-path /path/to/model
 """
 
+import json
+import tempfile
+import torch
 import pytest
 from PIL import Image
 from typing import Dict, Any
@@ -69,7 +72,7 @@ def test_image_watermark_generation(algorithm_name, image_diffusion_config, skip
     try:
         # smaller test params for generation tests
         image_diffusion_config.num_inference_steps = 10
-        image_diffusion_config.image_size = (128, 128)
+        image_diffusion_config.image_size = (512, 512)
         
         watermark = AutoWatermark.load(
             algorithm_name,
@@ -85,30 +88,99 @@ def test_image_watermark_generation(algorithm_name, image_diffusion_config, skip
         if algorithm_name == "TR":
             tr_w_patterns = ["seed_ring", "seed_zeros", "seed_rand", "rand", "zeros", "const", "ring"]
             for w_pattern in tr_w_patterns:
-                watermark.config.w_pattern = w_pattern
-                watermarked_image = watermark.generate_watermarked_media(TEST_PROMPT_IMAGE)
-                assert watermarked_image is not None
-                assert isinstance(watermarked_image, Image.Image)
-                assert watermarked_image.size == (128, 128)
-                print(f"✓ {algorithm_name} generated watermarked image with {w_pattern} pattern successfully")
+                # Test TR with different w_patterns
+
+                tr_config = {
+                    "algorithm_name": "TR",
+                    "w_seed": 999999,
+                    "w_channel": 0,
+                    "w_pattern": w_pattern,
+                    "w_mask_shape": "circle",
+                    "w_radius": 10,
+                    "w_pattern_const": 0,
+                    "threshold": 50
+                }
+                with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+                    json.dump(tr_config, f)
+                    temp_config_path = f.name
+                
+                try:
+                    watermark_wm = AutoWatermark.load(
+                        "TR",
+                        algorithm_config=temp_config_path,
+                        diffusion_config=image_diffusion_config
+                    )
+                    # Generate with wm_type="wm"
+                    watermarked_image_wm = watermark_wm.generate_watermarked_media(TEST_PROMPT_IMAGE)
+                    assert watermarked_image_wm is not None
+                    assert isinstance(watermarked_image_wm, Image.Image)
+                    assert watermarked_image_wm.size == (512, 512)
+                    print(f"  ✓ TR generated watermarked image with {w_pattern} pattern successfully")
+                finally:
+                    import os
+                    os.unlink(temp_config_path)
         elif algorithm_name == "GM":
             gm_w_patterns = ["seed_ring", "seed_zeros", "seed_rand", "rand", "zeros", "const", "signal_ring"]
             for w_pattern in gm_w_patterns:
-                watermark.config.w_pattern = w_pattern
-                watermarked_image = watermark.generate_watermarked_media(TEST_PROMPT_IMAGE)
-                assert watermarked_image is not None
-                assert isinstance(watermarked_image, Image.Image)
-                assert watermarked_image.size == (128, 128)
-                print(f"✓ {algorithm_name} generated watermarked image with {w_pattern} pattern successfully")
+                # Test GM with different w_patterns
+                # Create a temporary config file with wm_type="wm"
+                gm_config = {
+                    "algorithm_name": "GM",
+                    "channel_copy": 1,
+                    "w_copy": 8,
+                    "h_copy": 8,
+                    "user_number": 1000000,
+                    "fpr": 1e-6,
+                    "chacha_key_seed": 123456,
+                    "chacha_nonce_seed": 789012,
+                    "watermark_seed": 0,
+                    "w_seed": 999999,
+                    "w_channel": -1,
+                    "w_pattern": w_pattern,
+                    "w_mask_shape": "circle",
+                    "w_radius": 4,
+                    "w_measurement": "l1_complex",
+                    "w_injection": "complex",
+                    "w_pattern_const": 0.0,
+                    "w_length": None,
+                    "huggingface_repo": "Generative-Watermark-Toolkits/MarkDiffusion-gm",
+                    "gnr_checkpoint": "Generative-Watermark-Toolkits/MarkDiffusion-gm/model_final.pth",
+                    "gnr_classifier_type": 0,
+                    "gnr_model_nf": 128,
+                    "gnr_binary_threshold": 0.5,
+                    "gnr_use_for_decision": True,
+                    "gnr_threshold": None,
+                    "fuser_checkpoint": "Generative-Watermark-Toolkits/MarkDiffusion-gm/sd21_cls2.pkl",
+                    "fuser_threshold": 0.5,
+                    "fuser_frequency_scale": 0.01,
+                    "hf_dir": "model_from_hf"
+                }
+                with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+                    json.dump(gm_config, f)
+                    temp_config_path = f.name
+                
+                try:
+                    watermark_wm = AutoWatermark.load(
+                        "GM",
+                        algorithm_config=temp_config_path,
+                        diffusion_config=image_diffusion_config
+                    )
+                    # Generate with wm_type="wm"
+                    watermarked_image_wm = watermark_wm.generate_watermarked_media(TEST_PROMPT_IMAGE)
+                    assert watermarked_image_wm is not None
+                    assert isinstance(watermarked_image_wm, Image.Image)
+                    assert watermarked_image_wm.size == (512, 512)
+                    print(f"  ✓ GM generated watermarked image with {w_pattern} pattern successfully")
+                finally:
+                    import os
+                    os.unlink(temp_config_path)
         elif algorithm_name == "SFW":
             # Test SFW with wm_type="wm" (non-HSQR mode uses Fourier treering pattern)
             # Create a temporary config file with wm_type="wm"
-            import json
-            import tempfile
             sfw_config_wm = {
                 "algorithm_name": "SFW",
                 "w_seed": 42,
-                "wm_type": "wm",  # Test with non-HSQR mode
+                "wm_type": "HSTR",  # Test with non-HSQR mode
                 "delta": 1,
                 "w_channel": 3,
                 "threshold": 50
@@ -127,8 +199,15 @@ def test_image_watermark_generation(algorithm_name, image_diffusion_config, skip
                 watermarked_image_wm = watermark_wm.generate_watermarked_media(TEST_PROMPT_IMAGE)
                 assert watermarked_image_wm is not None
                 assert isinstance(watermarked_image_wm, Image.Image)
-                assert watermarked_image_wm.size == (128, 128)
+                assert watermarked_image_wm.size == (512, 512)
                 print(f"  ✓ SFW wm_type='wm' generation passed")
+                # detect with wm_type="wm"
+                detection_result = watermark_wm.detect_watermark_in_media(watermarked_image_wm)
+                assert detection_result is not None
+                detection_result = watermark_wm.detect_watermark_in_media(watermarked_image_wm, detector_type="p_value")
+                assert detection_result is not None
+                print(f"  ✓ SFW wm_type='wm' detection passed")
+
             finally:
                 import os
                 os.unlink(temp_config_path)
@@ -139,7 +218,7 @@ def test_image_watermark_generation(algorithm_name, image_diffusion_config, skip
         # Validate output
         assert watermarked_image is not None
         assert isinstance(watermarked_image, Image.Image)
-        assert watermarked_image.size == (128, 128)
+        assert watermarked_image.size == (512, 512)
 
         print(f"✓ {algorithm_name} generated watermarked image successfully")
 
@@ -208,17 +287,28 @@ def test_image_watermark_detection(algorithm_name, image_diffusion_config, skip_
         if algorithm_name == "RI":
             modes = ['real', 'imag']
             for mode in modes:
-                watermark.config.mode = mode
-                detection_result_mode = watermark.detect_watermark_in_media(watermarked_image)
+                detection_result_mode = watermark.detect_watermark_in_media(watermarked_image, mode=mode)
         elif algorithm_name == "TR":
             detection_result_mode = watermark.detect_watermark_in_media(watermarked_image, detector_type='p_value')
             assert detection_result_mode is not None
             assert isinstance(detection_result_mode, dict)
+        elif algorithm_name == "ROBIN":
+            detector_types = ['p_value', 'cosine_similarity']
+            for detector_type in detector_types:
+                detection_result_mode = watermark.detect_watermark_in_media(watermarked_image, detector_type=detector_type)
+                assert detection_result_mode is not None
+                assert isinstance(detection_result_mode, dict)
+        elif algorithm_name == "GM":
+            detector_types = ['message_acc', 'complex_l1', 'gnr_bit_acc', 'fused', 'all']
+            for detector_type in detector_types:
+                detection_result_mode = watermark.detect_watermark_in_media(watermarked_image, detector_type=detector_type)
+                assert detection_result_mode is not None
+                assert isinstance(detection_result_mode, dict)
+            
+
         elif algorithm_name == "GS":
             # Test GS with chacha=False (non-ChaCha mode uses simple XOR key)
             # Create a temporary config file with chacha=False
-            import json
-            import tempfile
             gs_config_no_chacha = {
                 "algorithm_name": "GS",
                 "channel_copy": 1,
@@ -714,6 +804,12 @@ def test_watermark_visualization(algorithm_name, image_diffusion_config, video_d
     diffusion_config = video_diffusion_config if is_video else image_diffusion_config
     test_prompt = TEST_PROMPT_VIDEO if is_video else TEST_PROMPT_IMAGE
 
+    if is_video:
+        diffusion_config.num_inference_steps = 10
+        diffusion_config.num_frames = 8
+        diffusion_config.image_size = (128, 128)
+        diffusion_config.torch_dtype = torch.float32
+
     try:
         # Step 1: Load watermark algorithm
         watermark = AutoWatermark.load(
@@ -721,6 +817,15 @@ def test_watermark_visualization(algorithm_name, image_diffusion_config, video_d
             algorithm_config=f'config/{algorithm_name}.json',
             diffusion_config=diffusion_config
         )
+
+        if is_video:
+            pipe = watermark.config.pipe
+            device = "cuda" if torch.cuda.is_available() else "cpu"
+            pipe.to(device=device)
+            for name in ["unet", "text_encoder", "vae"]:
+                m = getattr(pipe, name, None)
+                if m is not None:
+                    m.to(device=device, dtype=torch.float32)
 
         # Step 2: Generate watermarked media
         watermarked_media = watermark.generate_watermarked_media(test_prompt)

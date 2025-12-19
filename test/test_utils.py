@@ -33,6 +33,13 @@ import shutil
 from pathlib import Path
 from PIL import Image
 from unittest.mock import Mock, MagicMock, patch
+from diffusers import (
+    StableDiffusionPipeline, 
+    TextToVideoSDPipeline, 
+    StableVideoDiffusionPipeline,
+    DPMSolverMultistepScheduler
+)
+from inversions.exact_inversion import ExactInversion
 
 
 # ============================================================================
@@ -1306,147 +1313,390 @@ class TestDecodeImageLatents:
 # Additional Tests for diffusion_config.py - Coverage Improvement
 # ============================================================================
 
-class TestDiffusionConfigAdditional:
-    """Additional tests for DiffusionConfig class."""
+class TestDiffusionConfig:
+    """Comprehensive tests for DiffusionConfig class."""
 
-    def test_pipeline_requirements_image(self):
-        """Test pipeline_requirements property for image pipeline."""
+    @pytest.fixture
+    def mock_scheduler(self):
+        """Create a mock scheduler."""
+        return MagicMock(spec=DPMSolverMultistepScheduler)
+
+    @pytest.fixture
+    def mock_image_pipe(self):
+        """Create a mock StableDiffusionPipeline."""
+        return MagicMock(spec=StableDiffusionPipeline)
+
+    @pytest.fixture
+    def mock_t2v_pipe(self):
+        """Create a mock TextToVideoSDPipeline."""
+        return MagicMock(spec=TextToVideoSDPipeline)
+
+    @pytest.fixture
+    def mock_i2v_pipe(self):
+        """Create a mock StableVideoDiffusionPipeline."""
+        return MagicMock(spec=StableVideoDiffusionPipeline)
+
+    def test_basic_initialization_with_defaults(self, mock_scheduler, mock_image_pipe):
+        """Test basic initialization with default parameters."""
         from utils.diffusion_config import DiffusionConfig
-        from diffusers import StableDiffusionPipeline, DPMSolverMultistepScheduler
 
-        mock_pipe = MagicMock(spec=StableDiffusionPipeline)
-        mock_scheduler = MagicMock(spec=DPMSolverMultistepScheduler)
-
-        config = DiffusionConfig(
-            scheduler=mock_scheduler,
-            pipe=mock_pipe,
-            device="cpu",
-        )
-
-        requirements = config.pipeline_requirements
-        assert requirements["required_params"] == []
-        assert "height" in requirements["optional_params"]
-
-    def test_pipeline_requirements_t2v(self):
-        """Test pipeline_requirements property for t2v pipeline."""
-        from utils.diffusion_config import DiffusionConfig
-        from diffusers import TextToVideoSDPipeline, DPMSolverMultistepScheduler
-
-        mock_pipe = MagicMock(spec=TextToVideoSDPipeline)
-        mock_scheduler = MagicMock(spec=DPMSolverMultistepScheduler)
-
-        config = DiffusionConfig(
-            scheduler=mock_scheduler,
-            pipe=mock_pipe,
-            device="cpu",
-            num_frames=8,
-        )
-
-        requirements = config.pipeline_requirements
-        assert "num_frames" in requirements["required_params"]
-        assert "fps" in requirements["optional_params"]
-
-    def test_pipeline_requirements_i2v(self):
-        """Test pipeline_requirements property for i2v pipeline."""
-        from utils.diffusion_config import DiffusionConfig
-        from diffusers import StableVideoDiffusionPipeline, DPMSolverMultistepScheduler
-
-        mock_pipe = MagicMock(spec=StableVideoDiffusionPipeline)
-        mock_scheduler = MagicMock(spec=DPMSolverMultistepScheduler)
-
-        config = DiffusionConfig(
-            scheduler=mock_scheduler,
-            pipe=mock_pipe,
-            device="cpu",
-            num_frames=8,
-        )
-
-        requirements = config.pipeline_requirements
-        assert "input_image" in requirements["required_params"]
-        assert "num_frames" in requirements["required_params"]
-
-    def test_validate_pipeline_config_unsupported(self):
-        """Test _validate_pipeline_config raises ValueError for unsupported pipeline."""
-        from utils.diffusion_config import DiffusionConfig
-        from diffusers import DPMSolverMultistepScheduler
-
-        mock_pipe = MagicMock()  # Generic mock, not a specific pipeline type
-        mock_scheduler = MagicMock(spec=DPMSolverMultistepScheduler)
-
-        with pytest.raises(ValueError, match="Unsupported pipeline type"):
-            DiffusionConfig(
+        with patch('utils.diffusion_config.get_pipeline_type', return_value='image'):
+            config = DiffusionConfig(
                 scheduler=mock_scheduler,
-                pipe=mock_pipe,
-                device="cpu",
+                pipe=mock_image_pipe,
+                device="cuda"
             )
 
-    def test_validate_pipeline_config_video_needs_frames(self):
-        """Test _validate_pipeline_config raises ValueError when video pipeline has no frames."""
+            assert config.device == "cuda"
+            assert config.scheduler == mock_scheduler
+            assert config.pipe == mock_image_pipe
+            assert config.guidance_scale == 7.5
+            assert config.num_images == 1
+            assert config.num_inference_steps == 50
+            assert config.num_inversion_steps == 50
+            assert config.image_size == (512, 512)
+            assert config.dtype == torch.float16
+            assert config.gen_seed == 0
+            assert config.init_latents_seed == 0
+            assert config.inversion_type == "ddim"
+            assert config.num_frames == -1
+
+    def test_initialization_with_custom_parameters(self, mock_scheduler, mock_image_pipe):
+        """Test initialization with custom parameters."""
         from utils.diffusion_config import DiffusionConfig
-        from diffusers import TextToVideoSDPipeline, DPMSolverMultistepScheduler
 
-        mock_pipe = MagicMock(spec=TextToVideoSDPipeline)
-        mock_scheduler = MagicMock(spec=DPMSolverMultistepScheduler)
-
-        with pytest.raises(ValueError, match="num_frames must be >= 1"):
-            DiffusionConfig(
+        with patch('utils.diffusion_config.get_pipeline_type', return_value='image'):
+            config = DiffusionConfig(
                 scheduler=mock_scheduler,
-                pipe=mock_pipe,
+                pipe=mock_image_pipe,
                 device="cpu",
-                num_frames=-1,  # Invalid for video
+                guidance_scale=10.0,
+                num_images=4,
+                num_inference_steps=100,
+                num_inversion_steps=80,
+                image_size=(768, 768),
+                dtype=torch.float32,
+                gen_seed=42,
+                init_latents_seed=123,
+                inversion_type="exact",
+                num_frames=-1
             )
 
-    def test_validate_pipeline_config_image_auto_corrects_frames(self):
-        """Test _validate_pipeline_config auto-corrects num_frames for image pipeline."""
+            assert config.device == "cpu"
+            assert config.guidance_scale == 10.0
+            assert config.num_images == 4
+            assert config.num_inference_steps == 100
+            assert config.num_inversion_steps == 80
+            assert config.image_size == (768, 768)
+            assert config.dtype == torch.float32
+            assert config.gen_seed == 42
+            assert config.init_latents_seed == 123
+            assert config.inversion_type == "exact"
+            assert config.num_frames == -1
+
+    def test_initialization_with_kwargs(self, mock_scheduler, mock_image_pipe):
+        """Test initialization with additional kwargs."""
         from utils.diffusion_config import DiffusionConfig
-        from diffusers import StableDiffusionPipeline, DPMSolverMultistepScheduler
 
-        mock_pipe = MagicMock(spec=StableDiffusionPipeline)
-        mock_scheduler = MagicMock(spec=DPMSolverMultistepScheduler)
+        with patch('utils.diffusion_config.get_pipeline_type', return_value='image'):
+            config = DiffusionConfig(
+                scheduler=mock_scheduler,
+                pipe=mock_image_pipe,
+                device="cuda",
+                custom_param1="value1",
+                custom_param2=42
+            )
 
-        config = DiffusionConfig(
-            scheduler=mock_scheduler,
-            pipe=mock_pipe,
-            device="cpu",
-            num_frames=10,  # Should be auto-corrected to -1 for image
-        )
+            assert config.gen_kwargs == {"custom_param1": "value1", "custom_param2": 42}
 
-        assert config.num_frames == -1
-
-    def test_is_video_pipeline_for_t2v(self):
-        """Test is_video_pipeline returns True for t2v pipeline."""
+    def test_num_inversion_steps_defaults_to_num_inference_steps(self, mock_scheduler, mock_image_pipe):
+        """Test that num_inversion_steps defaults to num_inference_steps when not provided."""
         from utils.diffusion_config import DiffusionConfig
-        from diffusers import TextToVideoSDPipeline, DPMSolverMultistepScheduler
 
-        mock_pipe = MagicMock(spec=TextToVideoSDPipeline)
-        mock_scheduler = MagicMock(spec=DPMSolverMultistepScheduler)
+        with patch('utils.diffusion_config.get_pipeline_type', return_value='image'):
+            config = DiffusionConfig(
+                scheduler=mock_scheduler,
+                pipe=mock_image_pipe,
+                device="cuda",
+                num_inference_steps=75
+            )
 
-        config = DiffusionConfig(
-            scheduler=mock_scheduler,
-            pipe=mock_pipe,
-            device="cpu",
-            num_frames=8,
-        )
+            assert config.num_inversion_steps == 75
 
-        assert config.is_video_pipeline is True
-        assert config.is_image_pipeline is False
-
-    def test_is_video_pipeline_for_i2v(self):
-        """Test is_video_pipeline returns True for i2v pipeline."""
+    def test_invalid_inversion_type_raises_error(self, mock_scheduler, mock_image_pipe):
+        """Test that invalid inversion type raises AssertionError."""
         from utils.diffusion_config import DiffusionConfig
-        from diffusers import StableVideoDiffusionPipeline, DPMSolverMultistepScheduler
 
-        mock_pipe = MagicMock(spec=StableVideoDiffusionPipeline)
-        mock_scheduler = MagicMock(spec=DPMSolverMultistepScheduler)
+        with patch('utils.diffusion_config.get_pipeline_type', return_value='image'):
+            with pytest.raises(AssertionError, match="Invalid inversion type"):
+                DiffusionConfig(
+                    scheduler=mock_scheduler,
+                    pipe=mock_image_pipe,
+                    device="cuda",
+                    inversion_type="invalid_type"
+                )
 
-        config = DiffusionConfig(
-            scheduler=mock_scheduler,
-            pipe=mock_pipe,
-            device="cpu",
-            num_frames=8,
-        )
+    def test_image_pipeline_properties(self, mock_scheduler, mock_image_pipe):
+        """Test properties for image pipeline."""
+        from utils.diffusion_config import DiffusionConfig
 
-        assert config.is_video_pipeline is True
+        with patch('utils.diffusion_config.get_pipeline_type', return_value='image'):
+            config = DiffusionConfig(
+                scheduler=mock_scheduler,
+                pipe=mock_image_pipe,
+                device="cuda"
+            )
+
+            assert config.pipeline_type == 'image'
+            assert config.is_image_pipeline == True
+            assert config.is_video_pipeline == False
+
+    def test_t2v_pipeline_properties(self, mock_scheduler, mock_t2v_pipe):
+        """Test properties for text-to-video pipeline."""
+        from utils.diffusion_config import DiffusionConfig
+
+        with patch('utils.diffusion_config.get_pipeline_type', return_value='t2v'):
+            config = DiffusionConfig(
+                scheduler=mock_scheduler,
+                pipe=mock_t2v_pipe,
+                device="cuda",
+                num_frames=16
+            )
+
+            assert config.pipeline_type == 't2v'
+            assert config.is_video_pipeline == True
+            assert config.is_image_pipeline == False
+            assert config.num_frames == 16
+
+    def test_i2v_pipeline_properties(self, mock_scheduler, mock_i2v_pipe):
+        """Test properties for image-to-video pipeline."""
+        from utils.diffusion_config import DiffusionConfig
+
+        with patch('utils.diffusion_config.get_pipeline_type', return_value='i2v'):
+            config = DiffusionConfig(
+                scheduler=mock_scheduler,
+                pipe=mock_i2v_pipe,
+                device="cuda",
+                num_frames=24
+            )
+
+            assert config.pipeline_type == 'i2v'
+            assert config.is_video_pipeline == True
+            assert config.is_image_pipeline == False
+            assert config.num_frames == 24
+
+    def test_image_pipeline_auto_corrects_num_frames(self, mock_scheduler, mock_image_pipe):
+        """Test that image pipeline auto-corrects num_frames to -1."""
+        from utils.diffusion_config import DiffusionConfig
+
+        with patch('utils.diffusion_config.get_pipeline_type', return_value='image'):
+            config = DiffusionConfig(
+                scheduler=mock_scheduler,
+                pipe=mock_image_pipe,
+                device="cuda",
+                num_frames=16  # Invalid for image pipeline
+            )
+
+            # Should be auto-corrected to -1
+            assert config.num_frames == -1
+
+    def test_video_pipeline_requires_positive_num_frames(self, mock_scheduler, mock_t2v_pipe):
+        """Test that video pipeline requires num_frames >= 1."""
+        from utils.diffusion_config import DiffusionConfig
+
+        with patch('utils.diffusion_config.get_pipeline_type', return_value='t2v'):
+            with pytest.raises(ValueError, match="num_frames must be >= 1"):
+                DiffusionConfig(
+                    scheduler=mock_scheduler,
+                    pipe=mock_t2v_pipe,
+                    device="cuda",
+                    num_frames=-1  # Invalid for video pipeline
+                )
+
+    def test_video_pipeline_with_zero_frames_raises_error(self, mock_scheduler, mock_t2v_pipe):
+        """Test that video pipeline with num_frames=0 raises error."""
+        from utils.diffusion_config import DiffusionConfig
+
+        with patch('utils.diffusion_config.get_pipeline_type', return_value='t2v'):
+            with pytest.raises(ValueError, match="num_frames must be >= 1"):
+                DiffusionConfig(
+                    scheduler=mock_scheduler,
+                    pipe=mock_t2v_pipe,
+                    device="cuda",
+                    num_frames=0
+                )
+
+    def test_unsupported_pipeline_type_raises_error(self, mock_scheduler):
+        """Test that unsupported pipeline type raises ValueError."""
+        from utils.diffusion_config import DiffusionConfig
+
+        unsupported_pipe = MagicMock()
+
+        with patch('utils.diffusion_config.get_pipeline_type', return_value=None):
+            with pytest.raises(ValueError, match="Unsupported pipeline type"):
+                DiffusionConfig(
+                    scheduler=mock_scheduler,
+                    pipe=unsupported_pipe,
+                    device="cuda"
+                )
+
+    def test_ddim_inversion_type(self, mock_scheduler, mock_image_pipe):
+        """Test DDIM inversion type."""
+        from utils.diffusion_config import DiffusionConfig
+
+        with patch('utils.diffusion_config.get_pipeline_type', return_value='image'):
+            config = DiffusionConfig(
+                scheduler=mock_scheduler,
+                pipe=mock_image_pipe,
+                device="cuda",
+                inversion_type="ddim"
+            )
+
+            assert config.inversion_type == "ddim"
+
+    def test_exact_inversion_type(self, mock_scheduler, mock_image_pipe):
+        """Test exact inversion type."""
+        from utils.diffusion_config import DiffusionConfig
+
+        with patch('utils.diffusion_config.get_pipeline_type', return_value='image'):
+            config = DiffusionConfig(
+                scheduler=mock_scheduler,
+                pipe=mock_image_pipe,
+                device="cuda",
+                inversion_type="exact"
+            )
+
+            assert config.inversion_type == "exact"
+
+    def test_different_devices(self, mock_scheduler, mock_image_pipe):
+        """Test initialization with different device types."""
+        from utils.diffusion_config import DiffusionConfig
+
+        with patch('utils.diffusion_config.get_pipeline_type', return_value='image'):
+            # Test CPU
+            config_cpu = DiffusionConfig(
+                scheduler=mock_scheduler,
+                pipe=mock_image_pipe,
+                device="cpu"
+            )
+            assert config_cpu.device == "cpu"
+
+            # Test CUDA
+            config_cuda = DiffusionConfig(
+                scheduler=mock_scheduler,
+                pipe=mock_image_pipe,
+                device="cuda"
+            )
+            assert config_cuda.device == "cuda"
+
+            # Test specific CUDA device
+            config_cuda_0 = DiffusionConfig(
+                scheduler=mock_scheduler,
+                pipe=mock_image_pipe,
+                device="cuda:0"
+            )
+            assert config_cuda_0.device == "cuda:0"
+
+    def test_different_dtypes(self, mock_scheduler, mock_image_pipe):
+        """Test initialization with different dtypes."""
+        from utils.diffusion_config import DiffusionConfig
+
+        with patch('utils.diffusion_config.get_pipeline_type', return_value='image'):
+            # Test float16
+            config_fp16 = DiffusionConfig(
+                scheduler=mock_scheduler,
+                pipe=mock_image_pipe,
+                device="cuda",
+                dtype=torch.float16
+            )
+            assert config_fp16.dtype == torch.float16
+
+            # Test float32
+            config_fp32 = DiffusionConfig(
+                scheduler=mock_scheduler,
+                pipe=mock_image_pipe,
+                device="cuda",
+                dtype=torch.float32
+            )
+            assert config_fp32.dtype == torch.float32
+
+            # Test bfloat16
+            config_bf16 = DiffusionConfig(
+                scheduler=mock_scheduler,
+                pipe=mock_image_pipe,
+                device="cuda",
+                dtype=torch.bfloat16
+            )
+            assert config_bf16.dtype == torch.bfloat16
+
+    def test_various_image_sizes(self, mock_scheduler, mock_image_pipe):
+        """Test initialization with various image sizes."""
+        from utils.diffusion_config import DiffusionConfig
+
+        test_sizes = [
+            (256, 256),
+            (512, 512),
+            (768, 768),
+            (1024, 1024),
+            (512, 768),  # Non-square
+        ]
+
+        with patch('utils.diffusion_config.get_pipeline_type', return_value='image'):
+            for size in test_sizes:
+                config = DiffusionConfig(
+                    scheduler=mock_scheduler,
+                    pipe=mock_image_pipe,
+                    device="cuda",
+                    image_size=size
+                )
+                assert config.image_size == size
+
+    def test_various_guidance_scales(self, mock_scheduler, mock_image_pipe):
+        """Test initialization with various guidance scales."""
+        from utils.diffusion_config import DiffusionConfig
+
+        test_scales = [1.0, 5.0, 7.5, 10.0, 15.0, 20.0]
+
+        with patch('utils.diffusion_config.get_pipeline_type', return_value='image'):
+            for scale in test_scales:
+                config = DiffusionConfig(
+                    scheduler=mock_scheduler,
+                    pipe=mock_image_pipe,
+                    device="cuda",
+                    guidance_scale=scale
+                )
+                assert config.guidance_scale == scale
+
+    def test_various_num_inference_steps(self, mock_scheduler, mock_image_pipe):
+        """Test initialization with various num_inference_steps."""
+        from utils.diffusion_config import DiffusionConfig
+
+        test_steps = [10, 25, 50, 100, 150]
+
+        with patch('utils.diffusion_config.get_pipeline_type', return_value='image'):
+            for steps in test_steps:
+                config = DiffusionConfig(
+                    scheduler=mock_scheduler,
+                    pipe=mock_image_pipe,
+                    device="cuda",
+                    num_inference_steps=steps
+                )
+                assert config.num_inference_steps == steps
+                assert config.num_inversion_steps == steps  # Should default to same value
+
+    def test_i2v_pipeline_validation(self, mock_scheduler, mock_i2v_pipe):
+        """Test validation for image-to-video pipeline."""
+        from utils.diffusion_config import DiffusionConfig
+
+        with patch('utils.diffusion_config.get_pipeline_type', return_value='i2v'):
+            # Valid configuration
+            config = DiffusionConfig(
+                scheduler=mock_scheduler,
+                pipe=mock_i2v_pipe,
+                device="cuda",
+                num_frames=14
+            )
+            assert config.num_frames == 14
 
 
 # ============================================================================

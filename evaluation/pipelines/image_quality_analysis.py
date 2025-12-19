@@ -311,7 +311,7 @@ class ImageQualityAnalysisPipeline:
             return {
                 'watermarked': result.watermarked_quality_scores,
                 'unwatermarked': result.unwatermarked_quality_scores,
-                'prompts': result.prompt
+                'prompts': result.prompts
             }
         elif self.return_type == QualityPipelineReturnType.MEAN_SCORES:
             # Calculate mean scores for each analyzer

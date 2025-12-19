@@ -85,8 +85,8 @@ class VideoShieldDetector(BaseDetector):
         """
         if is_video and watermark_r.dim() == 5:
             return self._video_diffusion_inverse(watermark_r)
-        else:
-            return self._image_diffusion_inverse(watermark_r)
+        # else:
+        #     return self._image_diffusion_inverse(watermark_r)
     
     def _video_diffusion_inverse(self, watermark_r: torch.Tensor) -> torch.Tensor:
         """Video-specific diffusion inverse with frame dimension handling."""
@@ -182,54 +182,54 @@ class VideoShieldDetector(BaseDetector):
             logger.error(f"Video diffusion inverse failed: {e}")
             return torch.zeros_like(self.watermark)
     
-    def _image_diffusion_inverse(self, watermark_r: torch.Tensor) -> torch.Tensor:
-        """Image-specific diffusion inverse."""
-        # Handle both 4D and 5D tensors by squeezing if needed
-        if watermark_r.dim() == 5:
-            watermark_r = watermark_r.squeeze(2)  # Remove frame dimension
+    # def _image_diffusion_inverse(self, watermark_r: torch.Tensor) -> torch.Tensor:
+    #     """Image-specific diffusion inverse."""
+    #     # Handle both 4D and 5D tensors by squeezing if needed
+    #     if watermark_r.dim() == 5:
+    #         watermark_r = watermark_r.squeeze(2)  # Remove frame dimension
             
-        batch, channels, height, width = watermark_r.shape
+    #     batch, channels, height, width = watermark_r.shape
         
-        ch_stride = channels // self.k_c
-        h_stride = height // self.k_h
-        w_stride = width // self.k_w
+    #     ch_stride = channels // self.k_c
+    #     h_stride = height // self.k_h
+    #     w_stride = width // self.k_w
         
-        # Ensure strides are at least 1
-        ch_stride = max(1, ch_stride)
-        h_stride = max(1, h_stride)
-        w_stride = max(1, w_stride)
+    #     # Ensure strides are at least 1
+    #     ch_stride = max(1, ch_stride)
+    #     h_stride = max(1, h_stride)
+    #     w_stride = max(1, w_stride)
         
-        # Adjust repetition factors if dimensions are too small
-        k_c = min(self.k_c, channels)
-        k_h = min(self.k_h, height)
-        k_w = min(self.k_w, width)
+    #     # Adjust repetition factors if dimensions are too small
+    #     k_c = min(self.k_c, channels)
+    #     k_h = min(self.k_h, height)
+    #     k_w = min(self.k_w, width)
         
-        ch_list = [ch_stride] * k_c
-        h_list = [h_stride] * k_h
-        w_list = [w_stride] * k_w
+    #     ch_list = [ch_stride] * k_c
+    #     h_list = [h_stride] * k_h
+    #     w_list = [w_stride] * k_w
         
-        # Handle remainder pixels
-        if sum(ch_list) < channels:
-            ch_list[-1] += channels - sum(ch_list)
-        if sum(h_list) < height:
-            h_list[-1] += height - sum(h_list)
-        if sum(w_list) < width:
-            w_list[-1] += width - sum(w_list)
+    #     # Handle remainder pixels
+    #     if sum(ch_list) < channels:
+    #         ch_list[-1] += channels - sum(ch_list)
+    #     if sum(h_list) < height:
+    #         h_list[-1] += height - sum(h_list)
+    #     if sum(w_list) < width:
+    #         w_list[-1] += width - sum(w_list)
         
-        try:
-            split_dim1 = torch.cat(torch.split(watermark_r, tuple(ch_list), dim=1), dim=0)
-            split_dim2 = torch.cat(torch.split(split_dim1, tuple(h_list), dim=2), dim=0)
-            split_dim3 = torch.cat(torch.split(split_dim2, tuple(w_list), dim=3), dim=0)
+    #     try:
+    #         split_dim1 = torch.cat(torch.split(watermark_r, tuple(ch_list), dim=1), dim=0)
+    #         split_dim2 = torch.cat(torch.split(split_dim1, tuple(h_list), dim=2), dim=0)
+    #         split_dim3 = torch.cat(torch.split(split_dim2, tuple(w_list), dim=3), dim=0)
             
-            vote = torch.sum(split_dim3, dim=0).clone()
-            vote[vote <= self.vote_threshold] = 0
-            vote[vote > self.vote_threshold] = 1
+    #         vote = torch.sum(split_dim3, dim=0).clone()
+    #         vote[vote <= self.vote_threshold] = 0
+    #         vote[vote > self.vote_threshold] = 1
             
-            return vote
-        except Exception as e:
-            logger.error(f"Image diffusion inverse failed: {e}")
-            # Return a fallback result
-            return torch.zeros_like(self.watermark)
+    #         return vote
+    #     except Exception as e:
+    #         logger.error(f"Image diffusion inverse failed: {e}")
+    #         # Return a fallback result
+    #         return torch.zeros_like(self.watermark)
         
     def eval_watermark(self,
                        reversed_latents: torch.Tensor,

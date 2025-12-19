@@ -77,7 +77,9 @@ Test dependencies include:
 ```bash
 # Test the whole project and report coverage
 pytest test -v \
+  --ignore=tests_ci \
   --cov=. \
+  --cov-config=.coveragerc \
   --cov-report=html \
   --cov-report=term-missing \
   --html=report.html
@@ -94,8 +96,7 @@ pytest test/test_watermark_algorithms.py -v --algorithm TR
 # Quick tests (initialization only)
 pytest test/test_watermark_algorithms.py -v -k initialization
 
-# Test all pipelines
-pytest test/test_pipelines.py -v
+pytest --rootdir=test --ignore=tests_ci test/test_utils.py -v
 ```
 
 ## 📋 Test Types and Coverage

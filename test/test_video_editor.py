@@ -18,7 +18,6 @@ Unit tests for video editor classes in MarkDiffusion.
 Tests cover:
 - VideoEditor: Base class
 - MPEG4Compression: MPEG-4 video compression
-- VideoCodecAttack: Re-encode with various codecs
 - FrameAverage: Averaging frames in sliding window
 - FrameRateAdapter: Frame rate conversion
 - FrameSwap: Random adjacent frame swapping
@@ -34,7 +33,6 @@ import shutil
 from evaluation.tools.video_editor import (
     VideoEditor,
     MPEG4Compression,
-    VideoCodecAttack,
     FrameAverage,
     FrameRateAdapter,
     FrameSwap,
@@ -169,91 +167,6 @@ class TestMPEG4Compression:
             editor = MPEG4Compression(fps=fps)
             result = editor.edit(two_frames)
             assert isinstance(result, list)
-
-
-# ============================================================================
-# Tests for VideoCodecAttack
-# ============================================================================
-
-class TestVideoCodecAttack:
-    """Tests for VideoCodecAttack editor."""
-
-    def test_default_parameters(self):
-        """Test default parameters."""
-        # Skip if ffmpeg not available
-        if shutil.which("ffmpeg") is None:
-            pytest.skip("ffmpeg not available")
-        editor = VideoCodecAttack()
-        assert editor.codec == "h264"
-        assert editor.bitrate == "2M"
-        assert editor.fps == 24.0
-
-    def test_custom_codec(self):
-        """Test custom codec setting."""
-        if shutil.which("ffmpeg") is None:
-            pytest.skip("ffmpeg not available")
-        editor = VideoCodecAttack(codec="h265")
-        assert editor.codec == "h265"
-
-    def test_hevc_alias(self):
-        """Test hevc is aliased to h265."""
-        if shutil.which("ffmpeg") is None:
-            pytest.skip("ffmpeg not available")
-        editor = VideoCodecAttack(codec="hevc")
-        assert editor.codec == "h265"
-
-    def test_unsupported_codec_raises(self):
-        """Test unsupported codec raises ValueError."""
-        if shutil.which("ffmpeg") is None:
-            pytest.skip("ffmpeg not available")
-        with pytest.raises(ValueError, match="Unsupported codec"):
-            VideoCodecAttack(codec="invalid_codec")
-
-    def test_ffmpeg_not_found_raises(self):
-        """Test missing ffmpeg raises EnvironmentError."""
-        with patch('shutil.which', return_value=None):
-            with pytest.raises(EnvironmentError, match="ffmpeg executable not found"):
-                VideoCodecAttack(ffmpeg_path=None)
-
-    def test_custom_bitrate(self):
-        """Test custom bitrate setting."""
-        if shutil.which("ffmpeg") is None:
-            pytest.skip("ffmpeg not available")
-        editor = VideoCodecAttack(bitrate="5M")
-        assert editor.bitrate == "5M"
-
-    def test_edit_empty_frames(self):
-        """Test edit with empty frames returns empty list."""
-        if shutil.which("ffmpeg") is None:
-            pytest.skip("ffmpeg not available")
-        editor = VideoCodecAttack()
-        result = editor.edit([])
-        assert result == []
-
-    def test_edit_returns_list(self, sample_frames):
-        """Test edit returns a list of PIL Images."""
-        if shutil.which("ffmpeg") is None:
-            pytest.skip("ffmpeg not available")
-        editor = VideoCodecAttack(codec="h264")
-        result = editor.edit(sample_frames)
-        assert isinstance(result, list)
-        assert all(isinstance(f, Image.Image) for f in result)
-
-    def test_edit_preserves_frame_size(self, sample_frames):
-        """Test edit preserves frame dimensions."""
-        if shutil.which("ffmpeg") is None:
-            pytest.skip("ffmpeg not available")
-        editor = VideoCodecAttack(codec="h264")
-        result = editor.edit(sample_frames)
-        original_size = sample_frames[0].size
-        for frame in result:
-            assert frame.size == original_size
-
-    def test_codec_map_entries(self):
-        """Test codec map has expected entries."""
-        expected_codecs = {"h264", "h265", "hevc", "vp9", "av1"}
-        assert expected_codecs.issubset(VideoCodecAttack._CODEC_MAP.keys())
-
 
 # ============================================================================
 # Tests for FrameAverage

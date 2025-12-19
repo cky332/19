@@ -29,6 +29,8 @@ import numpy as np
 import torch
 
 import joblib
+from huggingface_hub import hf_hub_download
+
 
 from detection.base import BaseDetector
 from watermark.gm.gm import GaussianShadingChaCha, extract_complex_sign
@@ -52,6 +54,19 @@ class GMDetector(BaseDetector):
 		message_threshold: Optional threshold for message accuracy decisions.
 		l1_threshold: Optional threshold for frequency L1 distance decisions
 			(smaller is better).
+		gnr_checkpoint: Path or filename of GNR classifier checkpoint; supports
+			HuggingFace Hub fallback if ``huggingface_repo`` is provided.
+		gnr_classifier_type: See original implementation.
+		gnr_model_nf: Number of feature maps for GNR model.
+		gnr_binary_threshold: Threshold to binarize GNR outputs.
+		gnr_use_for_decision: Whether to use GNR bit accuracy to assist decision.
+		gnr_threshold: Optional threshold override when using GNR.
+		fuser_checkpoint: Path or filename of fuser model; supports HuggingFace
+			Hub fallback if ``huggingface_repo`` is provided.
+		fuser_threshold: Decision threshold when using fused score.
+		fuser_frequency_scale: Frequency score scaling factor.
+		huggingface_repo: Optional HuggingFace repository for checkpoint download.
+		hf_dir: Optional local cache directory for HuggingFace downloads.
 	"""
 
 	def __init__(
@@ -73,6 +88,8 @@ class GMDetector(BaseDetector):
 		fuser_checkpoint: Optional[Union[str, Path]] = None,
 		fuser_threshold: Optional[float] = None,
 		fuser_frequency_scale: float = 0.01,
+		huggingface_repo: Optional[str] = None,
+		hf_dir: Optional[str] = None,
 	) -> None:
 		self.generator = watermark_generator
 		device = torch.device(device)
@@ -97,6 +114,9 @@ class GMDetector(BaseDetector):
 		self.gnr_binary_threshold = gnr_binary_threshold
 		self.gnr_use_for_decision = gnr_use_for_decision
 		self.gnr_threshold = float(gnr_threshold) if gnr_threshold is not None else None
+		self.huggingface_repo = huggingface_repo
+		self.hf_dir = hf_dir
+
 		self.gnr_restorer = self._build_gnr_restorer(
 			checkpoint=gnr_checkpoint,
 			device=device,
@@ -110,6 +130,7 @@ class GMDetector(BaseDetector):
 	# ------------------------------------------------------------------
 	# Helper computations
 	# ------------------------------------------------------------------
+	
 	def _complex_l1(self, reversed_latents: torch.Tensor) -> float:
 		fft_latents = torch.fft.fftshift(torch.fft.fft2(reversed_latents), dim=(-1, -2))
 		if self.watermarking_mask.dtype == torch.bool:
@@ -142,16 +163,44 @@ class GMDetector(BaseDetector):
 	) -> Optional[GNRRestorer]:
 		if not checkpoint:
 			return None
-		candidates = [Path(checkpoint)]
-		base_dir = Path(__file__).resolve().parent
-		candidates.append(base_dir / checkpoint)
-		candidates.append(base_dir.parent.parent / checkpoint)
-		for candidate in candidates:
-			if candidate.is_file():
-				checkpoint_path = candidate
-				break
-		else:
+
+		checkpoint_path: Optional[Path] = None
+		candidates: list[Path] = []
+
+		# If a HuggingFace repo is provided, try cache dir and HF download
+		if self.huggingface_repo:
+			# Existing local file
+			orig = Path(checkpoint)
+			local_path = orig if orig.is_file() else None
+			if self.hf_dir:
+				potential_local = Path(self.hf_dir) / Path(checkpoint).name
+				if potential_local.is_file():
+					local_path = potential_local
+			if local_path and local_path.is_file():
+				checkpoint_path = local_path
+			else:
+				try:
+					hf_path = hf_hub_download(
+						repo_id=self.huggingface_repo,
+						filename=Path(checkpoint).name,
+						cache_dir=self.hf_dir,
+					)
+					checkpoint_path = Path(hf_path)
+				except Exception as e:
+					raise FileNotFoundError(f"GNR checkpoint not found on HuggingFace repo '{self.huggingface_repo}'. error: {e}")
+		# Fallback: look for local candidates
+		if checkpoint_path is None:
+			candidates = [Path(checkpoint)]
+			base_dir = Path(__file__).resolve().parent
+			candidates.append(base_dir / Path(checkpoint))
+			candidates.append(base_dir.parent.parent / Path(checkpoint))
+			for candidate in candidates:
+				if candidate.is_file():
+					checkpoint_path = candidate
+					break
+		if checkpoint_path is None:
 			raise FileNotFoundError(f"GNR checkpoint not found at '{checkpoint}'")
+
 		latent_channels = self.base_message.shape[1]
 		in_channels = latent_channels * (2 if classifier_type == 1 else 1)
 		return GNRRestorer(
@@ -171,14 +220,58 @@ class GMDetector(BaseDetector):
 			raise ImportError(
 				"joblib is required to load the GaussMarker fuser. Install joblib or disable the fuser."
 			)
-		candidates = [Path(checkpoint)]
-		base_dir = Path(__file__).resolve().parent
-		candidates.append(base_dir / checkpoint)
-		candidates.append(base_dir.parent.parent / checkpoint)
-		for candidate in candidates:
-			if candidate.is_file():
-				return joblib.load(candidate)
-		raise FileNotFoundError(f"Fuser checkpoint not found at '{checkpoint}'")
+
+		model_path: Optional[Path] = None
+		candidates: list[Path] = []
+
+		# If a HuggingFace repo is provided, try cache dir and HF download
+		if self.huggingface_repo:
+			orig = Path(checkpoint)
+			local_path = orig if orig.is_file() else None
+			if self.hf_dir:
+				potential_local = Path(self.hf_dir) / Path(checkpoint).name
+				if potential_local.is_file():
+					local_path = potential_local
+			if local_path and local_path.is_file():
+				model_path = local_path
+			else:
+				try:
+					hf_path = hf_hub_download(
+						repo_id=self.huggingface_repo,
+						filename=Path(checkpoint).name,
+						cache_dir=self.hf_dir,
+					)
+					model_path = Path(hf_path)
+				except Exception:
+					# As a fallback, try snapshot of the official repo used by GaussMarker fuser
+					try:
+						local_dir = str(Path(checkpoint).parts[0]) if len(Path(checkpoint).parts) > 0 else "gm_fuser"
+						snapshot_download(
+							repo_id="Generative-Watermark-Toolkits/MarkDiffusion-gm",
+							local_dir=local_dir,
+							repo_type="model",
+							local_dir_use_symlinks=False,
+							endpoint=os.getenv("HF_ENDPOINT", "https://huggingface.co"),
+						)
+						candidates.append(Path(local_dir) / Path(checkpoint).name)
+					except Exception as e:
+						raise FileNotFoundError(f"Fuser checkpoint not found on HuggingFace and snapshot fallback failed. error: {e}")
+
+		# Fallback: local candidates
+		if model_path is None:
+			candidates.append(Path(checkpoint))
+			base_dir = Path(__file__).resolve().parent
+			candidates.append(base_dir / Path(checkpoint))
+			candidates.append(base_dir.parent.parent / Path(checkpoint))
+			for candidate in candidates:
+				if candidate.is_file():
+					model_path = candidate
+					break
+
+		if model_path is None or not model_path.is_file():
+			raise FileNotFoundError(f"Fuser checkpoint not found at '{checkpoint}'")
+
+		return joblib.load(model_path)
 
 	# ------------------------------------------------------------------
 	# Public API

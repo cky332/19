@@ -325,65 +325,65 @@ class VideoShieldWatermark(BaseWatermark):
             elif hasattr(self.config, 'num_frames'):
                 delattr(self.config, 'num_frames')
     
-    def _detect_watermark_in_image(self, image: Image.Image, prompt: str = "", 
-                                   *args, **kwargs) -> Dict[str, float]:
-        """Detect VideoShield watermark in image.
+    # def _detect_watermark_in_image(self, image: Image.Image, prompt: str = "", 
+    #                                *args, **kwargs) -> Dict[str, float]:
+    #     """Detect VideoShield watermark in image.
         
-        Args:
-            image: Input PIL image
-            prompt: Text prompt used for generation
+    #     Args:
+    #         image: Input PIL image
+    #         prompt: Text prompt used for generation
             
-        Returns:
-            Dictionary containing detection results
-        """
-        # Use config values as defaults if not explicitly provided
-        guidance_scale_to_use = kwargs.get('guidance_scale', self.config.guidance_scale)
-        num_steps_to_use = kwargs.get('num_inference_steps', self.config.num_inference_steps)
+    #     Returns:
+    #         Dictionary containing detection results
+    #     """
+    #     # Use config values as defaults if not explicitly provided
+    #     guidance_scale_to_use = kwargs.get('guidance_scale', self.config.guidance_scale)
+    #     num_steps_to_use = kwargs.get('num_inference_steps', self.config.num_inference_steps)
         
-        # Get text embeddings
-        do_classifier_free_guidance = (guidance_scale_to_use > 1.0)
-        prompt_embeds, negative_prompt_embeds = self.config.pipe.encode_prompt(
-            prompt=prompt, 
-            device=self.config.device, 
-            do_classifier_free_guidance=do_classifier_free_guidance,
-            num_images_per_prompt=1,
-        )
+    #     # Get text embeddings
+    #     do_classifier_free_guidance = (guidance_scale_to_use > 1.0)
+    #     prompt_embeds, negative_prompt_embeds = self.config.pipe.encode_prompt(
+    #         prompt=prompt, 
+    #         device=self.config.device, 
+    #         do_classifier_free_guidance=do_classifier_free_guidance,
+    #         num_images_per_prompt=1,
+    #     )
         
-        if do_classifier_free_guidance:
-            text_embeddings = torch.cat([negative_prompt_embeds, prompt_embeds])
-        else:
-            text_embeddings = prompt_embeds
+    #     if do_classifier_free_guidance:
+    #         text_embeddings = torch.cat([negative_prompt_embeds, prompt_embeds])
+    #     else:
+    #         text_embeddings = prompt_embeds
         
-        # Preprocess image
-        image_tensor = transform_to_model_format(
-            image, target_size=self.config.image_size[0]
-        ).unsqueeze(0).to(text_embeddings.dtype).to(self.config.device)
+    #     # Preprocess image
+    #     image_tensor = transform_to_model_format(
+    #         image, target_size=self.config.image_size[0]
+    #     ).unsqueeze(0).to(text_embeddings.dtype).to(self.config.device)
         
-        # Get image latents
-        image_latents = get_media_latents(
-            pipe=self.config.pipe, 
-            media=image_tensor, 
-            sample=False, 
-            decoder_inv=kwargs.get("decoder_inv", False)
-        )
+    #     # Get image latents
+    #     image_latents = get_media_latents(
+    #         pipe=self.config.pipe, 
+    #         media=image_tensor, 
+    #         sample=False, 
+    #         decoder_inv=kwargs.get("decoder_inv", False)
+    #     )
         
-        # Perform DDIM inversion
-        inversion_kwargs = {k: v for k, v in kwargs.items() 
-                          if k not in ['decoder_inv', 'guidance_scale', 'num_inference_steps']}
+    #     # Perform DDIM inversion
+    #     inversion_kwargs = {k: v for k, v in kwargs.items() 
+    #                       if k not in ['decoder_inv', 'guidance_scale', 'num_inference_steps']}
         
-        reversed_latents = self.config.inversion.forward_diffusion(
-            latents=image_latents,
-            text_embeddings=text_embeddings,
-            guidance_scale=guidance_scale_to_use,
-            num_inference_steps=num_steps_to_use,
-            **inversion_kwargs
-        )[-1]
+    #     reversed_latents = self.config.inversion.forward_diffusion(
+    #         latents=image_latents,
+    #         text_embeddings=text_embeddings,
+    #         guidance_scale=guidance_scale_to_use,
+    #         num_inference_steps=num_steps_to_use,
+    #         **inversion_kwargs
+    #     )[-1]
         
-        # Use detector or utils for evaluation
-        if 'detector_type' in kwargs:
-            return self.detector.eval_watermark(reversed_latents, detector_type=kwargs['detector_type'])
-        else:
-            return self.utils.eval_watermark(reversed_latents)
+    #     # Use detector or utils for evaluation
+    #     if 'detector_type' in kwargs:
+    #         return self.detector.eval_watermark(reversed_latents, detector_type=kwargs['detector_type'])
+    #     else:
+    #         return self.utils.eval_watermark(reversed_latents)
     
     def _get_video_latents(self, vae, video_frames, sample=True, rng_generator=None, permute=True):
         encoding_dist = vae.encode(video_frames).latent_dist

@@ -121,27 +121,27 @@ class SEALVisualizer(BaseVisualizer):
             ax.set_title(title)
         if use_color_bar:
             ax.figure.colorbar(im, ax=ax)
-        if show_number:
-            # Calculate appropriate font size based on patch size
-            patch_size = min(patch_per_side_h, patch_per_side_w)
-            if patch_size >= 8:
-                fontsize = 8
-                format_str = '{:.2f}'
-            elif patch_size >= 4:
-                fontsize = 6
-                format_str = '{:.1f}'
-            else:
-                fontsize = 4
-                format_str = '{:.0f}'
-            fontsize = 4
-            format_str = '{:.0f}'
-            for i in range(patch_per_side_h):
-                for j in range(patch_per_side_w):
-                    if i * patch_per_side_w + j < k:  # Only show numbers for valid patches
-                        value = diff_map[i, j].item()
-                        ax.text(j, i, format_str.format(value), 
-                               ha='center', va='center', color='white', 
-                               fontsize=fontsize, fontweight='bold')
+        # if show_number:
+        #     # Calculate appropriate font size based on patch size
+        #     patch_size = min(patch_per_side_h, patch_per_side_w)
+        #     if patch_size >= 8:
+        #         fontsize = 8
+        #         format_str = '{:.2f}'
+        #     elif patch_size >= 4:
+        #         fontsize = 6
+        #         format_str = '{:.1f}'
+        #     else:
+        #         fontsize = 4
+        #         format_str = '{:.0f}'
+        #     fontsize = 4
+        #     format_str = '{:.0f}'
+        #     for i in range(patch_per_side_h):
+        #         for j in range(patch_per_side_w):
+        #             if i * patch_per_side_w + j < k:  # Only show numbers for valid patches
+        #                 value = diff_map[i, j].item()
+        #                 ax.text(j, i, format_str.format(value), 
+        #                        ha='center', va='center', color='white', 
+        #                        fontsize=fontsize, fontweight='bold')
         ax.axis('off')
         
         return ax

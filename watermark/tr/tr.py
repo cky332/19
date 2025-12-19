@@ -122,11 +122,17 @@ class TRUtils:
     
     def inject_watermark(self, init_latents: torch.Tensor) -> torch.Tensor:
         init_latents_w_fft = torch.fft.fftshift(torch.fft.fft2(init_latents), dim=(-1, -2))
+        target_patch = self.gt_patch
         
-        init_latents_w_fft[self.watermarking_mask] = self.gt_patch[self.watermarking_mask].clone()
-        
-        init_latents_w = torch.fft.ifft2(torch.fft.ifftshift(init_latents_w_fft, dim=(-1, -2))).real
+        if not torch.is_complex(target_patch):
+            real = target_patch.to(torch.float32)
+            imag = torch.zeros_like(real)
+            target_patch = torch.complex(real, imag)
+        target_patch = target_patch.to(init_latents_w_fft.dtype)
 
+        init_latents_w_fft[self.watermarking_mask] = target_patch[self.watermarking_mask].clone()
+
+        init_latents_w = torch.fft.ifft2(torch.fft.ifftshift(init_latents_w_fft, dim=(-1, -2))).real
         return init_latents_w
 
 @inherit_docstring

@@ -185,14 +185,7 @@ class RIUtils:
         if len(heter_watermark_channel) > 0:
             assert len(heter_watermark_channel) == len(heter_watermark_region_mask)
             heter_watermark_region_mask = heter_watermark_region_mask.to(torch.float64)
-            w_type = 'noise'
-
-            if w_type == 'noise':
-                w_content = self.fft(torch.randn(*shape, device=device))  # [N, c, h, w]
-            elif w_type == 'zeros':
-                w_content = self.fft(torch.zeros(*shape, device=device))  # [N, c, h, w]
-            else:
-                raise NotImplementedError
+            w_content = self.fft(torch.randn(*shape, device=device))  # [N, c, h, w]
 
             for batch_index in range(shape[0]):
                 for channel_id, channel_mask in zip(heter_watermark_channel, heter_watermark_region_mask):
@@ -419,8 +412,12 @@ class RI(BaseWatermark):
             **inversion_kwargs
         )[-1]
         
-        if 'detector_type' in kwargs:
+        if 'detector_type' in kwargs and 'mode' in kwargs:
+            return self.detector.eval_watermark(reversed_latents, detector_type=kwargs['detector_type'], mode=kwargs['mode'])
+        elif 'detector_type' in kwargs:
             return self.detector.eval_watermark(reversed_latents, detector_type=kwargs['detector_type'])
+        elif 'mode' in kwargs:
+            return self.detector.eval_watermark(reversed_latents, mode=kwargs['mode'])
         else:
             return self.detector.eval_watermark(reversed_latents)
         

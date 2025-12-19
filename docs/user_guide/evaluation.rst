@@ -198,8 +198,6 @@ Test video watermark robustness:
        'MPEG4': MPEG4Compression(quality=20),
        'FrameAvg': FrameAverage(window_size=3),
        'FrameSwap': FrameSwap(swap_probability=0.1),
-       'H264': VideoCodecAttack(codec='h264', bitrate='2M'),
-       'H265': VideoCodecAttack(codec='h265', bitrate='2M'),
        'FPS-15': FrameRateAdapter(target_fps=15),
        'Interpolate': FrameInterpolationAttack(factor=2)
    }

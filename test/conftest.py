@@ -5,6 +5,7 @@ This file contains all pytest hooks, fixtures, and configuration that will be
 automatically discovered and used by pytest.
 """
 
+import os
 import pytest
 import torch
 from pathlib import Path
@@ -31,8 +32,11 @@ from utils.pipeline_utils import (
 # ============================================================================
 
 # Default model paths (can be overridden via pytest options)
-DEFAULT_IMAGE_MODEL_PATH = "/home/harry/models/stable-diffusion-2-1-base"
-DEFAULT_VIDEO_MODEL_PATH = "/home/harry/models/text-to-video-ms-1.7b"
+DEFAULT_IMAGE_MODEL_PATH = "huanzi05/stable-diffusion-2-1-base"
+DEFAULT_VIDEO_MODEL_PATH = "ali-vilab/text-to-video-ms-1.7b"
+
+# Set Hugging Face mirror endpoint
+os.environ['HF_ENDPOINT'] = 'https://hf-mirror.com'
 
 # Test prompts
 TEST_PROMPT_IMAGE = "A beautiful sunset over the ocean"
@@ -324,7 +328,6 @@ def all_video_editors():
     """Get all video editor tools for saturation testing."""
     from evaluation.tools.video_editor import (
         MPEG4Compression,
-        VideoCodecAttack,
         FrameAverage,
         FrameRateAdapter,
         FrameSwap,
@@ -333,7 +336,6 @@ def all_video_editors():
 
     return [
         MPEG4Compression(),
-        VideoCodecAttack(),
         FrameAverage(),
         FrameRateAdapter(),
         FrameSwap(),

@@ -7,6 +7,13 @@
 [![Homepage](https://img.shields.io/badge/Homepage-5F259F?style=for-the-badge&logo=homepage&logoColor=white)](https://generative-watermark.github.io/)
 [![Paper](https://img.shields.io/badge/Paper-A42C25?style=for-the-badge&logo=arxiv&logoColor=white)](https://arxiv.org/abs/2509.10569)
 [![HF Models](https://img.shields.io/badge/HF--Models-%23FFD14D?style=for-the-badge&logo=huggingface&logoColor=black)](https://huggingface.co/Generative-Watermark-Toolkits) 
+[![Colab](https://img.shields.io/badge/Google--Colab-%23D97700?style=for-the-badge&logo=Google-colab&logoColor=white)](https://colab.research.google.com/drive/1N1C9elDAB5zwF4FxKKYMCqR3eSpCSqAW?usp=sharing) 
+[![DOC](https://img.shields.io/badge/Readthedocs-%2300A89C?style=for-the-badge&logo=readthedocs&logoColor=#8CA1AF)](https://markdiffusion.readthedocs.io) 
+[![PYPI](https://img.shields.io/badge/PYPI-%23193440?style=for-the-badge&logo=pypi&logoColor=#3775A9)](https://pypi.org/project/markdiffusion) 
+[![CONDA-FORGE](https://img.shields.io/badge/Conda--Forge-%23000000?style=for-the-badge&logo=condaforge&logoColor=#FFFFFF)](https://github.com/conda-forge/markdiffusion-feedstock)
+
+
+
 
 **Language Versions:** [English](README.md) | [中文](README_zh.md) | [Français](README_fr.md) | [Español](README_es.md)
 </div>
@@ -23,19 +30,21 @@
   - [Evaluation Module](#evaluation-module)
 - [Installation](#installation)
 - [Quick Start](#quick-start)
-- [How to Use the Toolkit](#how-to-use-the-toolkit)
-  - [Generating and Detecting Watermarked Media](#generating-and-detecting-watermarked-media)
-  - [Visualizing Watermarking Mechanisms](#visualizing-watermarking-mechanisms)
-  - [Evaluation Pipelines](#evaluation-pipelines)
+    - [Google Colab Demo](#google-colab-demo)
+    - [Installation](#installation)
+    - [How to Use the Toolkit](#how-to-use-the-toolkit)
+- [Test Modules](#test-modules)
 - [Citation](#citation)
 
-## ❗❗❗ Notes
-As the MarkDiffusion repository content becomes increasingly rich and its size grows larger, we have created a model storage repository on Hugging Face called [Generative-Watermark-Toolkits](https://huggingface.co/Generative-Watermark-Toolkits) to facilitate usage. This repository contains various default models for watermarking algorithms that involve self-trained models. We have removed the model weights from the corresponding `ckpts/` folders of these watermarking algorithms in the main repository. **When using the code, please first download the corresponding models from the Hugging Face repository according to the config paths and save them to the `ckpts/` directory before running the code.**
 
 ## 🔥 Updates
+🛠 **(2025.12.19)** Add a complete test suite for all functionality with 454 test cases.
+
+🛠 **(2025.12.10)** Add a continuous integration testing system using github actions.
+
 🎯 **(2025.10.10)** Add *Mask, Overlay, AdaptiveNoiseInjection* image attack tools, thanks Zheyu Fu for his PR!
 
-🎯 **(2025.10.09)** Add *VideoCodecAttack, FrameRateAdapter, FrameInterpolationAttack* video attack tools, thanks Luyang Si for his PR!
+🎯 **(2025.10.09)** Add *FrameRateAdapter, FrameInterpolationAttack* video attack tools, thanks Luyang Si for his PR!
 
 🎯 **(2025.10.08)** Add *SSIM, BRISQUE, VIF, FSIM* image quality analyzer, thanks Huan Wang for her PR!
 
@@ -45,9 +54,9 @@ As the MarkDiffusion repository content becomes increasingly rich and its size g
 
 ✨ **(2025.9.29)** Add [GaussMarker](https://arxiv.org/abs/2506.11444) watermarking method, thanks Luyang Si for his PR!
 
-## Introduction to MarkDiffusion
+## 🔓 Introduction to MarkDiffusion
 
-### Overview
+### 👀 Overview
 
 MarkDiffusion is an open-source Python toolkit for generative watermarking of latent diffusion models. As the use of diffusion-based generative models expands, ensuring the authenticity and origin of generated media becomes critical. MarkDiffusion simplifies the access, understanding, and assessment of watermarking technologies, making it accessible to both researchers and the broader community. *Note: if you are interested in LLM watermarking (text watermark), please refer to the [MarkLLM](https://github.com/THU-BPM/MarkLLM) toolkit from our group.*
 
@@ -55,7 +64,7 @@ The toolkit comprises three key components: a unified implementation framework f
 
 <img src="img/fig1_overview.png" alt="MarkDiffusion Overview" style="zoom:50%;" />
 
-### Key Features
+### 💍 Key Features
 
 - **Unified Implementation Framework:** MarkDiffusion provides a modular architecture supporting eight state-of-the-art generative image/video watermarking algorithms of LDMs.
 
@@ -65,7 +74,7 @@ The toolkit comprises three key components: a unified implementation framework f
 
 - **Evaluation Module:** With 20 evaluation tools covering detectability, robustness, and impact on output quality, MarkDiffusion provides comprehensive assessment capabilities. It features 5 automated evaluation pipelines: Watermark Detection Pipeline, Image Quality Analysis Pipeline, Video Quality Analysis Pipeline, and specialized robustness assessment tools.
 
-### Implemented Algorithms
+### ✨ Implemented Algorithms
 
 | **Algorithm** | **Category** | **Target** | **Reference** |
 |---------------|-------------|------------|---------------|
@@ -81,7 +90,7 @@ The toolkit comprises three key components: a unified implementation framework f
 | VideoShield | Key | Video | [VideoShield: Regulating Diffusion-based Video Generation Models via Watermarking](https://arxiv.org/abs/2501.14195) |
 | VideoMark | Key | Video | [VideoMark: A Distortion-Free Robust Watermarking Framework for Video Diffusion Models](https://arxiv.org/abs/2504.16359) |
 
-### Evaluation Module
+### 🎯 Evaluation Module
 #### Evaluation Pipelines
 
 MarkDiffusion supports eight pipelines, two for detection (WatermarkedMediaDetectionPipeline and UnWatermarkedMediaDetectionPipeline), and six for quality analysis. The table below details the quality analysis pipelines.
@@ -115,7 +124,6 @@ MarkDiffusion supports eight pipelines, two for detection (WatermarkedMediaDetec
 | MPEG4Compression | Robustness (Video) | MPEG-4 video compression attack, testing video watermark compression robustness | Compressed video frames |
 | FrameAverage | Robustness (Video) | Frame averaging attack, destroying watermarks through inter-frame averaging | Averaged video frames |
 | FrameSwap | Robustness (Video) | Frame swapping attack, testing robustness by changing frame sequences | Swapped video frames |
-| VideoCodecAttack | Robustness (Video) | Codec re-encoding attack simulating platform transcoding (H.264/H.265/VP9/AV1) | Re-encoded video frames |
 | FrameRateAdapter | Robustness (Video) | Frame rate conversion attack that resamples frames while preserving duration | Resampled frame sequence |
 | FrameInterpolationAttack | Robustness (Video) | Frame interpolation attack inserting blended frames to alter temporal density | Interpolated video frames |
 | **Image Quality Analyzers** | | | |
@@ -136,326 +144,130 @@ MarkDiffusion supports eight pipelines, two for detection (WatermarkedMediaDetec
 | DynamicDegreeAnalyzer | Quality (Video) | Measure dynamic level and change magnitude in video | Dynamic degree value |
 | ImagingQualityAnalyzer | Quality (Video) | Comprehensive evaluation of video imaging quality | Imaging quality score |
 
-## Installation
+## 🧩 Quick Start
+### Google Colab Demo
+If you're interested in trying out MarkDiffusion without installing anything, you can use [Google Colab](https://colab.research.google.com/drive/1N1C9elDAB5zwF4FxKKYMCqR3eSpCSqAW?usp=sharing#scrollTo=-kWt7m9Y3o-G) to see how it works.
 
-### Setting up the environment
-
-- Python 3.10+
-- PyTorch
-- Install dependencies:
-
+### Installation
+**(Recommended)** We released pypi package for MarkDiffusion. You can install it directly with pip:
 ```bash
-pip install -r requirements.txt
+conda create -n markdiffusion python=3.11
+conda activate markdiffusion
+pip install markdiffusion[optional]
 ```
 
-*Note:* Some algorithms may require additional setup steps. Please refer to individual algorithm documentation for specific requirements.
-
-## Quick Start
-
-Here's a simple example to get you started with MarkDiffusion:
-
-```python
-import torch
-from watermark.auto_watermark import AutoWatermark
-from utils.diffusion_config import DiffusionConfig
-from diffusers import StableDiffusionPipeline, DPMSolverMultistepScheduler
-
-# Device setup
-device = 'cuda' if torch.cuda.is_available() else 'cpu'
-
-# Configure diffusion pipeline
-scheduler = DPMSolverMultistepScheduler.from_pretrained("model_path", subfolder="scheduler")
-pipe = StableDiffusionPipeline.from_pretrained("model_path", scheduler=scheduler).to(device)
-diffusion_config = DiffusionConfig(
-    scheduler=scheduler,
-    pipe=pipe,
-    device=device,
-    image_size=(512, 512),
-    num_inference_steps=50,
-    guidance_scale=7.5,
-    gen_seed=42,
-    inversion_type="ddim"
-)
-
-# Load watermark algorithm
-watermark = AutoWatermark.load('TR', 
-                              algorithm_config='config/TR.json',
-                              diffusion_config=diffusion_config)
-
-# Generate watermarked media
-prompt = "A beautiful sunset over the ocean"
-watermarked_image = watermark.generate_watermarked_media(prompt)
-
-# Detect watermark
-detection_result = watermark.detect_watermark_in_media(watermarked_image)
-print(f"Watermark detected: {detection_result}")
+(Alternative) For users who are *restricted only to use conda environment*, we also provide a conda-forge package, which can be installed with the following commands:
+```bash
+conda create -n markdiffusion python=3.11
+conda activate markdiffusion
+conda config --add channels conda-forge
+conda config --set channel_priority strict
+conda install markdiffusion
 ```
+However, please note that some advanced features require additional packages that are not available on conda and cannot be included in the release. You will need to install those separately if necessary.
 
-## How to Use the Toolkit
+### How to Use the Toolkit
 
-We provide extensive examples in `MarkDiffusion_demo.ipynb`.
+After installation, there are two ways to use MarkDiffusion:
 
-### Generating and Detecting Watermarked Media
+1. **Clone the repository to try the demos or use it for custom development.** The `MarkDiffusion_demo.ipynb` notebook offers detailed demonstrations for various use cases—please review it for guidance. Here’s a quick example of generating and detecting watermarked image with the TR algorithm:
 
-#### Cases for Generating and Detecting Watermarked Media
 
-```python
-import torch
-from watermark.auto_watermark import AutoWatermark
-from utils.diffusion_config import DiffusionConfig
+    ```python
+    import torch
+    from watermark.auto_watermark import AutoWatermark
+    from utils.diffusion_config import DiffusionConfig
+    from diffusers import StableDiffusionPipeline, DPMSolverMultistepScheduler
 
-# Load watermarking algorithm
-mywatermark = AutoWatermark.load(
-    'GS',
-    algorithm_config=f'config/GS.json',
-    diffusion_config=diffusion_config
-)
+    # Device setup
+    device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
-# Generate watermarked image
-watermarked_image = mywatermark.generate_watermarked_media(
-    input_data="A beautiful landscape with a river and mountains"
-)
-
-# Visualize the watermarked image
-watermarked_image.show()
-
-# Detect watermark
-detection_result = mywatermark.detect_watermark_in_media(watermarked_image)
-print(detection_result)
-```
-
-### Visualizing Watermarking Mechanisms
-
-The toolkit includes custom visualization tools that enable clear and insightful views into how different watermarking algorithms operate under various scenarios. These visualizations help demystify the algorithms' mechanisms, making them more understandable for users.
-
-<img src="img/fig2_visualization_mechanism.png" alt="Watermarking Mechanism Visualization" style="zoom:40%;" />
-
-#### Cases for Visualizing Watermarking Mechanism
-
-```python
-from visualize.auto_visualization import AutoVisualizer
-
-# Get data for visualization
-data_for_visualization = mywatermark.get_data_for_visualize(watermarked_image)
-
-# Load Visualizer
-visualizer = AutoVisualizer.load('GS', 
-                                data_for_visualization=data_for_visualization)
-
-# Draw diagrams on Matplotlib canvas
-fig = visualizer.visualize(rows=2, cols=2, 
-                          methods=['draw_watermark_bits', 
-                                  'draw_reconstructed_watermark_bits', 
-                                  'draw_inverted_latents', 
-                                  'draw_inverted_latents_fft'])
-```
-
-### Evaluation Pipelines
-
-#### Cases for Evaluation
-
-1. **Watermark Detection Pipeline**
-
-```python
-from evaluation.dataset import StableDiffusionPromptsDataset
-from evaluation.pipelines.detection import (
-    WatermarkedMediaDetectionPipeline, 
-    UnWatermarkedMediaDetectionPipeline, 
-    DetectionPipelineReturnType
-)
-from evaluation.tools.image_editor import JPEGCompression
-from evaluation.tools.success_rate_calculator import DynamicThresholdSuccessRateCalculator
-
-# Dataset
-my_dataset = StableDiffusionPromptsDataset(max_samples=200)
-
-# Set up detection pipelines
-pipeline1 = WatermarkedMediaDetectionPipeline(
-    dataset=my_dataset,
-    media_editor_list=[JPEGCompression(quality=60)],
-    show_progress=True, 
-    return_type=DetectionPipelineReturnType.SCORES
-)
-
-pipeline2 = UnWatermarkedMediaDetectionPipeline(
-    dataset=my_dataset,
-    media_editor_list=[],
-    show_progress=True, 
-    return_type=DetectionPipelineReturnType.SCORES
-)
-
-# Configure detection parameters
-detection_kwargs = {
-    "num_inference_steps": 50,
-    "guidance_scale": 1.0,
-}
-
-# Calculate success rates
-calculator = DynamicThresholdSuccessRateCalculator(
-    labels=labels, 
-    rule=rules,
-    target_fpr=target_fpr
-)
-
-results = calculator.calculate(
-    pipeline1.evaluate(my_watermark, detection_kwargs=detection_kwargs),
-    pipeline2.evaluate(my_watermark, detection_kwargs=detection_kwargs)
-)
-print(results)
-```
-
-2. **Image Quality Analysis Pipeline**
-
-```python
-from evaluation.dataset import StableDiffusionPromptsDataset, MSCOCODataset
-from evaluation.pipelines.image_quality_analysis import (
-    DirectImageQualityAnalysisPipeline,
-    ReferencedImageQualityAnalysisPipeline,
-    GroupImageQualityAnalysisPipeline,
-    RepeatImageQualityAnalysisPipeline,
-    ComparedImageQualityAnalysisPipeline,
-    QualityPipelineReturnType
-)
-from evaluation.tools.image_quality_analyzer import (
-    NIQECalculator, CLIPScoreCalculator, FIDCalculator, 
-    InceptionScoreCalculator, LPIPSAnalyzer, PSNRAnalyzer
-)
-
-# Different quality metrics examples:
-
-# NIQE (No-Reference Image Quality Evaluator)
-if metric == 'NIQE':
-    my_dataset = StableDiffusionPromptsDataset(max_samples=max_samples)
-    pipeline = DirectImageQualityAnalysisPipeline(
-        dataset=my_dataset,
-        watermarked_image_editor_list=[],
-        unwatermarked_image_editor_list=[],
-        analyzers=[NIQECalculator()],
-        show_progress=True,
-        return_type=QualityPipelineReturnType.MEAN_SCORES
+    # Configure diffusion pipeline
+    scheduler = DPMSolverMultistepScheduler.from_pretrained("model_path", subfolder="scheduler")
+    pipe = StableDiffusionPipeline.from_pretrained("model_path", scheduler=scheduler).to(device)
+    diffusion_config = DiffusionConfig(
+        scheduler=scheduler,
+        pipe=pipe,
+        device=device,
+        image_size=(512, 512),
+        num_inference_steps=50,
+        guidance_scale=7.5,
+        gen_seed=42,
+        inversion_type="ddim"
     )
 
-# CLIP Score
-elif metric == 'CLIP':
-    my_dataset = MSCOCODataset(max_samples=max_samples)
-    pipeline = ReferencedImageQualityAnalysisPipeline(
-        dataset=my_dataset,
-        watermarked_image_editor_list=[],
-        unwatermarked_image_editor_list=[],
-        analyzers=[CLIPScoreCalculator()],
-        unwatermarked_image_source='generated',
-        reference_image_source='natural',
-        show_progress=True,
-        return_type=QualityPipelineReturnType.MEAN_SCORES
+    # Load watermark algorithm
+    watermark = AutoWatermark.load('TR', 
+                                algorithm_config='config/TR.json',
+                                diffusion_config=diffusion_config)
+
+    # Generate watermarked media
+    prompt = "A beautiful sunset over the ocean"
+    watermarked_image = watermark.generate_watermarked_media(prompt)
+    watermarked_image.save("watermarked_image.png")
+
+    # Detect watermark
+    detection_result = watermark.detect_watermark_in_media(watermarked_image)
+    print(f"Watermark detected: {detection_result}")
+    ```
+
+2. **Import markdiffusion library directly in your code without cloning the repository.** The `MarkDiffusion_pypi_demo.ipynb` notebook provides comprehensive examples for using MarkDiffusion via the markdiffusion library——please review it for guidance. Here's a quick example:
+
+    ```python
+    import torch
+    from markdiffusion.watermark import AutoWatermark
+    from markdiffusion.utils import DiffusionConfig
+    from diffusers import StableDiffusionPipeline, DPMSolverMultistepScheduler
+
+    # Device
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    print(f"Using device: {device}")
+
+    # Model path
+    MODEL_PATH = "huanzi05/stable-diffusion-2-1-base"
+
+    # Initialize scheduler and pipeline
+    scheduler = DPMSolverMultistepScheduler.from_pretrained(MODEL_PATH, subfolder="scheduler")
+    pipe = StableDiffusionPipeline.from_pretrained(
+        MODEL_PATH,
+        scheduler=scheduler,
+        torch_dtype=torch.float16 if device == "cuda" else torch.float32,
+        safety_checker=None,
+    ).to(device)
+
+    # Create DiffusionConfig for image generation
+    image_diffusion_config = DiffusionConfig(
+        scheduler=scheduler,
+        pipe=pipe,
+        device=device,
+        image_size=(512, 512),
+        guidance_scale=7.5,
+        num_inference_steps=50,
+        gen_seed=42,
+        inversion_type="ddim"
     )
 
-# FID (Fréchet Inception Distance)
-elif metric == 'FID':
-    my_dataset = MSCOCODataset(max_samples=max_samples)
-    pipeline = GroupImageQualityAnalysisPipeline(
-        dataset=my_dataset,
-        watermarked_image_editor_list=[],
-        unwatermarked_image_editor_list=[],
-        analyzers=[FIDCalculator()],
-        unwatermarked_image_source='generated',
-        reference_image_source='natural',
-        show_progress=True,
-        return_type=QualityPipelineReturnType.MEAN_SCORES
-    )
+    # Load Tree-Ring watermark algorithm
+    tr_watermark = AutoWatermark.load('TR', diffusion_config=image_diffusion_config)
+    print("TR watermark algorithm loaded successfully!")
 
-# IS (Inception Score)
-elif metric == 'IS':
-    my_dataset = StableDiffusionPromptsDataset(max_samples=max_samples)
-    pipeline = GroupImageQualityAnalysisPipeline(
-        dataset=my_dataset,
-        watermarked_image_editor_list=[],
-        unwatermarked_image_editor_list=[],
-        analyzers=[InceptionScoreCalculator()],
-        show_progress=True,
-        return_type=QualityPipelineReturnType.MEAN_SCORES
-    )
+    # Generate watermarked image
+    prompt = "A beautiful landscape with mountains and a river at sunset"
 
-# LPIPS (Learned Perceptual Image Patch Similarity)
-elif metric == 'LPIPS':
-    my_dataset = StableDiffusionPromptsDataset(max_samples=10)
-    pipeline = RepeatImageQualityAnalysisPipeline(
-        dataset=my_dataset,
-        prompt_per_image=20,
-        watermarked_image_editor_list=[],
-        unwatermarked_image_editor_list=[],
-        analyzers=[LPIPSAnalyzer()],
-        show_progress=True,
-        return_type=QualityPipelineReturnType.MEAN_SCORES
-    )
+    watermarked_image = tr_watermark.generate_watermarked_media(input_data=prompt)
 
-# PSNR (Peak Signal-to-Noise Ratio)
-elif metric == 'PSNR':
-    my_dataset = StableDiffusionPromptsDataset(max_samples=max_samples)
-    pipeline = ComparedImageQualityAnalysisPipeline(
-        dataset=my_dataset,
-        watermarked_image_editor_list=[],
-        unwatermarked_image_editor_list=[],
-        analyzers=[PSNRAnalyzer()],
-        show_progress=True,
-        return_type=QualityPipelineReturnType.MEAN_SCORES
-    )
+    # Display the watermarked image
+    watermarked_image.save("watermarked_image.png")
+    print("Watermarked image generated!")
 
-# Load watermark and evaluate
-my_watermark = AutoWatermark.load(
-    f'{algorithm_name}',
-    algorithm_config=f'config/{algorithm_name}.json',
-    diffusion_config=diffusion_config
-)
+    # Detect watermark in the watermarked image
+    detection_result = tr_watermark.detect_watermark_in_media(watermarked_image)
+    print("Watermarked image detection result:")
+    print(detection_result)
+    ```
 
-print(pipeline.evaluate(my_watermark))
-```
-
-3. **Video Quality Analysis Pipeline**
-
-```python
-from evaluation.dataset import VBenchDataset
-from evaluation.pipelines.video_quality_analysis import DirectVideoQualityAnalysisPipeline
-from evaluation.tools.video_quality_analyzer import (
-    SubjectConsistencyAnalyzer,
-    MotionSmoothnessAnalyzer,
-    DynamicDegreeAnalyzer,
-    BackgroundConsistencyAnalyzer,
-    ImagingQualityAnalyzer
-)
-
-# Load VBench dataset
-my_dataset = VBenchDataset(max_samples=200, dimension=dimension)
-
-# Initialize analyzer based on metric
-if metric == 'subject_consistency':
-    analyzer = SubjectConsistencyAnalyzer(device=device)
-elif metric == 'motion_smoothness':
-    analyzer = MotionSmoothnessAnalyzer(device=device)
-elif metric == 'dynamic_degree':
-    analyzer = DynamicDegreeAnalyzer(device=device)
-elif metric == 'background_consistency':
-    analyzer = BackgroundConsistencyAnalyzer(device=device)
-elif metric == 'imaging_quality':
-    analyzer = ImagingQualityAnalyzer(device=device)
-else:
-    raise ValueError(f'Invalid metric: {metric}. Supported metrics: 
-                    subject_consistency, motion_smoothness, dynamic_degree,
-                    background_consistency, imaging_quality')
-
-# Create video quality analysis pipeline
-pipeline = DirectVideoQualityAnalysisPipeline(
-    dataset=my_dataset,
-    watermarked_video_editor_list=[],
-    unwatermarked_video_editor_list=[],
-    watermarked_frame_editor_list=[],
-    unwatermarked_frame_editor_list=[],
-    analyzers=[analyzer],
-    show_progress=True,
-    return_type=QualityPipelineReturnType.MEAN_SCORES
-)
-
-print(pipeline.evaluate(my_watermark))
-```
+## 🛠 Test Modules
+We provide a comprehensive set of test modules to ensure the quality of the code. The module includes 454 unit tests of about 90% code coverage. Please refer to the `test/` directory for more details.
 
 ## Citation
 ```

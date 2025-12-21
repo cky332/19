@@ -4,39 +4,44 @@
 
 # Une Boîte à Outils Open-Source pour le Tatouage Numérique Génératif des Modèles de Diffusion Latente
 
-[![Homepage](https://img.shields.io/badge/Homepage-5F259F?style=for-the-badge&logo=homepage&logoColor=white)](https://generative-watermark.github.io/)
+[![Home](https://img.shields.io/badge/Home-5F259F?style=for-the-badge&logo=homepage&logoColor=white)](https://generative-watermark.github.io/)
 [![Paper](https://img.shields.io/badge/Paper-A42C25?style=for-the-badge&logo=arxiv&logoColor=white)](https://arxiv.org/abs/2509.10569)
-[![HF Models](https://img.shields.io/badge/HF--Models-%23FFD14D?style=for-the-badge&logo=huggingface&logoColor=black)](https://huggingface.co/Generative-Watermark-Toolkits) 
+[![Models](https://img.shields.io/badge/Models-%23FFD14D?style=for-the-badge&logo=huggingface&logoColor=black)](https://huggingface.co/Generative-Watermark-Toolkits) 
+[![Colab](https://img.shields.io/badge/Google--Colab-%23D97700?style=for-the-badge&logo=Google-colab&logoColor=white)](https://colab.research.google.com/drive/1N1C9elDAB5zwF4FxKKYMCqR3eSpCSqAW?usp=sharing) 
+[![DOC](https://img.shields.io/badge/Readthedocs-%2300A89C?style=for-the-badge&logo=readthedocs&logoColor=#8CA1AF)](https://markdiffusion.readthedocs.io) 
+[![PYPI](https://img.shields.io/badge/PYPI-%23193440?style=for-the-badge&logo=pypi&logoColor=#3775A9)](https://pypi.org/project/markdiffusion) 
+[![CONDA-FORGE](https://img.shields.io/badge/Conda--Forge-%23000000?style=for-the-badge&logo=condaforge&logoColor=#FFFFFF)](https://github.com/conda-forge/markdiffusion-feedstock)
+
+
 
 **Versions linguistiques :** [English](README.md) | [中文](README_zh.md) | [Français](README_fr.md) | [Español](README_es.md)
-
 </div>
 
 > 🔥 **En tant que projet récemment publié, nous accueillons les PR !** Si vous avez implémenté un algorithme de tatouage numérique LDM ou si vous êtes intéressé à en contribuer un, nous serions ravis de l'inclure dans MarkDiffusion. Rejoignez notre communauté et aidez à rendre le tatouage numérique génératif plus accessible à tous !
 
 ## Sommaire
-- [Remarques](#-remarques)
 - [Mises à jour](#-mises-à-jour)
-- [Introduction à MarkDiffusion](#introduction-à-markdiffusion)
-  - [Vue d'ensemble](#vue-densemble)
-  - [Caractéristiques clés](#caractéristiques-clés)
-  - [Algorithmes implémentés](#algorithmes-implémentés)
-  - [Module d'évaluation](#module-dévaluation)
-- [Installation](#installation)
-- [Démarrage rapide](#démarrage-rapide)
-- [Comment utiliser la boîte à outils](#comment-utiliser-la-boîte-à-outils)
-  - [Génération et détection de médias tatoués](#génération-et-détection-de-médias-tatoués)
-  - [Visualisation des mécanismes de tatouage](#visualisation-des-mécanismes-de-tatouage)
-  - [Pipelines d'évaluation](#pipelines-dévaluation)
+- [Introduction à MarkDiffusion](#-introduction-à-markdiffusion)
+  - [Vue d'ensemble](#-vue-densemble)
+  - [Caractéristiques clés](#-caractéristiques-clés)
+  - [Algorithmes implémentés](#-algorithmes-implémentés)
+  - [Module d'évaluation](#-module-dévaluation)
+- [Démarrage rapide](#-démarrage-rapide)
+    - [Démo Google Colab](#démo-google-colab)
+    - [Installation](#installation)
+    - [Comment utiliser la boîte à outils](#comment-utiliser-la-boîte-à-outils)
+- [Modules de test](#-modules-de-test)
 - [Citation](#citation)
 
-## ❗❗❗ Remarques
-Au fur et à mesure que le contenu du dépôt MarkDiffusion s'enrichit et que sa taille augmente, nous avons créé un dépôt de stockage de modèles sur Hugging Face appelé [Generative-Watermark-Toolkits](https://huggingface.co/Generative-Watermark-Toolkits) pour faciliter l'utilisation. Ce dépôt contient divers modèles par défaut pour les algorithmes de tatouage numérique qui impliquent des modèles auto-entraînés. Nous avons supprimé les poids des modèles des dossiers `ckpts/` correspondants de ces algorithmes de tatouage dans le dépôt principal. **Lors de l'utilisation du code, veuillez d'abord télécharger les modèles correspondants depuis le dépôt Hugging Face selon les chemins de configuration et les enregistrer dans le répertoire `ckpts/` avant d'exécuter le code.**
 
 ## 🔥 Mises à jour
+🛠 **(2025.12.19)** Ajout d'une suite de tests complète pour toutes les fonctionnalités avec 454 cas de test.
+
+🛠 **(2025.12.10)** Ajout d'un système de tests d'intégration continue utilisant GitHub Actions.
+
 🎯 **(2025.10.10)** Ajout des outils d'attaque d'image *Mask, Overlay, AdaptiveNoiseInjection*, merci à Zheyu Fu pour sa PR !
 
-🎯 **(2025.10.09)** Ajout des outils d'attaque vidéo *VideoCodecAttack, FrameRateAdapter, FrameInterpolationAttack*, merci à Luyang Si pour sa PR !
+🎯 **(2025.10.09)** Ajout des outils d'attaque vidéo *FrameRateAdapter, FrameInterpolationAttack*, merci à Luyang Si pour sa PR !
 
 🎯 **(2025.10.08)** Ajout des analyseurs de qualité d'image *SSIM, BRISQUE, VIF, FSIM*, merci à Huan Wang pour sa PR !
 
@@ -46,27 +51,27 @@ Au fur et à mesure que le contenu du dépôt MarkDiffusion s'enrichit et que sa
 
 ✨ **(2025.9.29)** Ajout de la méthode de tatouage [GaussMarker](https://arxiv.org/abs/2506.11444), merci à Luyang Si pour sa PR !
 
-## Introduction à MarkDiffusion
+## 🔓 Introduction à MarkDiffusion
 
-### Vue d'ensemble
+### 👀 Vue d'ensemble
 
 MarkDiffusion est une boîte à outils Python open-source pour le tatouage numérique génératif des modèles de diffusion latente. Alors que l'utilisation des modèles génératifs basés sur la diffusion s'étend, garantir l'authenticité et l'origine des médias générés devient crucial. MarkDiffusion simplifie l'accès, la compréhension et l'évaluation des technologies de tatouage numérique, les rendant accessibles tant aux chercheurs qu'à la communauté au sens large. *Remarque : si vous êtes intéressé par le tatouage LLM (tatouage de texte), veuillez vous référer à la boîte à outils [MarkLLM](https://github.com/THU-BPM/MarkLLM) de notre groupe.*
 
-La boîte à outils comprend trois composants clés : un cadre d'implémentation unifié pour des intégrations rationalisées d'algorithmes de tatouage et des interfaces conviviales ; une suite de visualisation de mécanismes qui présente intuitivement les motifs de tatouage ajoutés et extraits pour aider à la compréhension du public ; et un module d'évaluation complet offrant des implémentations standard de 24 outils couvrant trois aspects essentiels — détectabilité, robustesse et qualité de sortie, plus 8 pipelines d'évaluation automatisés.
+La boîte à outils comprend trois composants clés : un cadre d'implémentation unifié pour des intégrations rationalisées d'algorithmes de tatouage et des interfaces conviviales ; une suite de visualisation de mécanismes qui présente intuitivement les motifs de tatouage ajoutés et extraits pour aider à la compréhension du public ; et un module d'évaluation complet offrant des implémentations standard de 31 outils couvrant trois aspects essentiels — détectabilité, robustesse et qualité de sortie, plus 6 pipelines d'évaluation automatisés.
 
 <img src="img/fig1_overview.png" alt="MarkDiffusion Overview" style="zoom:50%;" />
 
-### Caractéristiques clés
+### 💍 Caractéristiques clés
 
-- **Cadre d'implémentation unifié :** MarkDiffusion fournit une architecture modulaire prenant en charge huit algorithmes de tatouage d'image/vidéo génératifs de pointe pour les LDM.
+- **Cadre d'implémentation unifié :** MarkDiffusion fournit une architecture modulaire prenant en charge onze algorithmes de tatouage d'image/vidéo génératifs de pointe pour les LDM.
 
 - **Support algorithmique complet :** Implémente actuellement 8 algorithmes de tatouage de deux catégories principales : méthodes basées sur les motifs (Tree-Ring, Ring-ID, ROBIN, WIND) et méthodes basées sur les clés (Gaussian-Shading, PRC, SEAL, VideoShield).
 
 - **Solutions de visualisation :** La boîte à outils comprend des outils de visualisation personnalisés qui permettent des vues claires et perspicaces sur le fonctionnement des différents algorithmes de tatouage dans divers scénarios. Ces visualisations aident à démystifier les mécanismes des algorithmes, les rendant plus compréhensibles pour les utilisateurs.
 
-- **Module d'évaluation :** Avec 20 outils d'évaluation couvrant la détectabilité, la robustesse et l'impact sur la qualité de sortie, MarkDiffusion fournit des capacités d'évaluation complètes. Il comprend 5 pipelines d'évaluation automatisés : Pipeline de détection de tatouage, Pipeline d'analyse de qualité d'image, Pipeline d'analyse de qualité vidéo et outils d'évaluation de robustesse spécialisés.
+- **Module d'évaluation :** Avec 31 outils d'évaluation couvrant la détectabilité, la robustesse et l'impact sur la qualité de sortie, MarkDiffusion fournit des capacités d'évaluation complètes. Il comprend 6 pipelines d'évaluation automatisés : Pipeline de détection de tatouage, Pipeline d'analyse de qualité d'image, Pipeline d'analyse de qualité vidéo et outils d'évaluation de robustesse spécialisés.
 
-### Algorithmes implémentés
+### ✨ Algorithmes implémentés
 
 | **Algorithme** | **Catégorie** | **Cible** | **Référence** |
 |---------------|-------------|------------|---------------|
@@ -82,7 +87,7 @@ La boîte à outils comprend trois composants clés : un cadre d'implémentation
 | VideoShield | Clé | Vidéo | [VideoShield: Regulating Diffusion-based Video Generation Models via Watermarking](https://arxiv.org/abs/2501.14195) |
 | VideoMark | Clé | Vidéo | [VideoMark: A Distortion-Free Robust Watermarking Framework for Video Diffusion Models](https://arxiv.org/abs/2504.16359) |
 
-### Module d'évaluation
+### 🎯 Module d'évaluation
 #### Pipelines d'évaluation
 
 MarkDiffusion prend en charge huit pipelines, deux pour la détection (WatermarkedMediaDetectionPipeline et UnWatermarkedMediaDetectionPipeline), et six pour l'analyse de qualité. Le tableau ci-dessous détaille les pipelines d'analyse de qualité.
@@ -116,7 +121,6 @@ MarkDiffusion prend en charge huit pipelines, deux pour la détection (Watermark
 | MPEG4Compression | Robustesse (Vidéo) | Attaque par compression vidéo MPEG-4, testant la robustesse du tatouage vidéo à la compression | Cadres vidéo compressés |
 | FrameAverage | Robustesse (Vidéo) | Attaque par moyennage de cadres, détruisant les tatouages par moyennage inter-cadres | Cadres vidéo moyennés |
 | FrameSwap | Robustesse (Vidéo) | Attaque par échange de cadres, testant la robustesse en changeant les séquences de cadres | Cadres vidéo échangés |
-| VideoCodecAttack | Robustesse (Vidéo) | Attaque par ré-encodage de codec simulant le transcodage de plateforme (H.264/H.265/VP9/AV1) | Cadres vidéo ré-encodés |
 | FrameRateAdapter | Robustesse (Vidéo) | Attaque par conversion de fréquence d'images qui rééchantillonne les cadres tout en préservant la durée | Séquence de cadres rééchantillonnée |
 | FrameInterpolationAttack | Robustesse (Vidéo) | Attaque par interpolation de cadres insérant des cadres mélangés pour modifier la densité temporelle | Cadres vidéo interpolés |
 | **Analyseurs de qualité d'image** | | | |
@@ -137,326 +141,130 @@ MarkDiffusion prend en charge huit pipelines, deux pour la détection (Watermark
 | DynamicDegreeAnalyzer | Qualité (Vidéo) | Mesurer le niveau dynamique et l'amplitude de changement dans la vidéo | Valeur de degré dynamique |
 | ImagingQualityAnalyzer | Qualité (Vidéo) | Évaluation complète de la qualité d'imagerie vidéo | Score de qualité d'imagerie |
 
-## Installation
+## 🧩 Démarrage rapide
+### Démo Google Colab
+Si vous souhaitez essayer MarkDiffusion sans rien installer, vous pouvez utiliser [Google Colab](https://colab.research.google.com/drive/1N1C9elDAB5zwF4FxKKYMCqR3eSpCSqAW?usp=sharing#scrollTo=-kWt7m9Y3o-G) pour voir comment cela fonctionne.
 
-### Configuration de l'environnement
-
-- Python 3.10+
-- PyTorch
-- Installer les dépendances :
-
+### Installation
+**(Recommandé)** Nous avons publié un package pypi pour MarkDiffusion. Vous pouvez l'installer directement avec pip :
 ```bash
-pip install -r requirements.txt
+conda create -n markdiffusion python=3.11
+conda activate markdiffusion
+pip install markdiffusion[optional]
 ```
 
-*Remarque :* Certains algorithmes peuvent nécessiter des étapes de configuration supplémentaires. Veuillez vous référer à la documentation des algorithmes individuels pour les exigences spécifiques.
-
-## Démarrage rapide
-
-Voici un exemple simple pour vous aider à démarrer avec MarkDiffusion :
-
-```python
-import torch
-from watermark.auto_watermark import AutoWatermark
-from utils.diffusion_config import DiffusionConfig
-from diffusers import StableDiffusionPipeline, DPMSolverMultistepScheduler
-
-# Configuration du périphérique
-device = 'cuda' if torch.cuda.is_available() else 'cpu'
-
-# Configuration du pipeline de diffusion
-scheduler = DPMSolverMultistepScheduler.from_pretrained("model_path", subfolder="scheduler")
-pipe = StableDiffusionPipeline.from_pretrained("model_path", scheduler=scheduler).to(device)
-diffusion_config = DiffusionConfig(
-    scheduler=scheduler,
-    pipe=pipe,
-    device=device,
-    image_size=(512, 512),
-    num_inference_steps=50,
-    guidance_scale=7.5,
-    gen_seed=42,
-    inversion_type="ddim"
-)
-
-# Charger l'algorithme de tatouage
-watermark = AutoWatermark.load('TR', 
-                              algorithm_config='config/TR.json',
-                              diffusion_config=diffusion_config)
-
-# Générer un média tatoué
-prompt = "A beautiful sunset over the ocean"
-watermarked_image = watermark.generate_watermarked_media(prompt)
-
-# Détecter le tatouage
-detection_result = watermark.detect_watermark_in_media(watermarked_image)
-print(f"Watermark detected: {detection_result}")
+(Alternative) Pour les utilisateurs qui sont *restreints uniquement à l'utilisation de l'environnement conda*, nous fournissons également un package conda-forge, qui peut être installé avec les commandes suivantes :
+```bash
+conda create -n markdiffusion python=3.11
+conda activate markdiffusion
+conda config --add channels conda-forge
+conda config --set channel_priority strict
+conda install markdiffusion
 ```
+Cependant, veuillez noter que certaines fonctionnalités avancées nécessitent des packages supplémentaires qui ne sont pas disponibles sur conda et ne peuvent pas être inclus dans la version. Vous devrez les installer séparément si nécessaire.
 
-## Comment utiliser la boîte à outils
+### Comment utiliser la boîte à outils
 
-Nous fournissons de nombreux exemples dans `MarkDiffusion_demo.ipynb`.
+Après l'installation, il existe deux façons d'utiliser MarkDiffusion :
 
-### Génération et détection de médias tatoués
+1. **Cloner le dépôt pour essayer les démos ou l'utiliser pour un développement personnalisé.** Le notebook `MarkDiffusion_demo.ipynb` offre des démonstrations détaillées pour divers cas d'utilisation — veuillez le consulter pour obtenir des conseils. Voici un exemple rapide de génération et de détection d'image tatouée avec l'algorithme TR :
 
-#### Cas de génération et de détection de médias tatoués
 
-```python
-import torch
-from watermark.auto_watermark import AutoWatermark
-from utils.diffusion_config import DiffusionConfig
+    ```python
+    import torch
+    from watermark.auto_watermark import AutoWatermark
+    from utils.diffusion_config import DiffusionConfig
+    from diffusers import StableDiffusionPipeline, DPMSolverMultistepScheduler
 
-# Charger l'algorithme de tatouage
-mywatermark = AutoWatermark.load(
-    'GS',
-    algorithm_config=f'config/GS.json',
-    diffusion_config=diffusion_config
-)
+    # Configuration du périphérique
+    device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
-# Générer une image tatouée
-watermarked_image = mywatermark.generate_watermarked_media(
-    input_data="A beautiful landscape with a river and mountains"
-)
-
-# Visualiser l'image tatouée
-watermarked_image.show()
-
-# Détecter le tatouage
-detection_result = mywatermark.detect_watermark_in_media(watermarked_image)
-print(detection_result)
-```
-
-### Visualisation des mécanismes de tatouage
-
-La boîte à outils comprend des outils de visualisation personnalisés qui permettent des vues claires et perspicaces sur le fonctionnement des différents algorithmes de tatouage dans divers scénarios. Ces visualisations aident à démystifier les mécanismes des algorithmes, les rendant plus compréhensibles pour les utilisateurs.
-
-<img src="img/fig2_visualization_mechanism.png" alt="Watermarking Mechanism Visualization" style="zoom:40%;" />
-
-#### Cas de visualisation du mécanisme de tatouage
-
-```python
-from visualize.auto_visualization import AutoVisualizer
-
-# Obtenir les données pour la visualisation
-data_for_visualization = mywatermark.get_data_for_visualize(watermarked_image)
-
-# Charger le visualiseur
-visualizer = AutoVisualizer.load('GS', 
-                                data_for_visualization=data_for_visualization)
-
-# Dessiner des diagrammes sur le canevas Matplotlib
-fig = visualizer.visualize(rows=2, cols=2, 
-                          methods=['draw_watermark_bits', 
-                                  'draw_reconstructed_watermark_bits', 
-                                  'draw_inverted_latents', 
-                                  'draw_inverted_latents_fft'])
-```
-
-### Pipelines d'évaluation
-
-#### Cas d'évaluation
-
-1. **Pipeline de détection de tatouage**
-
-```python
-from evaluation.dataset import StableDiffusionPromptsDataset
-from evaluation.pipelines.detection import (
-    WatermarkedMediaDetectionPipeline, 
-    UnWatermarkedMediaDetectionPipeline, 
-    DetectionPipelineReturnType
-)
-from evaluation.tools.image_editor import JPEGCompression
-from evaluation.tools.success_rate_calculator import DynamicThresholdSuccessRateCalculator
-
-# Jeu de données
-my_dataset = StableDiffusionPromptsDataset(max_samples=200)
-
-# Configurer les pipelines de détection
-pipeline1 = WatermarkedMediaDetectionPipeline(
-    dataset=my_dataset,
-    media_editor_list=[JPEGCompression(quality=60)],
-    show_progress=True, 
-    return_type=DetectionPipelineReturnType.SCORES
-)
-
-pipeline2 = UnWatermarkedMediaDetectionPipeline(
-    dataset=my_dataset,
-    media_editor_list=[],
-    show_progress=True, 
-    return_type=DetectionPipelineReturnType.SCORES
-)
-
-# Configurer les paramètres de détection
-detection_kwargs = {
-    "num_inference_steps": 50,
-    "guidance_scale": 1.0,
-}
-
-# Calculer les taux de réussite
-calculator = DynamicThresholdSuccessRateCalculator(
-    labels=labels, 
-    rule=rules,
-    target_fpr=target_fpr
-)
-
-results = calculator.calculate(
-    pipeline1.evaluate(my_watermark, detection_kwargs=detection_kwargs),
-    pipeline2.evaluate(my_watermark, detection_kwargs=detection_kwargs)
-)
-print(results)
-```
-
-2. **Pipeline d'analyse de qualité d'image**
-
-```python
-from evaluation.dataset import StableDiffusionPromptsDataset, MSCOCODataset
-from evaluation.pipelines.image_quality_analysis import (
-    DirectImageQualityAnalysisPipeline,
-    ReferencedImageQualityAnalysisPipeline,
-    GroupImageQualityAnalysisPipeline,
-    RepeatImageQualityAnalysisPipeline,
-    ComparedImageQualityAnalysisPipeline,
-    QualityPipelineReturnType
-)
-from evaluation.tools.image_quality_analyzer import (
-    NIQECalculator, CLIPScoreCalculator, FIDCalculator, 
-    InceptionScoreCalculator, LPIPSAnalyzer, PSNRAnalyzer
-)
-
-# Exemples de différentes métriques de qualité :
-
-# NIQE (Évaluateur de qualité d'image naturelle)
-if metric == 'NIQE':
-    my_dataset = StableDiffusionPromptsDataset(max_samples=max_samples)
-    pipeline = DirectImageQualityAnalysisPipeline(
-        dataset=my_dataset,
-        watermarked_image_editor_list=[],
-        unwatermarked_image_editor_list=[],
-        analyzers=[NIQECalculator()],
-        show_progress=True,
-        return_type=QualityPipelineReturnType.MEAN_SCORES
+    # Configuration du pipeline de diffusion
+    scheduler = DPMSolverMultistepScheduler.from_pretrained("model_path", subfolder="scheduler")
+    pipe = StableDiffusionPipeline.from_pretrained("model_path", scheduler=scheduler).to(device)
+    diffusion_config = DiffusionConfig(
+        scheduler=scheduler,
+        pipe=pipe,
+        device=device,
+        image_size=(512, 512),
+        num_inference_steps=50,
+        guidance_scale=7.5,
+        gen_seed=42,
+        inversion_type="ddim"
     )
 
-# Score CLIP
-elif metric == 'CLIP':
-    my_dataset = MSCOCODataset(max_samples=max_samples)
-    pipeline = ReferencedImageQualityAnalysisPipeline(
-        dataset=my_dataset,
-        watermarked_image_editor_list=[],
-        unwatermarked_image_editor_list=[],
-        analyzers=[CLIPScoreCalculator()],
-        unwatermarked_image_source='generated',
-        reference_image_source='natural',
-        show_progress=True,
-        return_type=QualityPipelineReturnType.MEAN_SCORES
+    # Charger l'algorithme de tatouage
+    watermark = AutoWatermark.load('TR', 
+                                algorithm_config='config/TR.json',
+                                diffusion_config=diffusion_config)
+
+    # Générer un média tatoué
+    prompt = "A beautiful sunset over the ocean"
+    watermarked_image = watermark.generate_watermarked_media(prompt)
+    watermarked_image.save("watermarked_image.png")
+
+    # Détecter le tatouage
+    detection_result = watermark.detect_watermark_in_media(watermarked_image)
+    print(f"Watermark detected: {detection_result}")
+    ```
+
+2. **Importer la bibliothèque markdiffusion directement dans votre code sans cloner le dépôt.** Le notebook `MarkDiffusion_pypi_demo.ipynb` fournit des exemples complets pour utiliser MarkDiffusion via la bibliothèque markdiffusion — veuillez le consulter pour obtenir des conseils. Voici un exemple rapide :
+
+    ```python
+    import torch
+    from markdiffusion.watermark import AutoWatermark
+    from markdiffusion.utils import DiffusionConfig
+    from diffusers import StableDiffusionPipeline, DPMSolverMultistepScheduler
+
+    # Périphérique
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    print(f"Using device: {device}")
+
+    # Chemin du modèle
+    MODEL_PATH = "huanzi05/stable-diffusion-2-1-base"
+
+    # Initialiser le planificateur et le pipeline
+    scheduler = DPMSolverMultistepScheduler.from_pretrained(MODEL_PATH, subfolder="scheduler")
+    pipe = StableDiffusionPipeline.from_pretrained(
+        MODEL_PATH,
+        scheduler=scheduler,
+        torch_dtype=torch.float16 if device == "cuda" else torch.float32,
+        safety_checker=None,
+    ).to(device)
+
+    # Créer DiffusionConfig pour la génération d'images
+    image_diffusion_config = DiffusionConfig(
+        scheduler=scheduler,
+        pipe=pipe,
+        device=device,
+        image_size=(512, 512),
+        guidance_scale=7.5,
+        num_inference_steps=50,
+        gen_seed=42,
+        inversion_type="ddim"
     )
 
-# FID (Distance d'Inception de Fréchet)
-elif metric == 'FID':
-    my_dataset = MSCOCODataset(max_samples=max_samples)
-    pipeline = GroupImageQualityAnalysisPipeline(
-        dataset=my_dataset,
-        watermarked_image_editor_list=[],
-        unwatermarked_image_editor_list=[],
-        analyzers=[FIDCalculator()],
-        unwatermarked_image_source='generated',
-        reference_image_source='natural',
-        show_progress=True,
-        return_type=QualityPipelineReturnType.MEAN_SCORES
-    )
+    # Charger l'algorithme de tatouage Tree-Ring
+    tr_watermark = AutoWatermark.load('TR', diffusion_config=image_diffusion_config)
+    print("TR watermark algorithm loaded successfully!")
 
-# IS (Score Inception)
-elif metric == 'IS':
-    my_dataset = StableDiffusionPromptsDataset(max_samples=max_samples)
-    pipeline = GroupImageQualityAnalysisPipeline(
-        dataset=my_dataset,
-        watermarked_image_editor_list=[],
-        unwatermarked_image_editor_list=[],
-        analyzers=[InceptionScoreCalculator()],
-        show_progress=True,
-        return_type=QualityPipelineReturnType.MEAN_SCORES
-    )
+    # Générer une image tatouée
+    prompt = "A beautiful landscape with mountains and a river at sunset"
 
-# LPIPS (Similarité de patch d'image perceptuelle apprise)
-elif metric == 'LPIPS':
-    my_dataset = StableDiffusionPromptsDataset(max_samples=10)
-    pipeline = RepeatImageQualityAnalysisPipeline(
-        dataset=my_dataset,
-        prompt_per_image=20,
-        watermarked_image_editor_list=[],
-        unwatermarked_image_editor_list=[],
-        analyzers=[LPIPSAnalyzer()],
-        show_progress=True,
-        return_type=QualityPipelineReturnType.MEAN_SCORES
-    )
+    watermarked_image = tr_watermark.generate_watermarked_media(input_data=prompt)
 
-# PSNR (Rapport signal sur bruit de crête)
-elif metric == 'PSNR':
-    my_dataset = StableDiffusionPromptsDataset(max_samples=max_samples)
-    pipeline = ComparedImageQualityAnalysisPipeline(
-        dataset=my_dataset,
-        watermarked_image_editor_list=[],
-        unwatermarked_image_editor_list=[],
-        analyzers=[PSNRAnalyzer()],
-        show_progress=True,
-        return_type=QualityPipelineReturnType.MEAN_SCORES
-    )
+    # Afficher l'image tatouée
+    watermarked_image.save("watermarked_image.png")
+    print("Watermarked image generated!")
 
-# Charger le tatouage et évaluer
-my_watermark = AutoWatermark.load(
-    f'{algorithm_name}',
-    algorithm_config=f'config/{algorithm_name}.json',
-    diffusion_config=diffusion_config
-)
+    # Détecter le tatouage dans l'image tatouée
+    detection_result = tr_watermark.detect_watermark_in_media(watermarked_image)
+    print("Watermarked image detection result:")
+    print(detection_result)
+    ```
 
-print(pipeline.evaluate(my_watermark))
-```
-
-3. **Pipeline d'analyse de qualité vidéo**
-
-```python
-from evaluation.dataset import VBenchDataset
-from evaluation.pipelines.video_quality_analysis import DirectVideoQualityAnalysisPipeline
-from evaluation.tools.video_quality_analyzer import (
-    SubjectConsistencyAnalyzer,
-    MotionSmoothnessAnalyzer,
-    DynamicDegreeAnalyzer,
-    BackgroundConsistencyAnalyzer,
-    ImagingQualityAnalyzer
-)
-
-# Charger le jeu de données VBench
-my_dataset = VBenchDataset(max_samples=200, dimension=dimension)
-
-# Initialiser l'analyseur en fonction de la métrique
-if metric == 'subject_consistency':
-    analyzer = SubjectConsistencyAnalyzer(device=device)
-elif metric == 'motion_smoothness':
-    analyzer = MotionSmoothnessAnalyzer(device=device)
-elif metric == 'dynamic_degree':
-    analyzer = DynamicDegreeAnalyzer(device=device)
-elif metric == 'background_consistency':
-    analyzer = BackgroundConsistencyAnalyzer(device=device)
-elif metric == 'imaging_quality':
-    analyzer = ImagingQualityAnalyzer(device=device)
-else:
-    raise ValueError(f'Invalid metric: {metric}. Supported metrics: 
-                    subject_consistency, motion_smoothness, dynamic_degree,
-                    background_consistency, imaging_quality')
-
-# Créer le pipeline d'analyse de qualité vidéo
-pipeline = DirectVideoQualityAnalysisPipeline(
-    dataset=my_dataset,
-    watermarked_video_editor_list=[],
-    unwatermarked_video_editor_list=[],
-    watermarked_frame_editor_list=[],
-    unwatermarked_frame_editor_list=[],
-    analyzers=[analyzer],
-    show_progress=True,
-    return_type=QualityPipelineReturnType.MEAN_SCORES
-)
-
-print(pipeline.evaluate(my_watermark))
-```
+## 🛠 Modules de test
+Nous fournissons un ensemble complet de modules de test pour assurer la qualité du code. Le module comprend 454 tests unitaires avec environ 90% de couverture de code. Veuillez vous référer au répertoire `test/` pour plus de détails.
 
 ## Citation
 ```

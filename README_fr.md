@@ -65,7 +65,7 @@ La boîte à outils comprend trois composants clés : un cadre d'implémentation
 
 - **Cadre d'implémentation unifié :** MarkDiffusion fournit une architecture modulaire prenant en charge onze algorithmes de tatouage d'image/vidéo génératifs de pointe pour les LDM.
 
-- **Support algorithmique complet :** Implémente actuellement 8 algorithmes de tatouage de deux catégories principales : méthodes basées sur les motifs (Tree-Ring, Ring-ID, ROBIN, WIND) et méthodes basées sur les clés (Gaussian-Shading, PRC, SEAL, VideoShield).
+- **Support algorithmique complet :** Implémente actuellement 11 algorithmes de tatouage de deux catégories principales : méthodes basées sur les motifs (Tree-Ring, Ring-ID, ROBIN, WIND, SFW) et méthodes basées sur les clés (Gaussian-Shading, PRC, SEAL, VideoShield, GaussMarker, VideoMark).
 
 - **Solutions de visualisation :** La boîte à outils comprend des outils de visualisation personnalisés qui permettent des vues claires et perspicaces sur le fonctionnement des différents algorithmes de tatouage dans divers scénarios. Ces visualisations aident à démystifier les mécanismes des algorithmes, les rendant plus compréhensibles pour les utilisateurs.
 

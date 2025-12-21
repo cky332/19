@@ -44,7 +44,7 @@ Evaluation and Test Module Changes
 When changes are detected in:
 
 - ``evaluation/`` module
-- ``test/`` or ``tests_ci/`` directories
+- ``tests_ci/`` directories
 
 The system runs fast evaluation tests (``tests_ci/test_pipelines.py``) to verify that the evaluation 
 pipelines and tools function correctly.

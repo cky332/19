@@ -66,7 +66,7 @@ The toolkit comprises three key components: a unified implementation framework f
 
 - **Unified Implementation Framework:** MarkDiffusion provides a modular architecture supporting eleven state-of-the-art generative image/video watermarking algorithms of LDMs.
 
-- **Comprehensive Algorithm Support:** Currently implements 8 watermarking algorithms from two major categories: Pattern-based methods (Tree-Ring, Ring-ID, ROBIN, WIND) and Key-based methods (Gaussian-Shading, PRC, SEAL, VideoShield).
+- **Comprehensive Algorithm Support:** Currently implements 11 watermarking algorithms from two major categories: Pattern-based methods (Tree-Ring, Ring-ID, ROBIN, WIND, SFW) and Key-based methods (Gaussian-Shading, PRC, SEAL, VideoShield, GaussMarker, VideoMark).
 
 - **Visualization Solutions:** The toolkit includes custom visualization tools that enable clear and insightful views into how different watermarking algorithms operate under various scenarios. These visualizations help demystify the algorithms' mechanisms, making them more understandable for users.
 

@@ -4,39 +4,44 @@
 
 # Un Kit de Herramientas de Código Abierto para Marcas de Agua Generativas de Modelos de Difusión Latente
 
-[![Homepage](https://img.shields.io/badge/Homepage-5F259F?style=for-the-badge&logo=homepage&logoColor=white)](https://generative-watermark.github.io/)
+[![Home](https://img.shields.io/badge/Home-5F259F?style=for-the-badge&logo=homepage&logoColor=white)](https://generative-watermark.github.io/)
 [![Paper](https://img.shields.io/badge/Paper-A42C25?style=for-the-badge&logo=arxiv&logoColor=white)](https://arxiv.org/abs/2509.10569)
-[![HF Models](https://img.shields.io/badge/HF--Models-%23FFD14D?style=for-the-badge&logo=huggingface&logoColor=black)](https://huggingface.co/Generative-Watermark-Toolkits) 
+[![Models](https://img.shields.io/badge/Models-%23FFD14D?style=for-the-badge&logo=huggingface&logoColor=black)](https://huggingface.co/Generative-Watermark-Toolkits) 
+[![Colab](https://img.shields.io/badge/Google--Colab-%23D97700?style=for-the-badge&logo=Google-colab&logoColor=white)](https://colab.research.google.com/drive/1N1C9elDAB5zwF4FxKKYMCqR3eSpCSqAW?usp=sharing) 
+[![DOC](https://img.shields.io/badge/Readthedocs-%2300A89C?style=for-the-badge&logo=readthedocs&logoColor=#8CA1AF)](https://markdiffusion.readthedocs.io) 
+[![PYPI](https://img.shields.io/badge/PYPI-%23193440?style=for-the-badge&logo=pypi&logoColor=#3775A9)](https://pypi.org/project/markdiffusion) 
+[![CONDA-FORGE](https://img.shields.io/badge/Conda--Forge-%23000000?style=for-the-badge&logo=condaforge&logoColor=#FFFFFF)](https://github.com/conda-forge/markdiffusion-feedstock)
+
+
 
 **Versiones de idioma:** [English](README.md) | [中文](README_zh.md) | [Français](README_fr.md) | [Español](README_es.md)
-
 </div>
 
 > 🔥 **¡Como un proyecto recién lanzado, damos la bienvenida a PRs!** Si has implementado un algoritmo de marcas de agua LDM o estás interesado en contribuir con uno, nos encantaría incluirlo en MarkDiffusion. ¡Únete a nuestra comunidad y ayuda a hacer las marcas de agua generativas más accesibles para todos!
 
 ## Contenidos
-- [Notas](#-notas)
 - [Actualizaciones](#-actualizaciones)
-- [Introducción a MarkDiffusion](#introducción-a-markdiffusion)
-  - [Descripción general](#descripción-general)
-  - [Características clave](#características-clave)
-  - [Algoritmos implementados](#algoritmos-implementados)
-  - [Módulo de evaluación](#módulo-de-evaluación)
-- [Instalación](#instalación)
-- [Inicio rápido](#inicio-rápido)
-- [Cómo usar el kit de herramientas](#cómo-usar-el-kit-de-herramientas)
-  - [Generación y detección de medios con marcas de agua](#generación-y-detección-de-medios-con-marcas-de-agua)
-  - [Visualización de mecanismos de marcas de agua](#visualización-de-mecanismos-de-marcas-de-agua)
-  - [Pipelines de evaluación](#pipelines-de-evaluación)
+- [Introducción a MarkDiffusion](#-introducción-a-markdiffusion)
+  - [Descripción general](#-descripción-general)
+  - [Características clave](#-características-clave)
+  - [Algoritmos implementados](#-algoritmos-implementados)
+  - [Módulo de evaluación](#-módulo-de-evaluación)
+- [Inicio rápido](#-inicio-rápido)
+    - [Demo de Google Colab](#demo-de-google-colab)
+    - [Instalación](#instalación)
+    - [Cómo usar el kit de herramientas](#cómo-usar-el-kit-de-herramientas)
+- [Módulos de prueba](#-módulos-de-prueba)
 - [Citación](#citación)
 
-## ❗❗❗ Notas
-A medida que el contenido del repositorio MarkDiffusion se vuelve cada vez más rico y su tamaño crece, hemos creado un repositorio de almacenamiento de modelos en Hugging Face llamado [Generative-Watermark-Toolkits](https://huggingface.co/Generative-Watermark-Toolkits) para facilitar su uso. Este repositorio contiene varios modelos predeterminados para algoritmos de marcas de agua que involucran modelos auto-entrenados. Hemos eliminado los pesos de los modelos de las carpetas `ckpts/` correspondientes de estos algoritmos de marcas de agua en el repositorio principal. **Al usar el código, primero descarga los modelos correspondientes del repositorio de Hugging Face según las rutas de configuración y guárdalos en el directorio `ckpts/` antes de ejecutar el código.**
 
 ## 🔥 Actualizaciones
+🛠 **(2025.12.19)** Agregada una suite de pruebas completa para todas las funcionalidades con 454 casos de prueba.
+
+🛠 **(2025.12.10)** Agregado un sistema de pruebas de integración continua usando GitHub Actions.
+
 🎯 **(2025.10.10)** Agregadas herramientas de ataque de imagen *Mask, Overlay, AdaptiveNoiseInjection*, ¡gracias a Zheyu Fu por su PR!
 
-🎯 **(2025.10.09)** Agregadas herramientas de ataque de video *VideoCodecAttack, FrameRateAdapter, FrameInterpolationAttack*, ¡gracias a Luyang Si por su PR!
+🎯 **(2025.10.09)** Agregadas herramientas de ataque de video *FrameRateAdapter, FrameInterpolationAttack*, ¡gracias a Luyang Si por su PR!
 
 🎯 **(2025.10.08)** Agregados analizadores de calidad de imagen *SSIM, BRISQUE, VIF, FSIM*, ¡gracias a Huan Wang por su PR!
 
@@ -46,27 +51,27 @@ A medida que el contenido del repositorio MarkDiffusion se vuelve cada vez más 
 
 ✨ **(2025.9.29)** Agregado el método de marca de agua [GaussMarker](https://arxiv.org/abs/2506.11444), ¡gracias a Luyang Si por su PR!
 
-## Introducción a MarkDiffusion
+## 🔓 Introducción a MarkDiffusion
 
-### Descripción general
+### 👀 Descripción general
 
 MarkDiffusion es un kit de herramientas de Python de código abierto para marcas de agua generativas de modelos de difusión latente. A medida que se expande el uso de modelos generativos basados en difusión, garantizar la autenticidad y el origen de los medios generados se vuelve crítico. MarkDiffusion simplifica el acceso, la comprensión y la evaluación de tecnologías de marcas de agua, haciéndolo accesible tanto para investigadores como para la comunidad en general. *Nota: si estás interesado en marcas de agua LLM (marca de agua de texto), consulta el kit de herramientas [MarkLLM](https://github.com/THU-BPM/MarkLLM) de nuestro grupo.*
 
-El kit de herramientas comprende tres componentes clave: un marco de implementación unificado para integraciones simplificadas de algoritmos de marcas de agua e interfaces fáciles de usar; un conjunto de visualización de mecanismos que muestra intuitivamente los patrones de marcas de agua agregados y extraídos para ayudar a la comprensión pública; y un módulo de evaluación integral que ofrece implementaciones estándar de 24 herramientas en tres aspectos esenciales: detectabilidad, robustez y calidad de salida, además de 8 pipelines de evaluación automatizados.
+El kit de herramientas comprende tres componentes clave: un marco de implementación unificado para integraciones simplificadas de algoritmos de marcas de agua e interfaces fáciles de usar; un conjunto de visualización de mecanismos que muestra intuitivamente los patrones de marcas de agua agregados y extraídos para ayudar a la comprensión pública; y un módulo de evaluación integral que ofrece implementaciones estándar de 31 herramientas en tres aspectos esenciales: detectabilidad, robustez y calidad de salida, además de 6 pipelines de evaluación automatizados.
 
 <img src="img/fig1_overview.png" alt="MarkDiffusion Overview" style="zoom:50%;" />
 
-### Características clave
+### 💍 Características clave
 
-- **Marco de implementación unificado:** MarkDiffusion proporciona una arquitectura modular que admite ocho algoritmos de marcas de agua generativas de imagen/video de última generación para LDMs.
+- **Marco de implementación unificado:** MarkDiffusion proporciona una arquitectura modular que admite once algoritmos de marcas de agua generativas de imagen/video de última generación para LDMs.
 
 - **Soporte integral de algoritmos:** Actualmente implementa 8 algoritmos de marcas de agua de dos categorías principales: métodos basados en patrones (Tree-Ring, Ring-ID, ROBIN, WIND) y métodos basados en claves (Gaussian-Shading, PRC, SEAL, VideoShield).
 
 - **Soluciones de visualización:** El kit de herramientas incluye herramientas de visualización personalizadas que permiten vistas claras y perspicaces sobre cómo operan los diferentes algoritmos de marcas de agua en varios escenarios. Estas visualizaciones ayudan a desmitificar los mecanismos de los algoritmos, haciéndolos más comprensibles para los usuarios.
 
-- **Módulo de evaluación:** Con 20 herramientas de evaluación que cubren detectabilidad, robustez e impacto en la calidad de salida, MarkDiffusion proporciona capacidades de evaluación integral. Cuenta con 5 pipelines de evaluación automatizados: Pipeline de detección de marcas de agua, Pipeline de análisis de calidad de imagen, Pipeline de análisis de calidad de video y herramientas especializadas de evaluación de robustez.
+- **Módulo de evaluación:** Con 31 herramientas de evaluación que cubren detectabilidad, robustez e impacto en la calidad de salida, MarkDiffusion proporciona capacidades de evaluación integral. Cuenta con 6 pipelines de evaluación automatizados: Pipeline de detección de marcas de agua, Pipeline de análisis de calidad de imagen, Pipeline de análisis de calidad de video y herramientas especializadas de evaluación de robustez.
 
-### Algoritmos implementados
+### ✨ Algoritmos implementados
 
 | **Algoritmo** | **Categoría** | **Objetivo** | **Referencia** |
 |---------------|-------------|------------|---------------|
@@ -82,7 +87,7 @@ El kit de herramientas comprende tres componentes clave: un marco de implementac
 | VideoShield | Clave | Video | [VideoShield: Regulating Diffusion-based Video Generation Models via Watermarking](https://arxiv.org/abs/2501.14195) |
 | VideoMark | Clave | Video | [VideoMark: A Distortion-Free Robust Watermarking Framework for Video Diffusion Models](https://arxiv.org/abs/2504.16359) |
 
-### Módulo de evaluación
+### 🎯 Módulo de evaluación
 #### Pipelines de evaluación
 
 MarkDiffusion admite ocho pipelines, dos para detección (WatermarkedMediaDetectionPipeline y UnWatermarkedMediaDetectionPipeline), y seis para análisis de calidad. La tabla a continuación detalla los pipelines de análisis de calidad.
@@ -116,7 +121,6 @@ MarkDiffusion admite ocho pipelines, dos para detección (WatermarkedMediaDetect
 | MPEG4Compression | Robustez (Video) | Ataque de compresión de video MPEG-4, probando la robustez de compresión de marca de agua de video | Fotogramas de video comprimidos |
 | FrameAverage | Robustez (Video) | Ataque de promedio de fotogramas, destruyendo marcas de agua a través del promedio entre fotogramas | Fotogramas de video promediados |
 | FrameSwap | Robustez (Video) | Ataque de intercambio de fotogramas, probando la robustez cambiando secuencias de fotogramas | Fotogramas de video intercambiados |
-| VideoCodecAttack | Robustez (Video) | Ataque de recodificación de códec simulando transcodificación de plataforma (H.264/H.265/VP9/AV1) | Fotogramas de video recodificados |
 | FrameRateAdapter | Robustez (Video) | Ataque de conversión de velocidad de fotogramas que remuestrea fotogramas preservando la duración | Secuencia de fotogramas remuestreada |
 | FrameInterpolationAttack | Robustez (Video) | Ataque de interpolación de fotogramas insertando fotogramas mezclados para alterar la densidad temporal | Fotogramas de video interpolados |
 | **Analizadores de calidad de imagen** | | | |
@@ -137,326 +141,130 @@ MarkDiffusion admite ocho pipelines, dos para detección (WatermarkedMediaDetect
 | DynamicDegreeAnalyzer | Calidad (Video) | Medir nivel dinámico y magnitud de cambio en video | Valor de grado dinámico |
 | ImagingQualityAnalyzer | Calidad (Video) | Evaluación integral de calidad de imagen de video | Puntuación de calidad de imagen |
 
-## Instalación
+## 🧩 Inicio rápido
+### Demo de Google Colab
+Si deseas probar MarkDiffusion sin instalar nada, puedes usar [Google Colab](https://colab.research.google.com/drive/1N1C9elDAB5zwF4FxKKYMCqR3eSpCSqAW?usp=sharing#scrollTo=-kWt7m9Y3o-G) para ver cómo funciona.
 
-### Configuración del entorno
-
-- Python 3.10+
-- PyTorch
-- Instalar dependencias:
-
+### Instalación
+**(Recomendado)** Hemos publicado un paquete pypi para MarkDiffusion. Puedes instalarlo directamente con pip:
 ```bash
-pip install -r requirements.txt
+conda create -n markdiffusion python=3.11
+conda activate markdiffusion
+pip install markdiffusion[optional]
 ```
 
-*Nota:* Algunos algoritmos pueden requerir pasos de configuración adicionales. Consulta la documentación de algoritmos individuales para requisitos específicos.
-
-## Inicio rápido
-
-Aquí hay un ejemplo simple para comenzar con MarkDiffusion:
-
-```python
-import torch
-from watermark.auto_watermark import AutoWatermark
-from utils.diffusion_config import DiffusionConfig
-from diffusers import StableDiffusionPipeline, DPMSolverMultistepScheduler
-
-# Configuración del dispositivo
-device = 'cuda' if torch.cuda.is_available() else 'cpu'
-
-# Configurar pipeline de difusión
-scheduler = DPMSolverMultistepScheduler.from_pretrained("model_path", subfolder="scheduler")
-pipe = StableDiffusionPipeline.from_pretrained("model_path", scheduler=scheduler).to(device)
-diffusion_config = DiffusionConfig(
-    scheduler=scheduler,
-    pipe=pipe,
-    device=device,
-    image_size=(512, 512),
-    num_inference_steps=50,
-    guidance_scale=7.5,
-    gen_seed=42,
-    inversion_type="ddim"
-)
-
-# Cargar algoritmo de marca de agua
-watermark = AutoWatermark.load('TR', 
-                              algorithm_config='config/TR.json',
-                              diffusion_config=diffusion_config)
-
-# Generar medios con marca de agua
-prompt = "A beautiful sunset over the ocean"
-watermarked_image = watermark.generate_watermarked_media(prompt)
-
-# Detectar marca de agua
-detection_result = watermark.detect_watermark_in_media(watermarked_image)
-print(f"Watermark detected: {detection_result}")
+(Alternativa) Para usuarios que están *restringidos solo al uso del entorno conda*, también proporcionamos un paquete conda-forge, que se puede instalar con los siguientes comandos:
+```bash
+conda create -n markdiffusion python=3.11
+conda activate markdiffusion
+conda config --add channels conda-forge
+conda config --set channel_priority strict
+conda install markdiffusion
 ```
+Sin embargo, ten en cuenta que algunas características avanzadas requieren paquetes adicionales que no están disponibles en conda y no se pueden incluir en la versión. Necesitarás instalarlos por separado si es necesario.
 
-## Cómo usar el kit de herramientas
+### Cómo usar el kit de herramientas
 
-Proporcionamos ejemplos extensos en `MarkDiffusion_demo.ipynb`.
+Después de la instalación, hay dos formas de usar MarkDiffusion:
 
-### Generación y detección de medios con marcas de agua
+1. **Clonar el repositorio para probar las demos o usarlo para desarrollo personalizado.** El notebook `MarkDiffusion_demo.ipynb` ofrece demostraciones detalladas para varios casos de uso — por favor revísalo para obtener orientación. Aquí hay un ejemplo rápido de generación y detección de imagen con marca de agua usando el algoritmo TR:
 
-#### Casos para generar y detectar medios con marcas de agua
 
-```python
-import torch
-from watermark.auto_watermark import AutoWatermark
-from utils.diffusion_config import DiffusionConfig
+    ```python
+    import torch
+    from watermark.auto_watermark import AutoWatermark
+    from utils.diffusion_config import DiffusionConfig
+    from diffusers import StableDiffusionPipeline, DPMSolverMultistepScheduler
 
-# Cargar algoritmo de marca de agua
-mywatermark = AutoWatermark.load(
-    'GS',
-    algorithm_config=f'config/GS.json',
-    diffusion_config=diffusion_config
-)
+    # Configuración del dispositivo
+    device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
-# Generar imagen con marca de agua
-watermarked_image = mywatermark.generate_watermarked_media(
-    input_data="A beautiful landscape with a river and mountains"
-)
-
-# Visualizar la imagen con marca de agua
-watermarked_image.show()
-
-# Detectar marca de agua
-detection_result = mywatermark.detect_watermark_in_media(watermarked_image)
-print(detection_result)
-```
-
-### Visualización de mecanismos de marcas de agua
-
-El kit de herramientas incluye herramientas de visualización personalizadas que permiten vistas claras y perspicaces sobre cómo operan los diferentes algoritmos de marcas de agua en varios escenarios. Estas visualizaciones ayudan a desmitificar los mecanismos de los algoritmos, haciéndolos más comprensibles para los usuarios.
-
-<img src="img/fig2_visualization_mechanism.png" alt="Watermarking Mechanism Visualization" style="zoom:40%;" />
-
-#### Casos para visualizar mecanismos de marcas de agua
-
-```python
-from visualize.auto_visualization import AutoVisualizer
-
-# Obtener datos para visualización
-data_for_visualization = mywatermark.get_data_for_visualize(watermarked_image)
-
-# Cargar visualizador
-visualizer = AutoVisualizer.load('GS', 
-                                data_for_visualization=data_for_visualization)
-
-# Dibujar diagramas en el lienzo de Matplotlib
-fig = visualizer.visualize(rows=2, cols=2, 
-                          methods=['draw_watermark_bits', 
-                                  'draw_reconstructed_watermark_bits', 
-                                  'draw_inverted_latents', 
-                                  'draw_inverted_latents_fft'])
-```
-
-### Pipelines de evaluación
-
-#### Casos para evaluación
-
-1. **Pipeline de detección de marcas de agua**
-
-```python
-from evaluation.dataset import StableDiffusionPromptsDataset
-from evaluation.pipelines.detection import (
-    WatermarkedMediaDetectionPipeline, 
-    UnWatermarkedMediaDetectionPipeline, 
-    DetectionPipelineReturnType
-)
-from evaluation.tools.image_editor import JPEGCompression
-from evaluation.tools.success_rate_calculator import DynamicThresholdSuccessRateCalculator
-
-# Conjunto de datos
-my_dataset = StableDiffusionPromptsDataset(max_samples=200)
-
-# Configurar pipelines de detección
-pipeline1 = WatermarkedMediaDetectionPipeline(
-    dataset=my_dataset,
-    media_editor_list=[JPEGCompression(quality=60)],
-    show_progress=True, 
-    return_type=DetectionPipelineReturnType.SCORES
-)
-
-pipeline2 = UnWatermarkedMediaDetectionPipeline(
-    dataset=my_dataset,
-    media_editor_list=[],
-    show_progress=True, 
-    return_type=DetectionPipelineReturnType.SCORES
-)
-
-# Configurar parámetros de detección
-detection_kwargs = {
-    "num_inference_steps": 50,
-    "guidance_scale": 1.0,
-}
-
-# Calcular tasas de éxito
-calculator = DynamicThresholdSuccessRateCalculator(
-    labels=labels, 
-    rule=rules,
-    target_fpr=target_fpr
-)
-
-results = calculator.calculate(
-    pipeline1.evaluate(my_watermark, detection_kwargs=detection_kwargs),
-    pipeline2.evaluate(my_watermark, detection_kwargs=detection_kwargs)
-)
-print(results)
-```
-
-2. **Pipeline de análisis de calidad de imagen**
-
-```python
-from evaluation.dataset import StableDiffusionPromptsDataset, MSCOCODataset
-from evaluation.pipelines.image_quality_analysis import (
-    DirectImageQualityAnalysisPipeline,
-    ReferencedImageQualityAnalysisPipeline,
-    GroupImageQualityAnalysisPipeline,
-    RepeatImageQualityAnalysisPipeline,
-    ComparedImageQualityAnalysisPipeline,
-    QualityPipelineReturnType
-)
-from evaluation.tools.image_quality_analyzer import (
-    NIQECalculator, CLIPScoreCalculator, FIDCalculator, 
-    InceptionScoreCalculator, LPIPSAnalyzer, PSNRAnalyzer
-)
-
-# Ejemplos de diferentes métricas de calidad:
-
-# NIQE (Evaluador de calidad de imagen natural)
-if metric == 'NIQE':
-    my_dataset = StableDiffusionPromptsDataset(max_samples=max_samples)
-    pipeline = DirectImageQualityAnalysisPipeline(
-        dataset=my_dataset,
-        watermarked_image_editor_list=[],
-        unwatermarked_image_editor_list=[],
-        analyzers=[NIQECalculator()],
-        show_progress=True,
-        return_type=QualityPipelineReturnType.MEAN_SCORES
+    # Configurar pipeline de difusión
+    scheduler = DPMSolverMultistepScheduler.from_pretrained("model_path", subfolder="scheduler")
+    pipe = StableDiffusionPipeline.from_pretrained("model_path", scheduler=scheduler).to(device)
+    diffusion_config = DiffusionConfig(
+        scheduler=scheduler,
+        pipe=pipe,
+        device=device,
+        image_size=(512, 512),
+        num_inference_steps=50,
+        guidance_scale=7.5,
+        gen_seed=42,
+        inversion_type="ddim"
     )
 
-# Puntuación CLIP
-elif metric == 'CLIP':
-    my_dataset = MSCOCODataset(max_samples=max_samples)
-    pipeline = ReferencedImageQualityAnalysisPipeline(
-        dataset=my_dataset,
-        watermarked_image_editor_list=[],
-        unwatermarked_image_editor_list=[],
-        analyzers=[CLIPScoreCalculator()],
-        unwatermarked_image_source='generated',
-        reference_image_source='natural',
-        show_progress=True,
-        return_type=QualityPipelineReturnType.MEAN_SCORES
+    # Cargar algoritmo de marca de agua
+    watermark = AutoWatermark.load('TR', 
+                                algorithm_config='config/TR.json',
+                                diffusion_config=diffusion_config)
+
+    # Generar medios con marca de agua
+    prompt = "A beautiful sunset over the ocean"
+    watermarked_image = watermark.generate_watermarked_media(prompt)
+    watermarked_image.save("watermarked_image.png")
+
+    # Detectar marca de agua
+    detection_result = watermark.detect_watermark_in_media(watermarked_image)
+    print(f"Watermark detected: {detection_result}")
+    ```
+
+2. **Importar la biblioteca markdiffusion directamente en tu código sin clonar el repositorio.** El notebook `MarkDiffusion_pypi_demo.ipynb` proporciona ejemplos completos para usar MarkDiffusion a través de la biblioteca markdiffusion — por favor revísalo para obtener orientación. Aquí hay un ejemplo rápido:
+
+    ```python
+    import torch
+    from markdiffusion.watermark import AutoWatermark
+    from markdiffusion.utils import DiffusionConfig
+    from diffusers import StableDiffusionPipeline, DPMSolverMultistepScheduler
+
+    # Dispositivo
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    print(f"Using device: {device}")
+
+    # Ruta del modelo
+    MODEL_PATH = "huanzi05/stable-diffusion-2-1-base"
+
+    # Inicializar planificador y pipeline
+    scheduler = DPMSolverMultistepScheduler.from_pretrained(MODEL_PATH, subfolder="scheduler")
+    pipe = StableDiffusionPipeline.from_pretrained(
+        MODEL_PATH,
+        scheduler=scheduler,
+        torch_dtype=torch.float16 if device == "cuda" else torch.float32,
+        safety_checker=None,
+    ).to(device)
+
+    # Crear DiffusionConfig para generación de imágenes
+    image_diffusion_config = DiffusionConfig(
+        scheduler=scheduler,
+        pipe=pipe,
+        device=device,
+        image_size=(512, 512),
+        guidance_scale=7.5,
+        num_inference_steps=50,
+        gen_seed=42,
+        inversion_type="ddim"
     )
 
-# FID (Distancia de Inception de Fréchet)
-elif metric == 'FID':
-    my_dataset = MSCOCODataset(max_samples=max_samples)
-    pipeline = GroupImageQualityAnalysisPipeline(
-        dataset=my_dataset,
-        watermarked_image_editor_list=[],
-        unwatermarked_image_editor_list=[],
-        analyzers=[FIDCalculator()],
-        unwatermarked_image_source='generated',
-        reference_image_source='natural',
-        show_progress=True,
-        return_type=QualityPipelineReturnType.MEAN_SCORES
-    )
+    # Cargar algoritmo de marca de agua Tree-Ring
+    tr_watermark = AutoWatermark.load('TR', diffusion_config=image_diffusion_config)
+    print("TR watermark algorithm loaded successfully!")
 
-# IS (Puntuación Inception)
-elif metric == 'IS':
-    my_dataset = StableDiffusionPromptsDataset(max_samples=max_samples)
-    pipeline = GroupImageQualityAnalysisPipeline(
-        dataset=my_dataset,
-        watermarked_image_editor_list=[],
-        unwatermarked_image_editor_list=[],
-        analyzers=[InceptionScoreCalculator()],
-        show_progress=True,
-        return_type=QualityPipelineReturnType.MEAN_SCORES
-    )
+    # Generar imagen con marca de agua
+    prompt = "A beautiful landscape with mountains and a river at sunset"
 
-# LPIPS (Similitud de parche de imagen perceptual aprendida)
-elif metric == 'LPIPS':
-    my_dataset = StableDiffusionPromptsDataset(max_samples=10)
-    pipeline = RepeatImageQualityAnalysisPipeline(
-        dataset=my_dataset,
-        prompt_per_image=20,
-        watermarked_image_editor_list=[],
-        unwatermarked_image_editor_list=[],
-        analyzers=[LPIPSAnalyzer()],
-        show_progress=True,
-        return_type=QualityPipelineReturnType.MEAN_SCORES
-    )
+    watermarked_image = tr_watermark.generate_watermarked_media(input_data=prompt)
 
-# PSNR (Relación señal-ruido de pico)
-elif metric == 'PSNR':
-    my_dataset = StableDiffusionPromptsDataset(max_samples=max_samples)
-    pipeline = ComparedImageQualityAnalysisPipeline(
-        dataset=my_dataset,
-        watermarked_image_editor_list=[],
-        unwatermarked_image_editor_list=[],
-        analyzers=[PSNRAnalyzer()],
-        show_progress=True,
-        return_type=QualityPipelineReturnType.MEAN_SCORES
-    )
+    # Mostrar la imagen con marca de agua
+    watermarked_image.save("watermarked_image.png")
+    print("Watermarked image generated!")
 
-# Cargar marca de agua y evaluar
-my_watermark = AutoWatermark.load(
-    f'{algorithm_name}',
-    algorithm_config=f'config/{algorithm_name}.json',
-    diffusion_config=diffusion_config
-)
+    # Detectar marca de agua en la imagen con marca de agua
+    detection_result = tr_watermark.detect_watermark_in_media(watermarked_image)
+    print("Watermarked image detection result:")
+    print(detection_result)
+    ```
 
-print(pipeline.evaluate(my_watermark))
-```
-
-3. **Pipeline de análisis de calidad de video**
-
-```python
-from evaluation.dataset import VBenchDataset
-from evaluation.pipelines.video_quality_analysis import DirectVideoQualityAnalysisPipeline
-from evaluation.tools.video_quality_analyzer import (
-    SubjectConsistencyAnalyzer,
-    MotionSmoothnessAnalyzer,
-    DynamicDegreeAnalyzer,
-    BackgroundConsistencyAnalyzer,
-    ImagingQualityAnalyzer
-)
-
-# Cargar conjunto de datos VBench
-my_dataset = VBenchDataset(max_samples=200, dimension=dimension)
-
-# Inicializar analizador según métrica
-if metric == 'subject_consistency':
-    analyzer = SubjectConsistencyAnalyzer(device=device)
-elif metric == 'motion_smoothness':
-    analyzer = MotionSmoothnessAnalyzer(device=device)
-elif metric == 'dynamic_degree':
-    analyzer = DynamicDegreeAnalyzer(device=device)
-elif metric == 'background_consistency':
-    analyzer = BackgroundConsistencyAnalyzer(device=device)
-elif metric == 'imaging_quality':
-    analyzer = ImagingQualityAnalyzer(device=device)
-else:
-    raise ValueError(f'Invalid metric: {metric}. Supported metrics: 
-                    subject_consistency, motion_smoothness, dynamic_degree,
-                    background_consistency, imaging_quality')
-
-# Crear pipeline de análisis de calidad de video
-pipeline = DirectVideoQualityAnalysisPipeline(
-    dataset=my_dataset,
-    watermarked_video_editor_list=[],
-    unwatermarked_video_editor_list=[],
-    watermarked_frame_editor_list=[],
-    unwatermarked_frame_editor_list=[],
-    analyzers=[analyzer],
-    show_progress=True,
-    return_type=QualityPipelineReturnType.MEAN_SCORES
-)
-
-print(pipeline.evaluate(my_watermark))
-```
+## 🛠 Módulos de prueba
+Proporcionamos un conjunto completo de módulos de prueba para garantizar la calidad del código. El módulo incluye 454 pruebas unitarias con aproximadamente un 90% de cobertura de código. Consulta el directorio `test/` para más detalles.
 
 ## Citación
 ```

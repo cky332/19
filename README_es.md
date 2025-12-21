@@ -65,7 +65,7 @@ El kit de herramientas comprende tres componentes clave: un marco de implementac
 
 - **Marco de implementación unificado:** MarkDiffusion proporciona una arquitectura modular que admite once algoritmos de marcas de agua generativas de imagen/video de última generación para LDMs.
 
-- **Soporte integral de algoritmos:** Actualmente implementa 8 algoritmos de marcas de agua de dos categorías principales: métodos basados en patrones (Tree-Ring, Ring-ID, ROBIN, WIND) y métodos basados en claves (Gaussian-Shading, PRC, SEAL, VideoShield).
+- **Soporte integral de algoritmos:** Actualmente implementa 11 algoritmos de marcas de agua de dos categorías principales: métodos basados en patrones (Tree-Ring, Ring-ID, ROBIN, WIND, SFW) y métodos basados en claves (Gaussian-Shading, PRC, SEAL, VideoShield, GaussMarker, VideoMark).
 
 - **Soluciones de visualización:** El kit de herramientas incluye herramientas de visualización personalizadas que permiten vistas claras y perspicaces sobre cómo operan los diferentes algoritmos de marcas de agua en varios escenarios. Estas visualizaciones ayudan a desmitificar los mecanismos de los algoritmos, haciéndolos más comprensibles para los usuarios.
 

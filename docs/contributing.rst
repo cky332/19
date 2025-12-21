@@ -89,37 +89,42 @@ Example with type hints:
 Testing
 ~~~~~~~
 
-All new code should include tests:
+All new code should include comprehensive tests. We use pytest for testing.
 
-.. code-block:: python
+.. note::
 
-   import unittest
-   from watermark.auto_watermark import AutoWatermark
-
-   class TestMyFeature(unittest.TestCase):
-       def setUp(self):
-           """Set up test fixtures."""
-           self.watermark = AutoWatermark.load('GS', 'config/GS.json', config)
-       
-       def test_generation(self):
-           """Test watermarked image generation."""
-           image = self.watermark.generate_watermarked_media("Test prompt")
-           self.assertIsNotNone(image)
-           self.assertEqual(image.size, (512, 512))
-       
-       def test_detection(self):
-           """Test watermark detection."""
-           image = self.watermark.generate_watermarked_media("Test prompt")
-           result = self.watermark.detect_watermark_in_media(image)
-           self.assertTrue(result['detected'])
+   For detailed testing instructions, including test structure, markers, and running options, 
+   please refer to the ``test/README.md`` file in the repository.
+   
+   For test code examples, please refer to the existing test files in the ``test/`` directory:
+   
+   - ``test/test_watermark_algorithms.py`` - Watermark algorithm tests
+   - ``test/test_pipelines.py`` - Pipeline tests
+   - ``test/test_image_editor.py`` - Image editing tests
+   - ``test/test_video_editor.py`` - Video editing tests
+   - ``test/test_utils.py`` - Utility function tests
+   - ``test/test_dataset.py`` - Dataset tests
 
 Run tests:
 
 .. code-block:: bash
 
-   python -m pytest test/
-   # Or for specific test
-   python -m pytest test/test_watermark.py::TestMyFeature::test_generation
+   # Install test dependencies
+   pip install -r test/requirements-test.txt
+   
+   # Run all tests with coverage and HTML report
+   pytest test -v --cov=. --cov-report=html --cov-report=term-missing --html=report.html
+   
+   # Test all algorithms
+   pytest test/test_watermark_algorithms.py -v
+   
+   # Test a specific algorithm
+   pytest test/test_watermark_algorithms.py -v --algorithm TR
+   
+   # Test all pipelines
+   pytest test/test_pipelines.py -v
+
+For more test commands and options, see ``test/README.md``.
 
 Contribution Process
 --------------------
@@ -226,31 +231,62 @@ To add a new evaluation tool:
 Submission Checklist
 --------------------
 
-Before submitting your contribution, ensure:
+Before submitting your contribution, please ensure you have completed the following:
+
+Type of Change
+~~~~~~~~~~~~~~
+
+Please indicate the type of your contribution:
+
+- 🐛 **Bug fix** (non-breaking change which fixes an issue)
+- ✨ **New feature** (non-breaking change which adds functionality)
+- 📝 **Documentation update** (changes to documentation only)
+- 💥 **Breaking change** (fix or feature that would cause existing functionality to not work as expected)
+- 🔧 **Refactor/Optimization** (code improvement without changing logic)
+
+Pre-Submission Checklist
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- [ ] I have read and followed the Contributing Guidelines
+- [ ] I have performed a self-review of my own code
+- [ ] My code follows the project's coding style/standards (PEP 8)
+- [ ] I have added/updated necessary comments and documentation
+- [ ] I have added corresponding test cases (if new feature or bug fix)
+- [ ] All local tests pass successfully
 
 **Testing**
 
 .. code-block:: bash
 
-   python -m pytest test/
+   # Install test dependencies
+   pip install -r test/requirements-test.txt
+   
+   # Run all tests with coverage
+   pytest test -v --cov=. --cov-report=html --cov-report=term-missing --html=report.html
+
+For detailed testing instructions, see ``test/README.md``.
 
 **Code Style**
 
 .. code-block:: bash
 
+   # Check code style
    flake8 watermark/ detection/ evaluation/ visualize/
    black --check watermark/ detection/ evaluation/ visualize/
+   
+   # Auto-format code
+   black watermark/ detection/ evaluation/ visualize/
 
 **Documentation**
 
-- Update relevant documentation
-- Add entry to CHANGELOG.md
-- Ensure docstrings are complete
+- Update relevant documentation files
+- Add usage examples where appropriate
+- Ensure all docstrings are complete and follow the project style
 
 **Pull Request**
 
-For the complete pull request process and guidelines, please refer to `contributing.md <../contributing.md>`_ 
-in the repository root.
+For the complete pull request process and guidelines, please refer to the 
+`Contributing Guidelines <../CONTRIBUTING.md>`_ in the repository root.
 
 Additional Information
 ----------------------

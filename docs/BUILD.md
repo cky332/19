@@ -131,11 +131,9 @@ docs/
 │   └── configuration.rst
 ├── api/                  # API reference
 │   ├── watermark.rst
-│   ├── detection.rst
 │   ├── visualization.rst
-│   ├── evaluation.rst
-│   └── utils.rst
-├── changelog.rst         # Changelog
+│   ├── utils.rst
+│   └── evaluation.rst
 ├── contributing.rst      # Contributing guide
 ├── citation.rst          # Citation information
 ├── _static/             # Static files (CSS, images)

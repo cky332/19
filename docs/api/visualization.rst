@@ -1,104 +1,66 @@
 Visualization API
 =================
 
-This page documents the visualization API.
+This page documents the visualization APIs for analyzing watermarking mechanisms.
 
 AutoVisualizer
 --------------
 
-.. autoclass:: visualize.auto_visualization.AutoVisualizer
-   :members:
-   :undoc-members:
-   :show-inheritance:
+The ``AutoVisualizer`` class provides unified visualization for all watermarking algorithms.
 
-Base Visualizer
----------------
+**Key Methods:**
 
-.. autoclass:: visualize.base.BaseVisualizer
-   :members:
-   :undoc-members:
-   :show-inheritance:
+.. py:class:: visualize.auto_visualization.AutoVisualizer
 
-Algorithm-Specific Visualizers
--------------------------------
+   .. py:staticmethod:: load(algorithm_name, data_for_visualization)
+   
+      Load a visualizer for the specified algorithm.
+      
+      :param algorithm_name: Name of the watermarking algorithm (e.g., 'TR', 'GS', 'PRC')
+      :param data_for_visualization: Data obtained from ``get_data_for_visualize()``
+      :return: An AutoVisualizer instance
 
-Tree-Ring Visualizer
-~~~~~~~~~~~~~~~~~~~~
+   .. py:method:: visualize(rows, cols, methods, method_kwargs=None, save_path=None, **kwargs)
+   
+      Generate visualization figures.
+      
+      :param rows: Number of rows in the figure grid
+      :param cols: Number of columns in the figure grid
+      :param methods: List of visualization methods to use
+      :param method_kwargs: List of keyword arguments for each method
+      :param save_path: Path to save the figure (optional)
+      :return: matplotlib figure object
 
-.. automodule:: visualize.tr.tr_visualizer
-   :members:
-   :undoc-members:
-   :show-inheritance:
+**Example Usage:**
 
-Gaussian-Shading Visualizer
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. code-block:: python
 
-.. automodule:: visualize.gs.gs_visualizer
-   :members:
-   :undoc-members:
-   :show-inheritance:
+   from visualize.auto_visualization import AutoVisualizer
+   
+   # Get visualization data from watermark
+   data_for_vis = watermark.get_data_for_visualize(watermarked_image)
+   
+   # Load visualizer
+   visualizer = AutoVisualizer.load('TR', data_for_visualization=data_for_vis)
+   
+   # Create visualization
+   fig = visualizer.visualize(
+       rows=1,
+       cols=5,
+       methods=['draw_pattern_fft', 'draw_orig_latents_fft', 
+                'draw_watermarked_image', 'draw_inverted_latents_fft', 
+                'draw_inverted_pattern_fft'],
+       save_path='visualization.pdf'
+   )
 
-ROBIN Visualizer
-~~~~~~~~~~~~~~~~
+**Available Visualization Methods:**
 
-.. automodule:: visualize.robin.robin_visualizer
-   :members:
-   :undoc-members:
-   :show-inheritance:
+Each algorithm has specific visualization methods. Common methods include:
 
-WIND Visualizer
-~~~~~~~~~~~~~~~
+- ``draw_watermarked_image`` - Display the watermarked image
+- ``draw_orig_latents`` / ``draw_orig_latents_fft`` - Original latent representations
+- ``draw_inverted_latents`` / ``draw_inverted_latents_fft`` - Inverted latent representations
+- Algorithm-specific methods (e.g., ``draw_pattern_fft`` for Tree-Ring, ``draw_watermark_bits`` for Gaussian-Shading)
 
-.. automodule:: visualize.wind.wind_visualizer
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-SFW Visualizer
-~~~~~~~~~~~~~~
-
-.. automodule:: visualize.sfw.sfw_visualizer
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-GaussMarker Visualizer
-~~~~~~~~~~~~~~~~~~~~~~
-
-.. automodule:: visualize.gm.gm_visualizer
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-PRC Visualizer
-~~~~~~~~~~~~~~
-
-.. automodule:: visualize.prc.prc_visualizer
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-SEAL Visualizer
-~~~~~~~~~~~~~~~
-
-.. automodule:: visualize.seal.seal_visualizer
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-VideoShield Visualizer
-~~~~~~~~~~~~~~~~~~~~~~
-
-.. automodule:: visualize.videoshield.video_shield_visualizer
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-VideoMark Visualizer
-~~~~~~~~~~~~~~~~~~~~
-
-.. automodule:: visualize.videomark.video_mark_visualizer
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
+.. note::
+   For detailed visualization examples, see :doc:`../user_guide/visualization`.

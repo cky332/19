@@ -1,17 +1,33 @@
 MarkDiffusion Documentation
 ============================
 
-.. image:: https://img.shields.io/badge/Homepage-5F259F?style=for-the-badge&logo=homepage&logoColor=white
+.. image:: https://img.shields.io/badge/Home-5F259F?style=for-the-badge&logo=homepage&logoColor=white
    :target: https://generative-watermark.github.io/
-   :alt: Homepage
+   :alt: Home
 
 .. image:: https://img.shields.io/badge/Paper-A42C25?style=for-the-badge&logo=arxiv&logoColor=white
    :target: https://arxiv.org/abs/2509.10569
    :alt: Paper
 
-.. image:: https://img.shields.io/badge/HF--Models-%23FFD14D?style=for-the-badge&logo=huggingface&logoColor=black
+.. image:: https://img.shields.io/badge/Models-%23FFD14D?style=for-the-badge&logo=huggingface&logoColor=black
    :target: https://huggingface.co/Generative-Watermark-Toolkits
-   :alt: HF Models
+   :alt: Models
+
+.. image:: https://img.shields.io/badge/Google--Colab-%23D97700?style=for-the-badge&logo=Google-colab&logoColor=white
+   :target: https://colab.research.google.com/drive/1N1C9elDAB5zwF4FxKKYMCqR3eSpCSqAW?usp=sharing
+   :alt: Colab
+
+.. image:: https://img.shields.io/badge/Readthedocs-%2300A89C?style=for-the-badge&logo=readthedocs&logoColor=%238CA1AF
+   :target: https://markdiffusion.readthedocs.io
+   :alt: DOC
+
+.. image:: https://img.shields.io/badge/PYPI-%23193440?style=for-the-badge&logo=pypi&logoColor=%233775A9
+   :target: https://pypi.org/project/markdiffusion
+   :alt: PYPI
+
+.. image:: https://img.shields.io/badge/Conda--Forge-%23000000?style=for-the-badge&logo=condaforge&logoColor=%23FFFFFF
+   :target: https://github.com/conda-forge/markdiffusion-feedstock
+   :alt: CONDA-FORGE
 
 Welcome to MarkDiffusion
 -------------------------
@@ -21,9 +37,6 @@ As the use of diffusion-based generative models expands, ensuring the authentici
 media becomes critical. MarkDiffusion simplifies the access, understanding, and assessment of watermarking 
 technologies, making it accessible to both researchers and the broader community.
 
-.. note::
-   If you are interested in LLM watermarking (text watermark), please refer to the 
-   `MarkLLM <https://github.com/THU-BPM/MarkLLM>`_ toolkit from our group.
 
 Key Features
 ------------
@@ -43,65 +56,36 @@ Key Features
    how different watermarking algorithms operate under various scenarios.
 
 📊 **Comprehensive Evaluation Module**
-   With 24 evaluation tools covering detectability, robustness, and impact on output quality, 
-   MarkDiffusion provides comprehensive assessment capabilities with 8 automated evaluation pipelines.
+   With 31 evaluation tools covering detectability, robustness, and impact on output quality, 
+   MarkDiffusion provides comprehensive assessment capabilities with 6 automated evaluation pipelines.
 
-Quick Example
--------------
+.. image:: ../img/fig1_overview.png
+   :alt: MarkDiffusion Overview
+   :width: 100%
+   :align: center
 
-Here's a simple example to get you started with MarkDiffusion:
 
-.. code-block:: python
+A Quick Example of Generating and Detecting Watermarked Image via MarkDiffusion Toolkit
+---------------
 
-    import torch
-    from watermark.auto_watermark import AutoWatermark
-    from utils.diffusion_config import DiffusionConfig
-    from diffusers import StableDiffusionPipeline, DPMSolverMultistepScheduler
-
-    # Device setup
-    device = 'cuda' if torch.cuda.is_available() else 'cpu'
-
-    # Configure diffusion pipeline
-    scheduler = DPMSolverMultistepScheduler.from_pretrained("model_path", subfolder="scheduler")
-    pipe = StableDiffusionPipeline.from_pretrained("model_path", scheduler=scheduler).to(device)
-    diffusion_config = DiffusionConfig(
-        scheduler=scheduler,
-        pipe=pipe,
-        device=device,
-        image_size=(512, 512),
-        num_inference_steps=50,
-        guidance_scale=7.5,
-        gen_seed=42,
-        inversion_type="ddim"
-    )
-
-    # Load watermark algorithm
-    watermark = AutoWatermark.load('TR', 
-                                  algorithm_config='config/TR.json',
-                                  diffusion_config=diffusion_config)
-
-    # Generate watermarked media
-    prompt = "A beautiful sunset over the ocean"
-    watermarked_image = watermark.generate_watermarked_media(prompt)
-
-    # Detect watermark
-    detection_result = watermark.detect_watermark_in_media(watermarked_image)
-    print(f"Watermark detected: {detection_result}")
+.. image:: ../img/A_Quick_Example.png
+   :alt: A quick example of generating and detecting watermarked image via MarkDiffusion toolkit
+   :width: 100%
+   :align: center
 
 Documentation Contents
 ----------------------
 
 .. toctree::
-   :maxdepth: 2
-   :caption: Getting Started
+   :maxdepth: 1
+   :caption: Quick Start
 
-   installation
    quickstart
-   tutorial
 
 .. toctree::
    :maxdepth: 2
-   :caption: User Guide
+   :caption: Background Information and
+             Detailed Guidance
 
    user_guide/algorithms
    user_guide/watermarking
@@ -113,19 +97,25 @@ Documentation Contents
    :caption: API Reference
 
    api/watermark
-   api/detection
    api/visualization
-   api/evaluation
    api/utils
+   api/evaluation
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Test System
+
+   test_system/ci_cd_test
+   test_system/comprehensive_test
 
 .. toctree::
    :maxdepth: 1
    :caption: Additional Resources
 
-   changelog
    contributing
    code_of_conduct
    citation
+   resources
 
 Indices and tables
 ==================

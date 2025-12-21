@@ -1,101 +1,48 @@
 Watermark API
 =============
 
-This page documents the watermarking API.
+This page documents the core watermarking APIs that users directly interact with.
 
 AutoWatermark
 -------------
 
+The ``AutoWatermark`` class is the primary interface for watermarking operations.
+
 .. autoclass:: watermark.auto_watermark.AutoWatermark
-   :members:
-   :undoc-members:
-   :show-inheritance:
+   :members: load, generate_watermarked_media, generate_unwatermarked_media, detect_watermark_in_media, get_data_for_visualize
 
-Base Watermark
---------------
+**Key Methods:**
 
-.. autoclass:: watermark.base.BaseWatermark
-   :members:
-   :undoc-members:
-   :show-inheritance:
+- ``load(algorithm_name, algorithm_config, diffusion_config)`` - Load a watermarking algorithm
+- ``generate_watermarked_media(input_data, **kwargs)`` - Generate watermarked media (image or video)
+- ``generate_unwatermarked_media(input_data, **kwargs)`` - Generate clean media without watermark
+- ``detect_watermark_in_media(media, **kwargs)`` - Detect watermark in media
+- ``get_data_for_visualize(media, **kwargs)`` - Get data for visualization
 
-Tree-Ring Watermark
--------------------
+**Supported Algorithms:**
 
-.. automodule:: watermark.tr.tr
-   :members:
-   :undoc-members:
-   :show-inheritance:
+- Image watermarks: ``TR``, ``GS``, ``PRC``, ``RI``, ``SEAL``, ``ROBIN``, ``WIND``, ``GM``, ``SFW``
+- Video watermarks: ``VideoShield``, ``VideoMark``
 
-Gaussian-Shading Watermark
---------------------------
+**Example Usage:**
 
-.. automodule:: watermark.gs.gs
-   :members:
-   :undoc-members:
-   :show-inheritance:
+.. code-block:: python
 
-ROBIN Watermark
----------------
+   from watermark.auto_watermark import AutoWatermark
+   from utils.diffusion_config import DiffusionConfig
 
-.. automodule:: watermark.robin.robin
-   :members:
-   :undoc-members:
-   :show-inheritance:
+   # Load a watermark algorithm
+   watermark = AutoWatermark.load('TR', 
+                                  algorithm_config='config/TR.json',
+                                  diffusion_config=diffusion_config)
 
-WIND Watermark
---------------
+   # Generate watermarked image
+   watermarked_image = watermark.generate_watermarked_media("A sunset over mountains")
 
-.. automodule:: watermark.wind.wind
-   :members:
-   :undoc-members:
-   :show-inheritance:
+   # Detect watermark
+   result = watermark.detect_watermark_in_media(watermarked_image)
+   print(result)
 
-SFW Watermark
--------------
-
-.. automodule:: watermark.sfw.sfw
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-GaussMarker
------------
-
-.. automodule:: watermark.gm.gm
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-PRC Watermark
--------------
-
-.. automodule:: watermark.prc.prc
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-SEAL Watermark
---------------
-
-.. automodule:: watermark.seal.seal
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-VideoShield
------------
-
-.. automodule:: watermark.videoshield.video_shield
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-VideoMark
----------
-
-.. automodule:: watermark.videomark.video_mark
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
+.. note::
+   For algorithm-specific implementation details, please refer to the 
+   :doc:`../user_guide/algorithms` page.

@@ -135,3 +135,21 @@
     box-sizing: border-box !important;
 }
 
+/* Remove purple color from visited links */
+.wy-menu-vertical a:visited {
+    color: #404040 !important;
+}
+
+.wy-menu-vertical a:link {
+    color: #404040 !important;
+}
+
+/* Ensure content area links also don't turn purple */
+.wy-nav-content a:visited {
+    color: #2980B9 !important;
+}
+
+.wy-nav-content a:link {
+    color: #2980B9 !important;
+}
+

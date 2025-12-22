@@ -64,14 +64,19 @@ Key Features
    :width: 100%
    :align: center
 
+|
+|
 
 A Quick Example of Generating and Detecting Watermarked Image via MarkDiffusion Toolkit
----------------
+-----------------------------------------------------------------------------------------
 
 .. image:: ../img/A_Quick_Example.png
    :alt: A quick example of generating and detecting watermarked image via MarkDiffusion toolkit
    :width: 100%
    :align: center
+
+|
+|
 
 Documentation Contents
 ----------------------
@@ -84,7 +89,7 @@ Documentation Contents
 
 .. toctree::
    :maxdepth: 2
-   :caption: Background Information and
+   :caption: Background Info &
              Detailed Guidance
 
    user_guide/algorithms

@@ -1,15 +1,14 @@
-Quick Start
-===========
+.. _quickstart:
 
 Google Colab Demo
------------------
+=================
 
 If you're interested in trying out MarkDiffusion without installing anything, you can use 
 `Google Colab <https://colab.research.google.com/drive/1N1C9elDAB5zwF4FxKKYMCqR3eSpCSqAW?usp=sharing>`_ 
 to see how it works.
 
 Installation
-------------
+============
 
 **(Recommended)** We released PyPI package for MarkDiffusion. You can install it directly with pip:
 
@@ -35,7 +34,7 @@ conda-forge package, which can be installed with the following commands:
    be included in the release. You will need to install those separately if necessary.
 
 How to Use the Toolkit
-----------------------
+======================
 
 After installation, there are two ways to use MarkDiffusion:
 
@@ -148,7 +147,7 @@ via the markdiffusion library—please review it for guidance. Here's a quick ex
    print(detection_result)
 
 Next Steps
-----------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Now that you're familiar with the basics, explore more:
 

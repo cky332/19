@@ -55,8 +55,6 @@ Key Features
    With 31 evaluation tools covering detectability, robustness, and impact on output quality, 
    MarkDiffusion provides comprehensive assessment capabilities with 6 automated evaluation pipelines.
 
-|
-
 .. image:: ../img/fig1_overview.png
    :alt: MarkDiffusion Overview
    :width: 100%
@@ -67,8 +65,6 @@ Key Features
 
 A Quick Example of Generating and Detecting Watermarked Image via MarkDiffusion Toolkit
 -----------------------------------------------------------------------------------------
-
-|
 
 .. image:: ../img/A_Quick_Example.png
    :alt: A quick example of generating and detecting watermarked image via MarkDiffusion toolkit
@@ -89,7 +85,8 @@ Documentation Contents
 
 .. toctree::
    :maxdepth: 2
-   :caption: Background & Detailed Guidance
+   :caption: Background Info &
+             Detailed Guidance
 
    user_guide/algorithms
    user_guide/watermarking
@@ -120,4 +117,5 @@ Documentation Contents
    code_of_conduct
    citation
    resources
+
 

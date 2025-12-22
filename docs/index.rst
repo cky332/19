@@ -17,10 +17,6 @@ MarkDiffusion Documentation
    :target: https://colab.research.google.com/drive/1N1C9elDAB5zwF4FxKKYMCqR3eSpCSqAW?usp=sharing
    :alt: Colab
 
-.. image:: https://img.shields.io/badge/Readthedocs-%2300A89C?style=for-the-badge&logo=readthedocs&logoColor=%238CA1AF
-   :target: https://markdiffusion.readthedocs.io
-   :alt: DOC
-
 .. image:: https://img.shields.io/badge/PYPI-%23193440?style=for-the-badge&logo=pypi&logoColor=%233775A9
    :target: https://pypi.org/project/markdiffusion
    :alt: PYPI
@@ -128,4 +124,5 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
+
 

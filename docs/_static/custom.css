@@ -1,0 +1,137 @@
+/* Custom CSS for MarkDiffusion Documentation */
+
+/* Increase sidebar width and ensure no gap */
+.wy-nav-side {
+    width: 350px !important;
+    left: 0 !important;
+}
+
+/* Ensure sidebar top section (purple area) matches width */
+.wy-side-nav-search {
+    width: 350px !important;
+    box-sizing: border-box !important;
+    margin: 0 !important;
+    padding: 1.618em !important;
+}
+
+/* Ensure menu items match sidebar width */
+.wy-menu.wy-menu-vertical {
+    width: 350px !important;
+    box-sizing: border-box !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* Ensure highlighted/current items fill the width */
+.wy-menu-vertical li.current {
+    width: 350px !important;
+}
+
+.wy-menu-vertical li.current > a {
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+/* Hide sidebar scrollbar and prevent it from taking space */
+.wy-side-scroll {
+    overflow-y: scroll !important;
+    scrollbar-width: none !important; /* Firefox */
+    -ms-overflow-style: none !important; /* IE and Edge */
+    width: 100% !important;
+}
+
+.wy-side-scroll::-webkit-scrollbar {
+    display: none !important; /* Chrome, Safari and Opera */
+    width: 0 !important;
+    height: 0 !important;
+}
+
+/* Ensure the navigation container fills the entire sidebar */
+.wy-side-nav-search,
+.wy-menu.wy-menu-vertical {
+    overflow-x: hidden !important;
+}
+
+/* Adjust content area to accommodate wider sidebar */
+.wy-nav-content-wrap {
+    margin-left: 350px !important;
+}
+
+/* Increase max width of content area to use more screen space */
+.wy-nav-content {
+    max-width: 1200px !important;
+}
+
+/* Make the overall page wider on large screens */
+@media screen and (min-width: 1400px) {
+    .wy-nav-side {
+        width: 380px !important;
+        left: 0 !important;
+    }
+    
+    .wy-side-nav-search {
+        width: 380px !important;
+        box-sizing: border-box !important;
+    }
+    
+    .wy-menu.wy-menu-vertical {
+        width: 380px !important;
+        box-sizing: border-box !important;
+    }
+    
+    .wy-menu-vertical li.current {
+        width: 380px !important;
+    }
+    
+    .wy-nav-content-wrap {
+        margin-left: 380px !important;
+    }
+    
+    .wy-nav-content {
+        max-width: 1400px !important;
+    }
+}
+
+/* Ensure sidebar text wraps properly with the increased width */
+.wy-menu-vertical li.toctree-l1 > a,
+.wy-menu-vertical li.toctree-l2 > a,
+.wy-menu-vertical li.toctree-l3 > a {
+    white-space: normal !important;
+    line-height: 1.4 !important;
+    padding: 0.4045em 1.618em !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+/* Add slight padding to long navigation items */
+.wy-menu-vertical li.current > a {
+    padding: 0.4045em 1.618em !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+/* Ensure all list items fill the width */
+.wy-menu-vertical li {
+    width: 100% !important;
+}
+
+/* Ensure current item background fills the width */
+.wy-menu-vertical li.current > a,
+.wy-menu-vertical li.on a,
+.wy-menu-vertical li.current > a:hover,
+.wy-menu-vertical li.on a:hover {
+    background: #e3e3e3 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+/* Ensure nested menu items also fill width */
+.wy-menu-vertical ul {
+    width: 100% !important;
+}
+
+.wy-menu-vertical ul li a {
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+

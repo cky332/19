@@ -7,8 +7,8 @@ This comprehensive test module is located in the ``test/`` directory.
 Test Coverage Statistics
 ------------------------
 
-- **Total Test Cases**: 454 unit tests
-- **Code Coverage**: Approximately 90%
+- **Total Test Cases**: 658 unit tests
+- **Code Coverage**: Approximately 95%
 - **Coverage Scope**: Nearly all functional modules
 - **Uncovered Code**: Primarily exception handling and edge case logic
 
@@ -19,8 +19,6 @@ Test Structure
 
 The test suite is organized into several test files:
 
-Core Functionality Tests
-~~~~~~~~~~~~~~~~~~~~~~~~
 
 **test_watermark_algorithms.py**
    Tests for initialization, generation, detection, inversion, and visualization of all watermark algorithms.
@@ -30,9 +28,6 @@ Core Functionality Tests
 
 **test_dataset.py**
    Tests for dataset classes (StableDiffusionPromptsDataset, MSCOCODataset, VBenchDataset).
-
-Utility and Module Tests
-~~~~~~~~~~~~~~~~~~~~~~~~~
 
 **test_utils.py**
    Tests for utility functions used throughout the toolkit.
@@ -45,6 +40,9 @@ Utility and Module Tests
 
 **test_video_editor.py**
    Tests for video editing modules.
+
+**test_edge_cases.py**
+   Tests for some edge cases.
 
 Running the Tests
 -----------------

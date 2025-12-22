@@ -17,10 +17,6 @@ MarkDiffusion Documentation
    :target: https://colab.research.google.com/drive/1N1C9elDAB5zwF4FxKKYMCqR3eSpCSqAW?usp=sharing
    :alt: Colab
 
-.. image:: https://img.shields.io/badge/Readthedocs-%2300A89C?style=for-the-badge&logo=readthedocs&logoColor=%238CA1AF
-   :target: https://markdiffusion.readthedocs.io
-   :alt: DOC
-
 .. image:: https://img.shields.io/badge/PYPI-%23193440?style=for-the-badge&logo=pypi&logoColor=%233775A9
    :target: https://pypi.org/project/markdiffusion
    :alt: PYPI
@@ -64,14 +60,19 @@ Key Features
    :width: 100%
    :align: center
 
+|
+|
 
 A Quick Example of Generating and Detecting Watermarked Image via MarkDiffusion Toolkit
----------------
+-----------------------------------------------------------------------------------------
 
 .. image:: ../img/A_Quick_Example.png
    :alt: A quick example of generating and detecting watermarked image via MarkDiffusion toolkit
    :width: 100%
    :align: center
+
+|
+|
 
 Documentation Contents
 ----------------------
@@ -84,7 +85,7 @@ Documentation Contents
 
 .. toctree::
    :maxdepth: 2
-   :caption: Background Information and
+   :caption: Background Info &
              Detailed Guidance
 
    user_guide/algorithms
@@ -117,10 +118,4 @@ Documentation Contents
    citation
    resources
 
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
 

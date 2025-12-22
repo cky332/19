@@ -35,7 +35,7 @@
 
 
 ## 🔥 Mises à jour
-🛠 **(2025.12.19)** Ajout d'une suite de tests complète pour toutes les fonctionnalités avec 454 cas de test.
+🛠 **(2025.12.19)** Ajout d'une suite de tests complète pour toutes les fonctionnalités avec 658 cas de test.
 
 🛠 **(2025.12.10)** Ajout d'un système de tests d'intégration continue utilisant GitHub Actions.
 
@@ -264,7 +264,7 @@ Après l'installation, il existe deux façons d'utiliser MarkDiffusion :
     ```
 
 ## 🛠 Modules de test
-Nous fournissons un ensemble complet de modules de test pour assurer la qualité du code. Le module comprend 454 tests unitaires avec environ 90% de couverture de code. Veuillez vous référer au répertoire `test/` pour plus de détails.
+Nous fournissons un ensemble complet de modules de test pour assurer la qualité du code. Le module comprend 658 tests unitaires avec environ 95% de couverture de code. Veuillez vous référer au répertoire `test/` pour plus de détails.
 
 ## Citation
 ```

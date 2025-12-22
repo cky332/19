@@ -17,6 +17,7 @@ Usage:
 """
 
 import json
+import types
 import tempfile
 import torch
 import pytest

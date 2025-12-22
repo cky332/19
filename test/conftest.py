@@ -387,6 +387,18 @@ def all_video_quality_analyzers():
         ImagingQualityAnalyzer()
     ]
 
+# orders, so that edge cases are run last
+def pytest_collection_modifyitems(session, config, items):
+    edge = []
+    rest = []
+    for item in items:
+        if "test_edge_cases.py" in item.nodeid:
+            edge.append(item)
+        else:
+            rest.append(item)
+
+    items[:] = rest + edge
+
 
 # Export constants for use in test files
 __all__ = [

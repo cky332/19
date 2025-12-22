@@ -13,6 +13,7 @@ test/
 ├── test_exceptions.py            # Exception classes tests
 ├── test_image_editor.py          # Image editor module tests
 ├── test_video_editor.py          # Video editor module tests
+├── test_edge_cases.py            # Edge cases tests
 ├── conftest.py                   # Pytest configuration and fixtures
 ├── pytest.ini                    # Pytest config file
 ├── requirements-test.txt         # Test dependencies
@@ -77,7 +78,7 @@ Test dependencies include:
 
 Note: 
 - The testing process may require downloading models from Hugging Face. If access is restricted, please set up a proper mirror, such as `export HF_ENDPOINT=https://hf-mirror.com`.
-- This test includes **454 test cases, with approximately 90% code coverage**. The entire testing process is relatively time-consuming and is expected to take around 40 minutes.
+- This test includes **658 test cases, with 95% code coverage**. The entire testing process is relatively time-consuming and is expected to take around 40 minutes.
 
 
 ### 2. Run Tests
@@ -118,6 +119,9 @@ pytest test/test_image_editor.py -v
 
 # Test all video editor modules
 pytest test/test_video_editor.py -v
+
+# Test all edge cases
+pytest test/test_edge_cases.py -v
 ```
 
 ## 🏷️ Test Markers

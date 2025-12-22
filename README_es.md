@@ -35,7 +35,7 @@
 
 
 ## 🔥 Actualizaciones
-🛠 **(2025.12.19)** Agregada una suite de pruebas completa para todas las funcionalidades con 454 casos de prueba.
+🛠 **(2025.12.19)** Agregada una suite de pruebas completa para todas las funcionalidades con 658 casos de prueba.
 
 🛠 **(2025.12.10)** Agregado un sistema de pruebas de integración continua usando GitHub Actions.
 
@@ -264,7 +264,7 @@ Después de la instalación, hay dos formas de usar MarkDiffusion:
     ```
 
 ## 🛠 Módulos de prueba
-Proporcionamos un conjunto completo de módulos de prueba para garantizar la calidad del código. El módulo incluye 454 pruebas unitarias con aproximadamente un 90% de cobertura de código. Consulta el directorio `test/` para más detalles.
+Proporcionamos un conjunto completo de módulos de prueba para garantizar la calidad del código. El módulo incluye 658 pruebas unitarias con aproximadamente un 95% de cobertura de código. Consulta el directorio `test/` para más detalles.
 
 ## Citación
 ```

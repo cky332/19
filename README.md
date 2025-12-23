@@ -265,7 +265,7 @@ After installation, there are two ways to use MarkDiffusion:
     ```
 
 ## 🛠 Test Modules
-We provide a comprehensive set of test modules to ensure the quality of the code. The module includes 658 unit tests of 95% code coverage. Please refer to the `test/` directory for more details.
+We provide a comprehensive set of test modules to ensure the quality of the code. The module includes 658 unit tests of 95% code coverage. Please refer to the `test/` directory for more details. Here are the [full coverage report](https://thu-bpm.github.io/MarkDiffusion/ToReviewers/htmlcov/index.html) and the [result report](https://thu-bpm.github.io/MarkDiffusion/ToReviewers/report.html?sort=result) directly exported via pytest.
 
 ## Citation
 ```

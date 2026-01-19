@@ -3,7 +3,7 @@
 This branch is dedicated to deploying the ToReviewers website to GitHub Pages.
 
 ## Website URL
-https://garyfuzheyu.github.io/MarkDiffusion_final/ToReviewers/
+https://thu-bpm.github.io/MarkDiffusion/ToReviewers/
 
 ## Important Notice
 ⚠️ **DO NOT merge this branch into main**

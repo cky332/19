@@ -15,6 +15,9 @@ To update ToReviewers content:
 git checkout gh-pages
 # Modify files in ToReviewers/ folder
 git add ToReviewers/
+
 git commit -m "Update ToReviewers content"
+
 git push origin gh-pages
+
 GitHub Pages will automatically update within a few minutes.

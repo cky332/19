@@ -1,0 +1,370 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>MarkDiffusion — ToReviewers</title>
+  <meta name="description" content="MarkDiffusion: open-source Python toolkit for generative watermarking of latent diffusion models." />
+  <link rel="stylesheet" href="./style.css" />
+</head>
+
+<body>
+  <header class="site-header">
+    <div class="container">
+      <div class="brand">
+        <div class="brand-title">MarkDiffusion</div>
+        <div class="brand-subtitle">ToReviewers — Website</div>
+      </div>
+
+      <nav class="nav">
+        <a href="#overview">Overview</a>
+        <a href="#features">Key Features</a>
+        <a href="#install">Install & Run</a>
+        <a href="#mloss">MLOSS Mapping</a>
+        <a href="#resources">Resources</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="hero" id="top">
+      <h1>MarkDiffusion Toolkit</h1>
+      <p class="lead">
+        An open-source Python toolkit for <strong>generative watermarking</strong> of latent diffusion models (LDMs),
+        designed to simplify access, understanding, and standardized assessment of watermarking technologies.
+      </p>
+      <div class="hero-actions">
+        <a class="btn primary" href="#install">Get Started</a>
+        <a class="btn" href="#mloss">MLOSS Criteria Mapping</a>
+      </div>
+    </section>
+
+    <section id="overview" class="card">
+      <h2>Overview of MarkDiffusion Toolkit</h2>
+      <p>
+        MarkDiffusion is an open-source Python toolkit for generative watermarking of latent diffusion models.
+        As the use of diffusion-based generative models expands, ensuring the authenticity and origin of generated
+        media becomes critical. MarkDiffusion simplifies the access, understanding, and assessment of watermarking
+        technologies, making it accessible to both researchers and the broader community.
+      </p>
+      <p>
+        Up to date, it unifies <strong>11 state-of-the-art algorithms</strong> into a single framework, provides a
+        comprehensive evaluation module with <strong>31 tools</strong> and <strong>8 automated pipelines</strong> for
+        standardized benchmarking, and includes an intuitive visualization suite to lower the technical barrier.
+        By providing a high-quality, well-documented, and extensible platform, MarkDiffusion promotes reproducible
+        research in the vital area of AI safety, making it an ideal candidate for the JMLR open-source software section.
+      </p>
+    </section>
+
+    <section id="features" class="card">
+      <h2>Key Features</h2>
+
+      <div class="grid">
+        <div class="feature">
+          <h3>Unified Implementation Framework</h3>
+          <p>
+            MarkDiffusion provides a modular architecture supporting eleven state-of-the-art generative
+            image/video watermarking algorithms of LDMs.
+          </p>
+        </div>
+
+        <div class="feature">
+          <h3>Comprehensive Algorithm Support</h3>
+          <p>
+            Implements 11 watermarking algorithms from two major categories:
+            <strong>Pattern-based</strong> (Tree-Ring, Ring-ID, ROBIN, WIND, SFW) and
+            <strong>Key-based</strong> (Gaussian-Shading, PRC, SEAL, VideoShield, GaussMarker, VideoMark).
+          </p>
+        </div>
+
+        <div class="feature">
+          <h3>Visualization Solutions</h3>
+          <p>
+            Custom visualization tools provide clear and insightful views into how different watermarking algorithms
+            operate under various scenarios, helping demystify mechanisms and improve interpretability.
+          </p>
+        </div>
+
+        <div class="feature">
+          <h3>Evaluation Module</h3>
+          <p>
+            With 31 evaluation tools covering detectability, robustness, and impact on output quality, MarkDiffusion
+            offers comprehensive assessment capabilities. It features automated pipelines such as Watermark Detection,
+            Image/Video Quality Analysis, and robustness assessment tools.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section id="install" class="card">
+      <h2>How to Install and Run the Software</h2>
+
+      <h3>Google Colab Demo</h3>
+      <p>
+        If you're interested in trying out MarkDiffusion without installing anything, you can use
+        <a href="https://colab.research.google.com/drive/1N1C9elDAB5zwF4FxKKYMCqR3eSpCSqAW?usp=sharing#scrollTo=-kWt7m9Y3o-G" target="_blank" rel="noreferrer">
+          Google Colab
+        </a>
+        to see how it works.
+      </p>
+
+      <h3>Installation</h3>
+      <p><strong>(Recommended)</strong> Install the PyPI package:</p>
+      <pre><code>conda create -n markdiffusion python=3.11
+conda activate markdiffusion
+pip install markdiffusion[optional]</code></pre>
+
+      <p><strong>(Alternative)</strong> Conda-only users can install from conda-forge:</p>
+      <pre><code>conda create -n markdiffusion python=3.11
+conda activate markdiffusion
+conda config --add channels conda-forge
+conda config --set channel_priority strict
+conda install markdiffusion</code></pre>
+
+      <p class="note">
+        Note: some advanced features require additional packages that are not available on conda and cannot be included
+        in the release; install them separately if needed.
+      </p>
+
+      <h3>How to Use the Toolkit</h3>
+      <p>After installation, there are two ways to use MarkDiffusion:</p>
+
+      <ol>
+        <li>
+          <p>
+            <strong>Clone the repository</strong> to try the demos or use it for custom development.
+            The <code>MarkDiffusion_demo.ipynb</code> notebook provides detailed demonstrations.
+            Quick example (TR algorithm):
+          </p>
+          <pre><code class="language-python">import torch
+from watermark.auto_watermark import AutoWatermark
+from utils.diffusion_config import DiffusionConfig
+from diffusers import StableDiffusionPipeline, DPMSolverMultistepScheduler
+
+# Device setup
+device = 'cuda' if torch.cuda.is_available() else 'cpu'
+
+# Configure diffusion pipeline
+scheduler = DPMSolverMultistepScheduler.from_pretrained("model_path", subfolder="scheduler")
+pipe = StableDiffusionPipeline.from_pretrained("model_path", scheduler=scheduler).to(device)
+diffusion_config = DiffusionConfig(
+    scheduler=scheduler,
+    pipe=pipe,
+    device=device,
+    image_size=(512, 512),
+    num_inference_steps=50,
+    guidance_scale=7.5,
+    gen_seed=42,
+    inversion_type="ddim"
+)
+
+# Load watermark algorithm
+watermark = AutoWatermark.load('TR',
+                            algorithm_config='config/TR.json',
+                            diffusion_config=diffusion_config)
+
+# Generate watermarked media
+prompt = "A beautiful sunset over the ocean"
+watermarked_image = watermark.generate_watermarked_media(prompt)
+watermarked_image.save("watermarked_image.png")
+
+# Detect watermark
+detection_result = watermark.detect_watermark_in_media(watermarked_image)
+print(f"Watermark detected: {detection_result}")</code></pre>
+        </li>
+
+        <li>
+          <p>
+            <strong>Use the PyPI library directly</strong> without cloning the repository.
+            The <code>MarkDiffusion_pypi_demo.ipynb</code> notebook provides examples.
+            Quick example:
+          </p>
+          <pre><code class="language-python">import torch
+from markdiffusion.watermark import AutoWatermark
+from markdiffusion.utils import DiffusionConfig
+from diffusers import StableDiffusionPipeline, DPMSolverMultistepScheduler
+
+# Device
+device = "cuda" if torch.cuda.is_available() else "cpu"
+print(f"Using device: {device}")
+
+# Model path
+MODEL_PATH = "huanzi05/stable-diffusion-2-1-base"
+
+# Initialize scheduler and pipeline
+scheduler = DPMSolverMultistepScheduler.from_pretrained(MODEL_PATH, subfolder="scheduler")
+pipe = StableDiffusionPipeline.from_pretrained(
+    MODEL_PATH,
+    scheduler=scheduler,
+    torch_dtype=torch.float16 if device == "cuda" else torch.float32,
+    safety_checker=None,
+).to(device)
+
+# Create DiffusionConfig for image generation
+image_diffusion_config = DiffusionConfig(
+    scheduler=scheduler,
+    pipe=pipe,
+    device=device,
+    image_size=(512, 512),
+    guidance_scale=7.5,
+    num_inference_steps=50,
+    gen_seed=42,
+    inversion_type="ddim"
+)
+
+# Load Tree-Ring watermark algorithm
+tr_watermark = AutoWatermark.load('TR', diffusion_config=image_diffusion_config)
+print("TR watermark algorithm loaded successfully!")
+
+# Generate watermarked image
+prompt = "A beautiful landscape with mountains and a river at sunset"
+watermarked_image = tr_watermark.generate_watermarked_media(input_data=prompt)
+
+# Save image
+watermarked_image.save("watermarked_image.png")
+print("Watermarked image generated!")
+
+# Detect watermark in the watermarked image
+detection_result = tr_watermark.detect_watermark_in_media(watermarked_image)
+print("Watermarked image detection result:")
+print(detection_result)</code></pre>
+        </li>
+      </ol>
+    </section>
+
+    <section id="mloss" class="card">
+        <h2>Point-by-Point Mapping of MarkDiffusion to the MLOSS Review Criteria</h2>
+      
+        <h3>The impact on the machine learning community</h3>
+        <ul>
+          <li>
+            <strong>The novelty, breadth, and significance of the contribution.</strong>
+            MarkDiffusion is a unified, extensible toolkit for generative watermarking of latent diffusion models,
+            consolidating state-of-the-art algorithms, evaluation, and visualization into a single framework.
+          </li>
+          <li>
+            <strong>Evidence of an active user community.</strong>
+            The repository currently has <strong>177 stars</strong> and is under active development, with continuous updates
+            that add new algorithms and evaluation tools.
+          </li>
+          <li>
+            <strong>The openness of the project.</strong>
+            The project has a <a href="https://github.com/THU-BPM/MarkDiffusion" target="_blank" rel="noreferrer">public Github repository</a>.
+            The project already has issue/PR interactions. To better engage with the community, we have adopted the
+            <strong>Apache-2.0</strong> license and formalized GitHub processes, including a Code of Conduct,
+            contributing guidelines, a security policy, and standardized templates for pull requests and issues.
+          </li>
+          <li>
+            <strong>Comparison to previous related implementations.</strong>
+            For toolkits targeting generative watermarking for LDMs, MarkDiffusion is the first work (pioneering).
+            Comparisons to related works in adjacent areas are provided in the paper's <strong>Appendix C</strong>.
+          </li>
+        </ul>
+      
+        <h3>User documentation</h3>
+        <ul>
+          <li>
+            <strong>Installation instructions.</strong>
+            We provide detailed installation instructions through a multilingual GitHub README and through
+            <a href="https://markdiffusion.readthedocs.io/en/latest/" target="_blank" rel="noreferrer">Read the Docs site</a>.
+            We also released an engineering-standard <a href="https://pypi.org/project/markdiffusion" target="_blank" rel="noreferrer">PyPI package</a>—users can install via
+            <code>pip install markdiffusion</code> without manually setting up dependencies. In addition, we provide a <a href="https://github.com/conda-forge/markdiffusion-feedstock" target="_blank" rel="noreferrer">conda-forge package</a> for conda-only environments.
+          </li>
+          <li>
+            <strong>Tutorials & Non-trival examples.</strong>
+            We provide rich tutorials for new users, including an online <a href="https://colab.research.google.com/drive/1N1C9elDAB5zwF4FxKKYMCqR3eSpCSqAW?usp=sharing" target="_blank" rel="noreferrer">Google Colab demo</a>,
+            and two local Jupyter notebooks (<code>MarkDiffusion_demo.ipynb</code> and <code>MarkDiffusion_pypi_demo.ipynb</code>).
+            These tutorials demonstrate typical use cases: generating watermarked images/videos with supported algorithms,
+            detection, visualization of watermarking mechanisms, and comprehensive evaluation/benchmarking.
+          </li>
+          <li>
+            <strong>Full documentation of the API.</strong>
+            Full documentation of the API is provided on the <a href="https://markdiffusion.readthedocs.io/en/latest/" target="_blank" rel="noreferrer">Read the Docs site</a>.
+          </li>
+        </ul>
+      
+        <h3>Openness to new developers / Ease of contribution / sustainability</h3>
+        <ul>
+          <li>
+            <strong>How easy is it for new contributors to participate / contribute & The quality of the developer documentation.</strong>
+            We provide a “How to contribute” section in <a href="https://markdiffusion.readthedocs.io/en/latest/" target="_blank" rel="noreferrer">Read the Docs site</a> to guide new contributors, and we provide API references to reduce the barrier for extensions and integration.
+          </li>
+          <li>
+            <strong>The clarity of software design..</strong>
+            We present the overall class design of the repository using a use-case diagram in the paper's <strong>Appendix A</strong>.
+          </li>
+        </ul>
+      
+        <h3>Implementation and adoption of software development best practices</h3>
+        <ul>
+          <li>
+            <strong>Extensive unit and integration testing.</strong>
+            We provide extensive unit and integration testing, with <strong>658 unit tests</strong> covering all key functions.
+            Code coverage is <strong>95%</strong>. Here are the <a href="./htmlcov/index.html">coverage report</a> and the <a href="./report.html">result report</a> exported directly via pytest.
+          </li>
+          <li>
+            <strong>Continuous integration and testing.</strong>
+            We provide continuous integration and testing via GitHub Actions. Given the large codebase and tests that involve
+            downloading/loading models, CI dynamically selects the test scope based on changed files to balance rigor and
+            efficiency (core skeleton changes trigger the full algorithm suite; per-algorithm changes trigger targeted tests;
+            evaluation changes trigger evaluation tests).
+          </li>
+          <li>
+            <strong>The breadth of platforms it can be used on.</strong>
+            MarkDiffusion runs on common open-source OS environments (e.g., Linux) and standard Python tooling
+            (pip/conda environments). We provide online <a href="https://colab.research.google.com/drive/1N1C9elDAB5zwF4FxKKYMCqR3eSpCSqAW?usp=sharing" target="_blank" rel="noreferrer">Google Colab demo</a> for quick testing.
+          </li>
+          <li>
+            <strong>The freedom of the code (lack of dependence on proprietary software).</strong>
+            The toolkit is open-source (Apache-2.0) and does not require proprietary software to run.
+          </li>
+        </ul>
+      </section>
+
+      <section id="resources" class="card">
+        <h2>Resource List</h2>
+        <p><strong>Below are key resources provided by our project:</strong></p>
+      
+        <ul>
+          <li>
+            <a href="https://github.com/THU-BPM/MarkDiffusion" target="_blank" rel="noreferrer">Repository</a>
+          </li>
+          <li>
+            <a href="https://pypi.org/project/markdiffusion" target="_blank" rel="noreferrer">PyPI package</a>
+          </li>
+          <li>
+            <a href="https://github.com/conda-forge/markdiffusion-feedstock" target="_blank" rel="noreferrer">conda-forge package</a>
+          </li>
+          <li>
+            <a href="https://markdiffusion.readthedocs.io" target="_blank" rel="noreferrer">Documentation</a>
+            <span class="muted"> (plus the multilingual GitHub READMEs)</span>
+          </li>
+          <li>
+            Tutorials:
+            <a href="https://colab.research.google.com/drive/1N1C9elDAB5zwF4FxKKYMCqR3eSpCSqAW?usp=sharing#scrollTo=-kWt7m9Y3o-G" target="_blank" rel="noreferrer">Google Colab</a>
+            <span class="muted">, plus two rendered notebooks in the repository</span>
+          </li>
+          <li>
+            Test report:
+            <a href="./htmlcov/index.html">coverage report</a>
+            <span class="muted"> and </span>
+            <a href="./report.html">result report</a>
+            <span class="muted"> (update the path if needed)</span>
+          </li>
+        </ul>
+      </section>
+      
+      
+
+    <footer class="footer">
+      <div class="muted">
+        © <span id="year"></span> MarkDiffusion — ToReviewers
+      </div>
+    </footer>
+  </main>
+
+  <script>
+    document.getElementById("year").textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>

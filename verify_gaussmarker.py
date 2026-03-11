@@ -10,6 +10,7 @@ GaussMarker 完整流程验证脚本
 
 import os
 os.environ['CUDA_VISIBLE_DEVICES'] = '0'
+os.environ['HF_ENDPOINT'] = "https://hf-mirror.com"
 
 import torch
 from watermark.auto_watermark import AutoWatermark
@@ -23,7 +24,7 @@ print("=" * 60)
 print("[1/5] 加载 Stable Diffusion 2.1 模型...")
 print("=" * 60)
 
-model_path = "stabilityai/stable-diffusion-2-1-base"
+model_path = "huanzi05/stable-diffusion-2-1-base"
 
 scheduler = DPMSolverMultistepScheduler.from_pretrained(model_path, subfolder="scheduler")
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
